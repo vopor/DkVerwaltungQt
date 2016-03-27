@@ -28,8 +28,6 @@ bool BuchungenSortFilterProxyModel::lessThan(const QModelIndex & source_left, co
         sortCol = source_left.column();
     }
     if((sortCol == DkBuchungen_Datum) || (sortCol == DkBuchungen_vorgemerkt) ){
-        // QDate dateLeft = sourceModel()->data(source_left).toDate();
-        // QDate dateRight = sourceModel()->data(source_right).toDate();
         QString stringLeft = sourceModel()->data(source_left).toString();
         QString stringRight = sourceModel()->data(source_right).toString();
         if(stringLeft.length() && stringRight.length()){
@@ -341,7 +339,12 @@ void MainForm::editBuchung()
     // QModelIndex indexPersonId = personenView->currentIndex();
     QModelIndex indexBuchungId = buchungenSortModel->index(buchungenView->currentIndex().row(), DkBuchungen_BuchungId);
     indexBuchungId = buchungenSortModel->mapToSource(indexBuchungId);
-    QModelIndex indexPersonId; // = personenModel->index(personenView->currentIndex().row(), DkPersonen_PersonId);
+    QModelIndex indexPersonId;
+    bool bAnzeigenPersonenButton = anzeigenPersonenButton->isChecked();
+    bool bPersonenVisible = !bAnzeigenPersonenButton;
+    if(bPersonenVisible){
+        indexPersonId = personenModel->index(personenView->currentIndex().row(), DkPersonen_PersonId);
+    }
     // BuchungForm form(BuchungId, this);
     BuchungForm form(this, personenModel, indexPersonId, buchungenModel, indexBuchungId);
     form.exec();

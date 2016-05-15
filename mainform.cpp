@@ -166,10 +166,15 @@ int MainForm::getPersonId()
 void MainForm::addPerson()
 {
     int row = personenModel->rowCount();
-    // personenModel->beginInsertRow(index, row);
+    // personenModel->beginInsertRows(index, row, row);
+    // personenModel->beginInsertRows(QModelIndex(), row, row);
     bool b = personenModel->insertRow(row);
+    // personenModel->endInsertRows();
+
     QModelIndex index = personenModel->index(row, DkPersonen_PersonId);
-    personenView->setCurrentIndex(index);
+    // noch zu früh
+    // personenView->setCurrentIndex(index);
+
     personenView->edit(index);
     int maxPersonId = getMaxId("DkPersonen", "PersonId") + 1;
     personenModel->setData(index, maxPersonId);
@@ -180,6 +185,7 @@ void MainForm::addPerson()
     PersonForm form(this, personenModel, PersonId);
     form.exec();
     updatePersonenView();
+    personenView->setCurrentIndex(index);
 }
 
 void MainForm::editPerson(){
@@ -497,9 +503,10 @@ void MainForm::createPersonenPanel()
     nameLabel = new QLabel(tr("Name"));
     nameLabel->setBuddy(nameEdit);
 
-    connect(personIdEdit, SIGNAL(editingFinished()), this, SLOT(suchenEditingFinished()));
-    connect(vornameEdit, SIGNAL(editingFinished()), this, SLOT(suchenEditingFinished()));
-    connect(nameEdit, SIGNAL(editingFinished()), this, SLOT(suchenEditingFinished()));
+    // raus wegen Seiteneffekt d.h. Focuswechsel nach Edit-Dialog
+    // connect(personIdEdit, SIGNAL(editingFinished()), this, SLOT(suchenEditingFinished()));
+    // connect(vornameEdit, SIGNAL(editingFinished()), this, SLOT(suchenEditingFinished()));
+    // connect(nameEdit, SIGNAL(editingFinished()), this, SLOT(suchenEditingFinished()));
 
     suchenPersonButton = new QPushButton(tr("Person suchen"));
     filterPersonButton = new QPushButton(tr("Person filtern"));

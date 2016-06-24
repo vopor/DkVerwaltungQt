@@ -130,7 +130,42 @@ void MainForm::updateBuchungenView()
     // evtl. im Dialog disablen, dann PeronIs´d -1 übergeben...
     // editBuchungButton->setEnabled(bPersonenVisible);
 
+    updateBuchungenSummen();
     updateSummen();
+}
+
+void MainForm::updateBuchungenSummen()
+{
+    QString zinsenText = "Summe Zinsen zum " + datumBuchungenDkZinsenEdit->text();
+    summeBuchungenDkZinsenLabel->setText(zinsenText);
+
+    //QString statementDk = "SELECT SUM(Betrag) FROM DkBuchungen";
+    QString statementDk = "SELECT SUM(replace(Betrag,',','.')) FROM DkBuchungen";
+    int PersonId = getPersonId();
+    if((PersonId != -1) && !anzeigenPersonenButton->isChecked()){
+        statementDk += " WHERE PersonId=";
+        statementDk += QString::number(PersonId);
+    }
+    double summeDk = getDoubleValue(statementDk);
+    QString summeDkText = QString::number(summeDk, 'f', 2);
+    summeBuchungenDkEdit->setText(summeDkText);
+
+    // QString statementDkZinsen = "SELECT SUM( Betrag * Zinssatz / 100.0 ) FROM DkBuchungen";
+    QString statementDkZinsen = "SELECT SUM( replace(Betrag,',','.') * replace(Zinssatz,',','.') / 100.0 ) FROM DkBuchungen";
+    if((PersonId != -1) && !anzeigenPersonenButton->isChecked()){
+        statementDkZinsen += " WHERE PersonId=";
+        statementDkZinsen += QString::number(PersonId);
+    }
+    double summeDkZinsen = getDoubleValue(statementDkZinsen);
+    int anzTage = 360;
+    QDate dateTo = QDate::fromString(datumBuchungenDkZinsenEdit->text(), "dd.MM.yy");
+    QDate dateFrom = QDate(dateTo.year(), 1, 1);
+    if(dateFrom.isValid() && dateTo.isValid()){
+        anzTage = qMin((int)dateFrom.daysTo(dateTo), 360);
+    }
+    summeDkZinsen = summeDkZinsen * anzTage / 360;
+    QString summeDkZinsenText = QString::number(summeDkZinsen, 'f', 2);
+    summeBuchungenDkZinsenEdit->setText(summeDkZinsenText);
 }
 
 void MainForm::updatePersonenView()
@@ -395,7 +430,6 @@ void MainForm::updateSummen()
     double summeDkZinsen = getDoubleValue(statementDkZinsen);
     QString summeDkZinsenText = QString::number(summeDkZinsen, 'f', 2);
     summeDkZinsenEdit->setText(summeDkZinsenText);
-
 }
 
 void MainForm::createSummenPanel()
@@ -407,7 +441,7 @@ void MainForm::createSummenPanel()
    summeDkZinsenEdit = new QLineEdit;
    summeDkZinsenEdit->setReadOnly(true);
    summeDkZinsenEdit->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-   summeDkZinsenLabel = new QLabel(tr("Zinsen"));
+   summeDkZinsenLabel = new QLabel(tr("Zinsen zum Jahresende"));
    summeDkZinsenLabel->setBuddy(summeDkZinsenEdit);
 
    summeDkEdit = new QLineEdit;
@@ -462,6 +496,7 @@ void MainForm::toggleAnzeigenPersonen(){
         }
     }
     updateBuchungenView();
+    updateBuchungenSummen();
 }
 
 void MainForm::createAnzeigenPersonenPanel(){
@@ -610,6 +645,26 @@ void MainForm::createBuchungenPanel()
     buchungenLabel = new QLabel(tr("Buchungen"));
     buchungenLabel->setBuddy(buchungenView);
 
+    datumBuchungenDkZinsenLabel = new QLabel("Datum Zinsen");
+    datumBuchungenDkZinsenEdit = new QLineEdit;
+    datumBuchungenDkZinsenEdit->setInputMask("00.00.00;_");
+    connect(datumBuchungenDkZinsenEdit, SIGNAL(editingFinished()), this, SLOT(updateBuchungenSummen()));
+    datumBuchungenDkZinsenEdit->setText(QDate::currentDate().toString("dd.MM.yy"));
+    summeBuchungenDkZinsenLabel = new QLabel("Summe Zinsen");
+    summeBuchungenDkZinsenEdit = new QLineEdit;
+    summeBuchungenDkZinsenEdit->setReadOnly(true);
+    summeBuchungenDkLabel = new QLabel("Summe Direktkredite");
+    summeBuchungenDkEdit = new QLineEdit;
+    summeBuchungenDkEdit->setReadOnly(true);
+
+    QHBoxLayout *hlayout = new QHBoxLayout;
+    hlayout->addWidget(datumBuchungenDkZinsenLabel);
+    hlayout->addWidget(datumBuchungenDkZinsenEdit);
+    hlayout->addWidget(summeBuchungenDkZinsenLabel);
+    hlayout->addWidget(summeBuchungenDkZinsenEdit);
+    hlayout->addWidget(summeBuchungenDkLabel);
+    hlayout->addWidget(summeBuchungenDkEdit);
+
     addBuchungButton = new QPushButton(tr("Buchung hinzufügen"));
     editBuchungButton = new QPushButton(tr("Buchung bearbeiten"));
     deleteBuchungButton = new QPushButton(tr("Buchung löschen"));
@@ -627,6 +682,7 @@ void MainForm::createBuchungenPanel()
     layout->addWidget(buchungenLabel);
     layout->addWidget(vorgemerktCheckBox);
     layout->addWidget(buchungenView);
+    layout->addLayout(hlayout);
     layout->addWidget(buchungButtonBox);
     buchungenPanel->setLayout(layout);
 

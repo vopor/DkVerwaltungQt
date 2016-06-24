@@ -28,6 +28,7 @@ private slots:
 
     void updatePersonenView();
     void updateBuchungenView();
+    void updateBuchungenSummen();
     void updateSummen();
 
     void toggleAnzeigenPersonen();
@@ -97,6 +98,13 @@ private:
     QPushButton *deletePersonButton;
     QDialogButtonBox *personButtonBox;
 
+    QLabel *datumBuchungenDkZinsenLabel;
+    QLineEdit *datumBuchungenDkZinsenEdit;
+    QLabel *summeBuchungenDkZinsenLabel;
+    QLineEdit *summeBuchungenDkZinsenEdit;
+    QLabel *summeBuchungenDkLabel;
+    QLineEdit *summeBuchungenDkEdit;
+
     QPushButton *addBuchungButton;
     QPushButton *editBuchungButton;
     QPushButton *deleteBuchungButton;
@@ -104,7 +112,6 @@ private:
 
     QLabel *summeDkZinsenLabel;
     QLineEdit *summeDkZinsenEdit;
-
     QLabel *summeDkLabel;
     QLineEdit *summeDkEdit;
 

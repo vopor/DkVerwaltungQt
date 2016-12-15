@@ -1,6 +1,7 @@
 #include <QtWidgets>
 #include <QtSql>
 #include <cstdlib>
+#include <locale.h>
 
 #include "mainform.h"
 
@@ -10,6 +11,9 @@ int main(int argc, char *argv[])
 {
     QApplication::setApplicationName("DkVerwaltungQt");
     QApplication::setOrganizationName("MHS");
+
+    setlocale(LC_ALL, "C");
+    QLocale::setDefault(QLocale::c());
 
     QApplication app(argc, argv);
 

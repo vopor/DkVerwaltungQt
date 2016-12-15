@@ -111,6 +111,19 @@ QString getFilePathFromIni(const QString &iniEntry, const QString &filePath, con
     return filePathFromIni;
 }
 
+QString getOpenOfficePath()
+{
+    QString oo;
+#ifdef Q_OS_MAC
+     // oo = "/Applications/OpenOffice.app/Contents/MacOS/soffice";
+    oo = getFilePathFromIni("OOPath", "/Applications/OpenOffice.app/Contents/MacOS/", "soffice");
+#elif Q_OS_WIN
+    // oo = "C:\\Program Files\\OpenOffice 4\\program\\soffice.exe";
+    oo = getFilePathFromIni("OOPath", "C:\\Program Files\\OpenOffice 4\\program\\", "soffice.exe");
+#endif
+    return oo;
+}
+
 //--------------------------------------------------------------
 
 QVariant getVariantValue(const QString &statement)

@@ -268,7 +268,8 @@ void BuchungForm::writeDataForDkBestaetigenBuchung(){
     // QString fileName = "DkVerwaltungQt.tmp";
     // QString dbPath = getSettings().value(QStringLiteral("DBPath")).toString();
     // QString filePath = dbPath + QDir::separator() + fileName; // todo: add current dir
-    QString dbPath = getSettings().value(QStringLiteral("DBPath")).toString();
+    // QString dbPath = getSettings().value(QStringLiteral("DBPath")).toString();
+    QString dbPath = getFilePathFromIni("DBPath", getStandardPath(), "DkVerwaltungQt.db3");
     QString filePath = dbPath.replace(".db3", ".tmp");
     QFile file(filePath);
     if (file.open(QIODevice::WriteOnly | QIODevice::Text)){
@@ -298,14 +299,14 @@ void BuchungForm::dkBestaetigenBuchung()
 {
     writeDataForDkBestaetigenBuchung();
     // /Applications/OpenOffice.app/Contents/MacOS/soffice '/Users/volker/Documents/13ha/DkVerwaltungQt/Vorlage Anschreiben DK-Eingang.ott' 'vnd.sun.star.script:DkVerwaltungQt.Module1.FelderFuellen?language=Basic&location=application'
-    QString oo;
-#ifdef Q_OS_MAC
-     // oo = "/Applications/OpenOffice.app/Contents/MacOS/soffice";
-    oo = getFilePathFromIni("OOPath", "/Applications/OpenOffice.app/Contents/MacOS/", "soffice");
-#elif Q_OS_WIN
-    // oo = "C:\\Program Files\\OpenOffice 4\\program\\soffice.exe";
-    oo = getFilePathFromIni("OOPath", "C:\\Program Files\\OpenOffice 4\\program\\", "soffice.exe");
-#endif
+    QString oo = getOpenOfficePath();
+//#ifdef Q_OS_MAC
+//     // oo = "/Applications/OpenOffice.app/Contents/MacOS/soffice";
+//    oo = getFilePathFromIni("OOPath", "/Applications/OpenOffice.app/Contents/MacOS/", "soffice");
+//#elif Q_OS_WIN
+//    // oo = "C:\\Program Files\\OpenOffice 4\\program\\soffice.exe";
+//    oo = getFilePathFromIni("OOPath", "C:\\Program Files\\OpenOffice 4\\program\\", "soffice.exe");
+//#endif
     if(!oo.length())
         return;
     // QString ott = "/Users/volker/Documents/13ha/DkVerwaltungQt/Vorlage Anschreiben DK-Eingang.ott";

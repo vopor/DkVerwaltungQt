@@ -15,6 +15,7 @@ QString getStandardPath();
 QString getSettingsFile();
 QSettings &getSettings();
 QString getFilePathFromIni(const QString &iniEntry, const QString &filePath, const QString &fileName);
+QString getOpenOfficePath();
 
 QVariant getVariantValue(const QString &statement);
 int getIntValue(const QString &statement);

@@ -9,6 +9,25 @@
 
 #include "dbfkts.h"
 
+#include <QStyledItemDelegate>
+
+class NumberFormatDelegate : public QStyledItemDelegate
+{
+public:
+   explicit NumberFormatDelegate(QObject *parent = 0);
+   virtual QString displayText(const QVariant &value, const QLocale &locale) const;
+};
+
+NumberFormatDelegate::NumberFormatDelegate(QObject *parent) : QStyledItemDelegate(parent)
+{
+}
+
+QString NumberFormatDelegate::displayText(const QVariant &value, const QLocale &locale) const
+{
+    QString formattedNum = locale.toString(value.toDouble(), 'f', 2);
+    return formattedNum;
+}
+
 class BuchungenSortFilterProxyModel : public QSortFilterProxyModel{
 public:
     BuchungenSortFilterProxyModel(QObject * parent);
@@ -54,6 +73,12 @@ MainForm::MainForm()
     splitter->addWidget(buchungenPanel);
     //splitter->addWidget(summenPanel);
 
+    generateJahresDkBestaetigungenButton = new QPushButton(tr("Jahres Dk-Bestätigungen generieren"));
+    QHBoxLayout *hlayout = new QHBoxLayout;
+    // hlayout->setSizeConstraint(QLayout::SetFixedSize);
+    hlayout->addWidget(generateJahresDkBestaetigungenButton);
+    connect(generateJahresDkBestaetigungenButton, SIGNAL(clicked()), this, SLOT(generateJahresDkBestaetigungen()));
+
     quitButton = new QPushButton(tr("Beenden"));
     buttonBox = new QDialogButtonBox;
     buttonBox->addButton(quitButton, QDialogButtonBox::ActionRole);
@@ -63,6 +88,7 @@ MainForm::MainForm()
     mainLayout->addWidget(anzeigenPersonenPanel);
     mainLayout->addWidget(splitter);
     mainLayout->addWidget(summenPanel);
+    mainLayout->addLayout(hlayout);
     mainLayout->addWidget(buttonBox);
     setLayout(mainLayout);
 
@@ -77,6 +103,66 @@ MainForm::MainForm()
     // updateBuchungenView();
     updateSummen();
 
+}
+
+void MainForm::generateJahresDkBestaetigungen()
+{
+    // TODO:
+    // 1. Unterordner in getStandardPath()
+    // 2. Datei pro Person mit allen Buchungen
+    // <PersonId>_<EMail>_<Vorname>_<Name>.txt
+    // 008_Klaus.tetzner@t-online.de_Klaus_Tetzner0.pdf
+    // 3. OO-Aufruf pro Datei pro Person mit allen Buchungen
+    // 4. Evtl. hier einzeln senden oder später alle ( sendDKJAKtos.py)?
+    // 5. Initialisierung und Aufräumen (z.B. selection merken und wieder setzen)
+
+    // if(!m_PersonIndex.isValid())
+    //    return;
+    // QSqlRecord personRecord = m_personenModel->record(m_PersonIndex.row());
+    // if(personRecord.isNull())
+    //    return;
+    // QString fileName = "DkVerwaltungQt.tmp";
+    // QString dbPath = getSettings().value(QStringLiteral("DBPath")).toString();
+    // QString filePath = dbPath + QDir::separator() + fileName; // todo: add current dir
+    // QString dbPath = getSettings().value(QStringLiteral("DBPath")).toString();
+    QString dbPath = getFilePathFromIni("DBPath", getStandardPath(), "DkVerwaltungQt.db3");
+    QString filePath = dbPath.replace(".db3", ".tmp");
+    QFile file(filePath);
+    if (file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        QTextStream out(&file);
+        // for(int i=0;i<m_personenModel->count();i++)
+        // {
+        //    QModelIndex PersonIndex = m_personenModel->index(i, 0);
+        // }
+        for(int i=0;i<personenModel->rowCount();i++)
+        {
+            personenView->selectRow(i);
+            QModelIndex PersonIndex = personenView->currentIndex();
+            if(PersonIndex.isValid()){
+                out << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Vorname)).toString() << "\n";
+                out << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Name)).toString() << "\n";
+                out << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Anrede)).toString() << "\n";
+                out  << "\n"; // co
+                out << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Strasse)).toString() << "\n";
+                out << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_PLZ)).toString() << "\n";
+                out << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Ort)).toString() << "\n";
+                // out << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Email)).toString() << "\n";
+            }
+            for(int j=0;j<buchungenSortModel->rowCount();j++)
+            {
+                buchungenView->selectRow(j);
+                QModelIndex BuchungIndex = buchungenView->currentIndex();
+                if(BuchungIndex.isValid())
+                {
+                    out << buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_DKNummer)).toString() << "\n";
+                    out << buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Datum)).toString() << "\n";
+                    out << buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Betrag)).toString() << "\n";
+                    out << buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Zinssatz)).toString() << "\n";
+                }
+            }
+        }
+    }
 }
 
 void MainForm::filterBuchungen()
@@ -139,8 +225,8 @@ void MainForm::updateBuchungenSummen()
     QString zinsenText = "Summe Zinsen zum " + datumBuchungenDkZinsenEdit->text();
     summeBuchungenDkZinsenLabel->setText(zinsenText);
 
-    //QString statementDk = "SELECT SUM(Betrag) FROM DkBuchungen";
-    QString statementDk = "SELECT SUM(replace(Betrag,',','.')) FROM DkBuchungen";
+    QString statementDk = "SELECT SUM(Betrag) FROM DkBuchungen";
+    // QString statementDk = "SELECT SUM(replace(Betrag,',','.')) FROM DkBuchungen";
     int PersonId = getPersonId();
     if((PersonId != -1) && !anzeigenPersonenButton->isChecked()){
         statementDk += " WHERE PersonId=";
@@ -150,8 +236,8 @@ void MainForm::updateBuchungenSummen()
     QString summeDkText = QString::number(summeDk, 'f', 2);
     summeBuchungenDkEdit->setText(summeDkText);
 
-    // QString statementDkZinsen = "SELECT SUM( Betrag * Zinssatz / 100.0 ) FROM DkBuchungen";
-    QString statementDkZinsen = "SELECT SUM( replace(Betrag,',','.') * replace(Zinssatz,',','.') / 100.0 ) FROM DkBuchungen";
+    QString statementDkZinsen = "SELECT SUM( (Betrag * Zinssatz) / 100.0 ) FROM DkBuchungen";
+    // QString statementDkZinsen = "SELECT SUM( replace(Betrag,',','.') * replace(Zinssatz,',','.') / 100.0 ) FROM DkBuchungen";
     if((PersonId != -1) && !anzeigenPersonenButton->isChecked()){
         statementDkZinsen += " WHERE PersonId=";
         statementDkZinsen += QString::number(PersonId);
@@ -419,14 +505,14 @@ void MainForm::deleteBuchung(){
 
 void MainForm::updateSummen()
 {
-    //QString statementDk = "SELECT SUM(Betrag) FROM DkBuchungen";
-    QString statementDk = "SELECT SUM(replace(Betrag,',','.')) FROM DkBuchungen";
+    QString statementDk = "SELECT SUM(Betrag) FROM DkBuchungen";
+    // QString statementDk = "SELECT SUM(replace(Betrag,',','.')) FROM DkBuchungen";
     double summeDk = getDoubleValue(statementDk);
     QString summeDkText = QString::number(summeDk, 'f', 2);
     summeDkEdit->setText(summeDkText);
 
-    // QString statementDkZinsen = "SELECT SUM( Betrag * Zinssatz / 100.0 ) FROM DkBuchungen";
-    QString statementDkZinsen = "SELECT SUM( replace(Betrag,',','.') * replace(Zinssatz,',','.') / 100.0 ) FROM DkBuchungen";
+    QString statementDkZinsen = "SELECT SUM( (Betrag * Zinssatz) / 100.0 ) FROM DkBuchungen";
+    // QString statementDkZinsen = "SELECT SUM( replace(Betrag,',','.') * replace(Zinssatz,',','.') / 100.0 ) FROM DkBuchungen";
     double summeDkZinsen = getDoubleValue(statementDkZinsen);
     QString summeDkZinsenText = QString::number(summeDkZinsen, 'f', 2);
     summeDkZinsenEdit->setText(summeDkZinsenText);
@@ -630,6 +716,9 @@ void MainForm::createBuchungenPanel()
     buchungenView->setSelectionBehavior(QAbstractItemView::SelectRows);
     buchungenView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     buchungenView->horizontalHeader()->setStretchLastSection(true);
+
+    buchungenView->setItemDelegateForColumn(DkBuchungen_Betrag, new NumberFormatDelegate(this));
+    buchungenView->setItemDelegateForColumn(DkBuchungen_Zinssatz, new NumberFormatDelegate(this));
 
     // buchungenView->setColumnHidden(DkBuchungen_BuchungId, true);
     // buchungenView->setColumnHidden(DkBuchungen_PersonId, true);

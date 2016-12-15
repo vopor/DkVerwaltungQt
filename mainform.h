@@ -47,6 +47,8 @@ private slots:
 
     void filterBuchungen();
 
+    void generateJahresDkBestaetigungen();
+
 private:
 
     void createAnzeigenPersonenPanel();
@@ -114,6 +116,8 @@ private:
     QLineEdit *summeDkZinsenEdit;
     QLabel *summeDkLabel;
     QLineEdit *summeDkEdit;
+
+    QPushButton *generateJahresDkBestaetigungenButton;
 
     QPushButton *quitButton;
     QDialogButtonBox *buttonBox;

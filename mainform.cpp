@@ -107,62 +107,69 @@ MainForm::MainForm()
 
 void MainForm::generateJahresDkBestaetigungen()
 {
-    // TODO:
-    // 1. Unterordner in getStandardPath()
-    // 2. Datei pro Person mit allen Buchungen
-    // <PersonId>_<EMail>_<Vorname>_<Name>.txt
-    // 008_Klaus.tetzner@t-online.de_Klaus_Tetzner0.pdf
-    // 3. OO-Aufruf pro Datei pro Person mit allen Buchungen
-    // 4. Evtl. hier einzeln senden oder später alle ( sendDKJAKtos.py)?
-    // 5. Initialisierung und Aufräumen (z.B. selection merken und wieder setzen)
+    generateJahresDkBestaetigungenButton->setEnabled(false);
+    // Unterordner JahresDkBestaetigungen in getStandardPath()
+    QString JahresDkBestaetigungenPath = getStandardPath() + QDir::separator() + "JahresDkBestaetigungen";
+    QDir().mkpath(JahresDkBestaetigungenPath);
 
-    // if(!m_PersonIndex.isValid())
-    //    return;
-    // QSqlRecord personRecord = m_personenModel->record(m_PersonIndex.row());
-    // if(personRecord.isNull())
-    //    return;
-    // QString fileName = "DkVerwaltungQt.tmp";
-    // QString dbPath = getSettings().value(QStringLiteral("DBPath")).toString();
-    // QString filePath = dbPath + QDir::separator() + fileName; // todo: add current dir
-    // QString dbPath = getSettings().value(QStringLiteral("DBPath")).toString();
+    // TODO: Initialisierung und Aufräumen (z.B. selection merken und wieder setzen)
+
     QString dbPath = getFilePathFromIni("DBPath", getStandardPath(), "DkVerwaltungQt.db3");
-    QString filePath = dbPath.replace(".db3", ".tmp");
-    QFile file(filePath);
-    if (file.open(QIODevice::WriteOnly | QIODevice::Text))
+    QString logFilePath = dbPath.replace(".db3", ".log");
+    QFile logFile(logFilePath);
+    if (logFile.open(QIODevice::WriteOnly | QIODevice::Text))
     {
-        QTextStream out(&file);
-        // for(int i=0;i<m_personenModel->count();i++)
-        // {
-        //    QModelIndex PersonIndex = m_personenModel->index(i, 0);
-        // }
+        QTextStream logFileStream(&logFile);
         for(int i=0;i<personenModel->rowCount();i++)
         {
             personenView->selectRow(i);
             QModelIndex PersonIndex = personenView->currentIndex();
-            if(PersonIndex.isValid()){
-                out << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Vorname)).toString() << "\n";
-                out << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Name)).toString() << "\n";
-                out << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Anrede)).toString() << "\n";
-                out  << "\n"; // co
-                out << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Strasse)).toString() << "\n";
-                out << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_PLZ)).toString() << "\n";
-                out << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Ort)).toString() << "\n";
-                // out << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Email)).toString() << "\n";
-            }
-            for(int j=0;j<buchungenSortModel->rowCount();j++)
+            //QModelIndex PersonIndex = personenModel->index(i, 0);
+            if(PersonIndex.isValid())
             {
-                buchungenView->selectRow(j);
-                QModelIndex BuchungIndex = buchungenView->currentIndex();
-                if(BuchungIndex.isValid())
+                // Datei pro Person mit allen Buchungen
+                // <PersonId>_<EMail>_<Vorname>_<Name>.txt
+                // 008_Klaus.tetzner@t-online.de_Klaus_Tetzner0.pdf
+                QString personFilePath = JahresDkBestaetigungenPath + QDir::separator();
+                personFilePath += personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_PersonId)).toString();
+                personFilePath += "_" + personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Email)).toString();
+                personFilePath += "_" + personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Vorname)).toString();
+                personFilePath += "_" + personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Name)).toString();
+                personFilePath += ".txt";
+                QFile personFile(personFilePath);
+                if (personFile.open(QIODevice::WriteOnly | QIODevice::Text))
                 {
-                    out << buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_DKNummer)).toString() << "\n";
-                    out << buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Datum)).toString() << "\n";
-                    out << buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Betrag)).toString() << "\n";
-                    out << buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Zinssatz)).toString() << "\n";
+                    QTextStream personFileStream(&personFile);
+                    personFileStream << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Vorname)).toString() << "\n";
+                    personFileStream << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Name)).toString() << "\n";
+                    personFileStream << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Anrede)).toString() << "\n";
+                    personFileStream  << "\n"; // co
+                    personFileStream << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Strasse)).toString() << "\n";
+                    personFileStream << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_PLZ)).toString() << "\n";
+                    personFileStream << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Ort)).toString() << "\n";
+                    // personFileStream << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Email)).toString() << "\n";
+
+                    for(int j=0;j<buchungenSortModel->rowCount();j++)
+                    {
+                        buchungenView->selectRow(j);
+                        QModelIndex BuchungIndex = buchungenView->currentIndex();
+                        if(BuchungIndex.isValid())
+                        {
+                            personFileStream << buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_DKNummer)).toString() << "\n";
+                            personFileStream << buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Datum)).toString() << "\n";
+                            personFileStream << buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Betrag)).toString() << "\n";
+                            personFileStream << buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Zinssatz)).toString() << "\n";
+                        }
+                    }
                 }
             }
+            // TODO: OO-Aufruf pro Datei pro Person mit allen Buchungen
+
+            // TODO: Evtl. hier einzeln senden oder später alle ( sendDKJAKtos.py)?
+
         }
     }
+    generateJahresDkBestaetigungenButton->setEnabled(true);
 }
 
 void MainForm::filterBuchungen()

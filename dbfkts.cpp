@@ -10,6 +10,42 @@
 
 #include "qdebug.h"
 
+//--------------------------------------------------------------
+// Allgemeine Funktionen
+//--------------------------------------------------------------
+
+QString readFromFile(const QString &fileName)
+{
+    QString ret;
+    QFile file(fileName);
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        QTextStream in(&file);
+        in.setCodec("UTF-8");
+        // while(!in.atEnd())
+        // {
+        //    QString line = in.readLine();
+        // }
+        ret = in.readAll();
+    }
+    return ret;
+}
+
+void writeToFile(const QString &fileName, const QString &str)
+{
+    QFile file(fileName);
+    if (file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        QTextStream out(&file);
+        out.setCodec("UTF-8");
+        out << str;
+    }
+}
+
+//--------------------------------------------------------------
+// DkVerwaltungQt-Funktionen
+//--------------------------------------------------------------
+
 bool createConnection(const QString &dbName)
 {
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
@@ -124,6 +160,18 @@ QString getOpenOfficePath()
     return oo;
 }
 
+QString getJahresDkBestaetigungenPath()
+{
+   QString JahresDkBestaetigungenPath = getStandardPath() + QDir::separator() + "JahresDkBestaetigungen";
+   return JahresDkBestaetigungenPath;
+}
+
+int getJahr()
+{
+   return 16;
+}
+//--------------------------------------------------------------
+// SQL-Funktionen
 //--------------------------------------------------------------
 
 QVariant getVariantValue(const QString &statement)

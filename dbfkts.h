@@ -9,6 +9,17 @@ class QString;
 class QSettings;
 QT_END_NAMESPACE
 
+//--------------------------------------------------------------
+// Allgemeine Funktionen
+//--------------------------------------------------------------
+
+QString readFromFile(const QString &fileName);
+void writeToFile(const QString &fileName, const QString &str);
+
+//--------------------------------------------------------------
+// DkVerwaltungQt-Funktionen
+//--------------------------------------------------------------
+
 bool createConnection(const QString &dbName);
 
 QString getStandardPath();
@@ -16,6 +27,12 @@ QString getSettingsFile();
 QSettings &getSettings();
 QString getFilePathFromIni(const QString &iniEntry, const QString &filePath, const QString &fileName);
 QString getOpenOfficePath();
+QString getJahresDkBestaetigungenPath();
+int getJahr();
+
+//--------------------------------------------------------------
+// SQL-Funktionen
+//--------------------------------------------------------------
 
 QVariant getVariantValue(const QString &statement);
 int getIntValue(const QString &statement);

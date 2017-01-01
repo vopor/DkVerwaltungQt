@@ -109,65 +109,195 @@ void MainForm::generateJahresDkBestaetigungen()
 {
     generateJahresDkBestaetigungenButton->setEnabled(false);
     // Unterordner JahresDkBestaetigungen in getStandardPath()
-    QString JahresDkBestaetigungenPath = getStandardPath() + QDir::separator() + "JahresDkBestaetigungen";
+    // QString JahresDkBestaetigungenPath = getStandardPath() + QDir::separator() + "JahresDkBestaetigungen";
+    QString JahresDkBestaetigungenPath = getJahresDkBestaetigungenPath();
     QDir().mkpath(JahresDkBestaetigungenPath);
+    QString fileName = getStandardPath() + QDir::separator() + "Jahreskontoauszug.html";
+    QString strDatum = QDate::currentDate().toString("dd.MM.yyyy");
+    QString strJahr = QString::number(getJahr());
+    QString strSylvester = "31.12." + strJahr;
 
     // TODO: Initialisierung und Aufräumen (z.B. selection merken und wieder setzen)
 
-    QString dbPath = getFilePathFromIni("DBPath", getStandardPath(), "DkVerwaltungQt.db3");
-    QString logFilePath = dbPath.replace(".db3", ".log");
-    QFile logFile(logFilePath);
-    if (logFile.open(QIODevice::WriteOnly | QIODevice::Text))
+    for(int i=0;i<personenModel->rowCount();i++)
     {
-        QTextStream logFileStream(&logFile);
-        for(int i=0;i<personenModel->rowCount();i++)
+        personenView->selectRow(i);
+        QModelIndex PersonIndex = personenView->currentIndex();
+        //QModelIndex PersonIndex = personenModel->index(i, 0);
+        if(PersonIndex.isValid())
         {
-            personenView->selectRow(i);
-            QModelIndex PersonIndex = personenView->currentIndex();
-            //QModelIndex PersonIndex = personenModel->index(i, 0);
-            if(PersonIndex.isValid())
-            {
-                // Datei pro Person mit allen Buchungen
-                // <PersonId>_<EMail>_<Vorname>_<Name>.txt
-                // 008_Klaus.tetzner@t-online.de_Klaus_Tetzner0.pdf
-                QString personFilePath = JahresDkBestaetigungenPath + QDir::separator();
-                personFilePath += personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_PersonId)).toString();
-                personFilePath += "_" + personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Email)).toString();
-                personFilePath += "_" + personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Vorname)).toString();
-                personFilePath += "_" + personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Name)).toString();
-                personFilePath += ".txt";
-                QFile personFile(personFilePath);
-                if (personFile.open(QIODevice::WriteOnly | QIODevice::Text))
-                {
-                    QTextStream personFileStream(&personFile);
-                    personFileStream << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Vorname)).toString() << "\n";
-                    personFileStream << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Name)).toString() << "\n";
-                    personFileStream << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Anrede)).toString() << "\n";
-                    personFileStream  << "\n"; // co
-                    personFileStream << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Strasse)).toString() << "\n";
-                    personFileStream << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_PLZ)).toString() << "\n";
-                    personFileStream << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Ort)).toString() << "\n";
-                    // personFileStream << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Email)).toString() << "\n";
+            // Datei pro Person mit allen Buchungen
+            // <PersonId>_<EMail>_<Vorname>_<Name>.txt
+            // 008_Klaus.tetzner@t-online.de_Klaus_Tetzner0.pdf
+            QString personFilePath = JahresDkBestaetigungenPath + QDir::separator();
+            personFilePath += personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_PersonId)).toString();
+            personFilePath += "_" + personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Email)).toString();
+            personFilePath += "_" + personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Vorname)).toString();
+            personFilePath += "_" + personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Name)).toString();
+            personFilePath += ".html";
 
-                    for(int j=0;j<buchungenSortModel->rowCount();j++)
+            QString str = readFromFile(fileName);
+            str = str.replace("&lt;Vorname&gt;", personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Vorname)).toString());
+            str = str.replace("&lt;Name&gt;", personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Name)).toString());
+
+            str = str.replace("&lt;Strasse&gt;", personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Strasse)).toString());
+            str = str.replace("&lt;PLZ&gt;", personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_PLZ)).toString());
+            str = str.replace("&lt;Ort&gt;", personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Ort)).toString());
+            str = str.replace("&lt;Datum&gt;", strDatum);
+            str = str.replace("&lt;Jahr&gt;", strJahr);
+
+            QString strAuflistung;
+            strAuflistung += "<table width=\"100%\" border=\"1\">\n";
+            // strAuflistung += "<caption>Direktkredite</caption>\n";
+
+            QString strHeader;
+            strHeader += "<thead>\n";
+            strHeader += "<tr>\n";
+            strHeader += "<th align=\"left\">Direktkredit</th>\n";
+            strHeader += "<th align=\"left\">Anfangsdatum</th>\n";
+            strHeader += "<th align=\"right\">Anfangsbetrag</th>\n";
+            strHeader += "<th align=\"left\">Zinssatz</th>\n";
+            strHeader += "<th align=\"right\">Zinsen</th>\n";
+            strHeader += "<th align=\"left\">Enddatum</th>\n";
+            strHeader += "<th align=\"right\">Endbetrag</th>\n";
+            strHeader += "</tr>\n";
+            strHeader += "</thead>\n";
+            strAuflistung += strHeader;
+
+            double SummeBetrag = 0.0;
+            double SummeZinsen = 0.0;
+            double SummeEndbetrag = 0.0;
+            strAuflistung += "<tbody>\n";
+            for(int j=0;j<buchungenSortModel->rowCount();j++)
+            {
+                buchungenView->selectRow(j);
+                QModelIndex BuchungIndex = buchungenView->currentIndex();
+                if(BuchungIndex.isValid())
+                {
+                    QString strZeile;
+                    // // strZeile += "<tr>\n";
+                    //  // strZeile += "<td colspan=\"4\">Direktkredit: &lt;DkNummer&gt;</td>\n";
+                    //  // strZeile += "</tr>\n";
+                    // strZeile += "<tr>\n";
+                    // strZeile += "<td>Direktkredit</td>\n";
+                    // strZeile += "<td>Stand zum &lt;Anfangsdatum&gt;</td>\n";
+                    // strZeile += "<td>Zinssatz</td>\n";
+                    // strZeile += "<td>Zinsen</td>\n";
+                    // strZeile += "<td>Stand zum &lt;Enddatum&gt;</td>\n";
+                    // strZeile += "</tr>\n";
+                    strZeile += "<tr>\n";
+                    strZeile += "<td align=\"left\">&lt;DkNummer&gt;</td>\n";
+                    strZeile += "<td align=\"left\">&lt;Anfangsdatum&gt;</td>\n";
+                    strZeile += "<td align=\"right\">&lt;Anfangsbetrag&gt;</td>\n";
+                    strZeile += "<td align=\"left\">&lt;Zinssatz&gt;</td>\n";
+                    strZeile += "<td align=\"right\">&lt;Zinsen&gt;</td>\n";
+                    strZeile += "<td align=\"left\">&lt;Enddatum&gt;</td>\n";
+                    strZeile += "<td align=\"right\">&lt;Endbetrag&gt;</td>\n";
+                    strZeile += "</tr>\n";
+
+                    QString strDkNummer = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_DKNummer)).toString();
+                    QString strAnfangsdatum = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Datum)).toString();
+                    double Zinssatz = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Zinssatz)).toDouble();
+                    double Betrag = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Betrag)).toDouble();
+                    QString strEnddatum = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_vorgemerkt)).toString();
+
+                    // TODO: evt. tagesgenaue Berechnung
+                    double Zinsen = ((Betrag * Zinssatz) / 100.0);
+                    double Endbetrag = Betrag + Zinsen;
+
+                    SummeBetrag += Betrag;
+                    SummeZinsen += Zinsen;
+                    SummeEndbetrag += Endbetrag;
+
+                    // strAnfangsdatum = QDate::fromString(strAnfangsdatum, "dd.MM.yy").toString("dd.MM.yyyy");
+                    QString strAnfangsbetrag = QString("%L1").arg(Betrag ,12,'f',2,' ') + " &euro;";
+                    QString strZinssatz = QString("%L1").arg(Zinssatz ,12,'f',2,' ') + " &#37;";
+                    QString strZinsen = QString("%L1").arg(Zinsen ,12,'f',2,' ') + " &euro;";
+                    QString strEndbetrag = QString("%L1").arg(Endbetrag ,12,'f',2,' ') + " &euro;";
+                    if(strEnddatum.length() == 0)
                     {
-                        buchungenView->selectRow(j);
-                        QModelIndex BuchungIndex = buchungenView->currentIndex();
-                        if(BuchungIndex.isValid())
+                        strEnddatum = "31.12." + strJahr;
+                    }
+                    else
+                    {
+                        if(QDate::fromString(strEnddatum, "dd.MM.yy") >  QDate::fromString(strSylvester, "dd.MM.yy"))
                         {
-                            personFileStream << buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_DKNummer)).toString() << "\n";
-                            personFileStream << buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Datum)).toString() << "\n";
-                            personFileStream << buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Betrag)).toString() << "\n";
-                            personFileStream << buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Zinssatz)).toString() << "\n";
+                            strEnddatum = "31.12." + strJahr;
+                        }
+                        else
+                        {
+                            // strEnddatum = QDate::fromString(strEnddatum, "dd.MM.yy").toString("dd.MM.yyyy");
                         }
                     }
+                    strZeile = strZeile.replace("&lt;DkNummer&gt;", strDkNummer);
+                    strZeile = strZeile.replace("&lt;Anfangsdatum&gt;", strAnfangsdatum);
+                    strZeile = strZeile.replace("&lt;Anfangsbetrag&gt;", strAnfangsbetrag);
+                    strZeile = strZeile.replace("&lt;Zinssatz&gt;", strZinssatz);
+                    strZeile = strZeile.replace("&lt;Zinsen&gt;", strZinsen);
+                    strZeile = strZeile.replace("&lt;Endbetrag&gt;", strEndbetrag);
+                    strZeile = strZeile.replace("&lt;Enddatum&gt;", strEnddatum);
+
+                    strAuflistung += strZeile;
                 }
             }
-            // TODO: OO-Aufruf pro Datei pro Person mit allen Buchungen
+            strAuflistung += "</tbody>\n";
 
-            // TODO: Evtl. hier einzeln senden oder später alle ( sendDKJAKtos.py)?
+            QString strSummeBetrag = QString("%L1").arg(SummeBetrag ,12,'f',2,' ') + " &euro;";
+            QString strSummeZinsen = QString("%L1").arg(SummeZinsen ,12,'f',2,' ') + " &euro;";
+            QString strSummeEndbetrag = QString("%L1").arg(SummeEndbetrag ,12,'f',2,' ') + " &euro;";
 
-        }
+            QString strFooter;
+            strFooter += "<tfoot>\n";
+            strFooter += "<tr>\n";
+            strFooter += "<th align=\"left\">Summen</th>\n";
+            strFooter += "<th></th>\n";
+            strFooter += "<th align=\"right\">&lt;SummeBetrag&gt;</th>\n";
+            strFooter += "<th></th>\n";
+            strFooter += "<th align=\"right\">&lt;SummeZinsen&gt;</th>\n";
+            strFooter += "<th></th>\n";
+            strFooter += "<th align=\"right\">&lt;SummeEndbetrag&gt;</th>\n";
+            strFooter += "</tr>\n";
+            strFooter += "</tfoot>\n";
+
+            strFooter = strFooter.replace("&lt;SummeBetrag&gt;", strSummeBetrag);
+            strFooter = strFooter.replace("&lt;SummeZinsen&gt;", strSummeZinsen);
+            strFooter = strFooter.replace("&lt;SummeEndbetrag&gt;", strSummeEndbetrag);
+
+            strAuflistung += strFooter;
+            strAuflistung += "</table>\n";
+            str = str.replace("&lt;Auflistung&gt;", strAuflistung);
+
+//            QFile personFile(personFilePath);
+//            if (personFile.open(QIODevice::WriteOnly | QIODevice::Text))
+//            {
+//                QTextStream personFileStream(&personFile);
+//                personFileStream << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Vorname)).toString() << "\n";
+//                personFileStream << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Name)).toString() << "\n";
+//                personFileStream << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Anrede)).toString() << "\n";
+//                 personFileStream  << "\n"; // co
+//                 personFileStream << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Strasse)).toString() << "\n";
+//                 personFileStream << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_PLZ)).toString() << "\n";
+//                 personFileStream << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Ort)).toString() << "\n";
+//                 // personFileStream << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Email)).toString() << "\n";
+
+//                 for(int j=0;j<buchungenSortModel->rowCount();j++)
+//                 {
+//                     buchungenView->selectRow(j);
+//                     QModelIndex BuchungIndex = buchungenView->currentIndex();
+//                     if(BuchungIndex.isValid())
+//                     {
+//                         personFileStream << buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_DKNummer)).toString() << "\n";
+//                         personFileStream << buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Datum)).toString() << "\n";
+//                         personFileStream << buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Betrag)).toString() << "\n";
+//                         personFileStream << buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Zinssatz)).toString() << "\n";
+//                     }
+//                 }
+//            }
+            writeToFile(personFilePath, str);
+            // TODO: In PDF umwandeln
+            // TODO: Evtl. hier einzeln senden ( sendDKJAKtos.py)?
+         }
+         // TODO: Evtl. hier  alle senden ( sendDKJAKtos.py)?
     }
     generateJahresDkBestaetigungenButton->setEnabled(true);
 }

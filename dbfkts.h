@@ -29,6 +29,7 @@ QString getFilePathFromIni(const QString &iniEntry, const QString &filePath, con
 QString getOpenOfficePath();
 QString getJahresDkBestaetigungenPath();
 int getJahr();
+int getAnzTage();
 
 //--------------------------------------------------------------
 // SQL-Funktionen

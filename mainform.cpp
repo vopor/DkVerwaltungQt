@@ -115,9 +115,12 @@ void MainForm::generateJahresDkBestaetigungen()
     QString fileName = getStandardPath() + QDir::separator() + "Jahreskontoauszug.html";
     QString strDatum = QDate::currentDate().toString("dd.MM.yyyy");
     QString strJahr = QString::number(getJahr());
-    QString strSylvester = "31.12." + strJahr;
+    QString strJahr4 = QString::number(2000 + getJahr());
+    QString strSylvester = "31.12." + strJahr4;
 
     // TODO: Initialisierung und Aufräumen (z.B. selection merken und wieder setzen)
+    // QModelIndex curIndex = personenView->currentIndex();
+    buchungenView->sortByColumn(DkBuchungen_DKNummer, Qt::AscendingOrder);
 
     for(int i=0;i<personenModel->rowCount();i++)
     {
@@ -201,19 +204,6 @@ void MainForm::generateJahresDkBestaetigungen()
                     double Betrag = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Betrag)).toDouble();
                     QString strEnddatum = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_vorgemerkt)).toString();
 
-                    // TODO: evt. tagesgenaue Berechnung
-                    double Zinsen = ((Betrag * Zinssatz) / 100.0);
-                    double Endbetrag = Betrag + Zinsen;
-
-                    SummeBetrag += Betrag;
-                    SummeZinsen += Zinsen;
-                    SummeEndbetrag += Endbetrag;
-
-                    // strAnfangsdatum = QDate::fromString(strAnfangsdatum, "dd.MM.yy").toString("dd.MM.yyyy");
-                    QString strAnfangsbetrag = QString("%L1").arg(Betrag ,12,'f',2,' ') + " &euro;";
-                    QString strZinssatz = QString("%L1").arg(Zinssatz ,12,'f',2,' ') + " &#37;";
-                    QString strZinsen = QString("%L1").arg(Zinsen ,12,'f',2,' ') + " &euro;";
-                    QString strEndbetrag = QString("%L1").arg(Endbetrag ,12,'f',2,' ') + " &euro;";
                     if(strEnddatum.length() == 0)
                     {
                         strEnddatum = "31.12." + strJahr;
@@ -229,6 +219,27 @@ void MainForm::generateJahresDkBestaetigungen()
                             // strEnddatum = QDate::fromString(strEnddatum, "dd.MM.yy").toString("dd.MM.yyyy");
                         }
                     }
+                    // Tagesgenaue Berechnung
+                    int anzTage = getAnzTage();
+                    QDate dateFrom = QDate::fromString(strAnfangsdatum, "dd.MM.yy");
+                    QDate dateTo = QDate::fromString(strEnddatum, "dd.MM.yy");
+                    if(dateFrom.isValid() && dateTo.isValid()){
+                        anzTage = qMin((int)dateFrom.daysTo(dateTo), 360);
+                    }
+                    double Zinsen = ((Betrag * Zinssatz) / 100.0);
+                    Zinsen = Zinsen * anzTage / getAnzTage();
+                    double Endbetrag = Betrag + Zinsen;
+
+                    SummeBetrag += Betrag;
+                    SummeZinsen += Zinsen;
+                    SummeEndbetrag += Endbetrag;
+
+                    // strAnfangsdatum = QDate::fromString(strAnfangsdatum, "dd.MM.yy").toString("dd.MM.yyyy");
+                    QString strAnfangsbetrag = QString("%L1").arg(Betrag ,12,'f',2,' ') + " &euro;";
+                    QString strZinssatz = QString("%L1").arg(Zinssatz ,12,'f',2,' ') + " &#37;";
+                    QString strZinsen = QString("%L1").arg(Zinsen ,12,'f',2,' ') + " &euro;";
+                    QString strEndbetrag = QString("%L1").arg(Endbetrag ,12,'f',2,' ') + " &euro;";
+
                     strZeile = strZeile.replace("&lt;DkNummer&gt;", strDkNummer);
                     strZeile = strZeile.replace("&lt;Anfangsdatum&gt;", strAnfangsdatum);
                     strZeile = strZeile.replace("&lt;Anfangsbetrag&gt;", strAnfangsbetrag);
@@ -380,13 +391,13 @@ void MainForm::updateBuchungenSummen()
         statementDkZinsen += QString::number(PersonId);
     }
     double summeDkZinsen = getDoubleValue(statementDkZinsen);
-    int anzTage = 360;
+    int anzTage = getAnzTage();
     QDate dateTo = QDate::fromString(datumBuchungenDkZinsenEdit->text(), "dd.MM.yy");
     QDate dateFrom = QDate(dateTo.year(), 1, 1);
     if(dateFrom.isValid() && dateTo.isValid()){
-        anzTage = qMin((int)dateFrom.daysTo(dateTo), 360);
+        anzTage = qMin((int)dateFrom.daysTo(dateTo), getAnzTage());
     }
-    summeDkZinsen = summeDkZinsen * anzTage / 360;
+    summeDkZinsen = summeDkZinsen * anzTage / getAnzTage();
     QString summeDkZinsenText = QString::number(summeDkZinsen, 'f', 2);
     summeBuchungenDkZinsenEdit->setText(summeDkZinsenText);
 }
@@ -427,6 +438,7 @@ void MainForm::addPerson()
     // personenModel->beginInsertRows(index, row, row);
     // personenModel->beginInsertRows(QModelIndex(), row, row);
     bool b = personenModel->insertRow(row);
+    Q_UNUSED(b);
     // personenModel->endInsertRows();
 
     QModelIndex index = personenModel->index(row, DkPersonen_PersonId);
@@ -526,7 +538,7 @@ void MainForm::suchenPerson()
     if(searchVal == -1) // if(!searchVal.isValid())
         return;
 
-    QModelIndex index = personenView->currentIndex();
+    // QModelIndex curindex = personenView->currentIndex();
     int searchCol = DkPersonen_PersonId; // DkPersonen_Vorname = 1, DkPersonen_Name = 2,
     int startIndexRow = 0; // index.row()+1;
     startIndexRow = startIndexRow < personenModel->rowCount() ? startIndexRow : 0;
@@ -565,6 +577,7 @@ void MainForm::addBuchung()
 
     int row = buchungenModel->rowCount();
     bool b = buchungenModel->insertRow(row);
+    Q_UNUSED(b);
     QModelIndex indexBuchungId = buchungenModel->index(row, DkBuchungen_BuchungId);
     buchungenView->setCurrentIndex(indexBuchungId);
     buchungenView->edit(indexBuchungId);

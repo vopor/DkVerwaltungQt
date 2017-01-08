@@ -1,4 +1,8 @@
 #!/usr/bin/python
+# coding: utf8
+
+# -*- coding: utf-8 -*-
+
 # from:
 # http://nathangrigg.net/2012/04/send-emails-from-the-command-line/
 # help:
@@ -9,7 +13,6 @@
 
 import sys
 import argparse
-#import os.path
 from subprocess import Popen,PIPE
 import os
 import shutil
@@ -28,6 +31,11 @@ def make_message(content,subject=None,to_addr=None,from_addr=None,send=False,cc_
         properties = ["visible:false"]
     else:
         properties = ["visible:true"]
+
+    # mailbox:"Drafts"
+    # properties.append("mailbox:Drafts")
+    # content = "content"
+
     if subject:
         properties.append('subject:"%s"' % escape(subject))
     if from_addr:
@@ -50,21 +58,33 @@ def make_message(content,subject=None,to_addr=None,from_addr=None,send=False,cc_
     if attach:
         # make_new.extend([template % ("attachment","file name",escape(os.path.abspath(f))) for f in attach])
         make_new.extend([template % ("attachment","file name",escape(os.path.abspath(attach)))])
+
+    # make_new.extend('at folder "Drafts")
+    # make_new.extend(['at folder "%s"' % escape("Drafts")])
+    # drafts_string = 'at folder "%s"' % escape("Drafts")
+    # drafts_string = 'at folder id 2'
     if send:
         make_new.append('send')
+        
     if len(make_new) > 0:
         make_new_string = "tell result\n" + "\n".join(make_new) + "\nend tell\n"
     else:
         make_new_string = ""
 
     # set_html_content_string = "set html content to textBody" # -- must set the HTML CONTENT rather than the CONTENT
-    set_html_content_string = ""
-
+    # set_html_content_string = ""
+    # set_Drafts_string = escape("Drafts")
     script = """tell application "Mail"
-    make new outgoing message with properties {%s}
+    set newmessage to make new outgoing message with properties {%s}
     %s
-    %s end tell
-    """ % (properties_string, set_html_content_string, make_new_string)
+    save newmessage
+    end tell
+    """ % (properties_string, make_new_string)
+
+    if debug_output:
+        print "script:\n"
+        print script
+        print "\n"
 
     # run applescript
     p = Popen('/usr/bin/osascript',stdin=PIPE,stdout=PIPE)
@@ -103,8 +123,7 @@ def false_Main():
         cc_addr = args.c,
         bcc_addr = args.b,
         attach = args.a)
-    sys.exit(code)
-
+ 
 def ask_to_continue():
     answer = input('Please indicate approval: [y/n]')
     if not answer or answer[0].lower() != 'y':
@@ -117,11 +136,26 @@ def ask_to_continue2():
     shall = raw_input("%s (y/N) " % msg).lower() == 'y'
     return shall
     
-##!/usr/bin/python
+def getContent():
+	return """
+	die Bewohner*innen des Wohnprojekts 472 wünschen ein schönes neues Jahr und bedanken sich herzlich für die Unterstützung. 
+	Dies ist der Kontoauszug Deiner/Ihrer Direktkredite für das Jahr 2016 bei der F13 Turley GmbH. 
+	Die Zinsen wurden dem Direktkreditkonto gutgeschrieben. 
+	Auf Wunsch erstellen wir eine gesonderte Zinsbescheinigung für die Steuererklärung. 
+	Wir bitten um Überprüfung. Falls etwas nicht stimmt oder unverständlich ist, bitte einfach per E-Mail (Kontakt-DK@13hafreiheit) oder Telefon (01575-1183759) bei uns melden. 
+	Wir erhoffen und wünschen uns auch im neuen Jahre Eure/Ihre Solidarität. 
+	Denn für die weitere Umschuldung brauchen wir weiterhin Eure/Ihre Hilfe in Form von Direktkrediten. 
+	Also empfehlt 13ha Freiheit weiter an Freund*innen, Bekannte und Verwandte. 
 
-#import os
-#import sys
-#import shutil
+	Herzliche Grüße 
+
+
+
+	Hans-Peter Neumann	
+	Geschäftsführer 
+	""".replace('\t', '')
+
+# main
 
 ss = "@"
 subdir = os.getcwd() # + "/16-01-01 Export"
@@ -129,10 +163,11 @@ for i in os.listdir(subdir):
     if i.endswith(".pdf"):
         if ss in i:
             # if not (("fischer-stefan@live.de" in i) or (("hapeneumann@googlemail.com" in i))):
+            # if not (("fischer-stefan@live.de" in i)):
+            # if not (("hapeneumann@googlemail.com" in i)):
+            # if not (("evebeyer@gmx.net" in i)):
             # if not ("VPorzelt@gmx.de" in i):
-            # if not (("fischer-stefan@live.de" in i) or (("hapeneumann@googlemail.com" in i))):
-            if not (("fischer-stefan@live.de" in i)):
-                continue
+            #     continue
             filename = i
             textfilename = i
             textfilename = textfilename.replace(".pdf", ".txt")
@@ -140,11 +175,10 @@ for i in os.listdir(subdir):
             for j, word in enumerate(words):
                 if ss in word:
                     email = word
+                    name = " ".join(words[j+1:])
+                    name = name.replace(".pdf", "")
                     newfilename = "_".join(words[j+1:])
                     newfilename = newfilename.replace("0.pdf", ".pdf")
-                    # if not os.path.exists("tmp"):
-                    #     os.makedirs("tmp")
-                    # newfilename = "tmp/" + newfilename
                     if debug_output:
                         print "email: " + email # evebeyer@gmx.net
                         print "filename: " + filename # 0010_evebeyer@gmx.net_Evelyn_Beyer0.pdf
@@ -153,39 +187,33 @@ for i in os.listdir(subdir):
                         
                     # copy filename nach tmp-newfilename
                     shutil.copy2(filename, newfilename)
-                    # make mail
-                    file = open(textfilename, 'r')
-                    content = file.read()
-                    file.close()
                     newcontent = ""
-                    newlines = []
-                    lines = content.split("\n")
-                    start = 0
-                    for k, line in enumerate(lines):
-                        # print str(k) + " " + lines[k]
-                        if lines[k].startswith("Kontoauszug Direktkredit"):
-                            start = k
-                        if lines[k].startswith("Dies ist der Kontoauszug des Direktkredits mit der Nummer"):
-                            # lines[k] = "Den Kontoauszug Deines Direktkredits findest Du als Pdf-Datei im Anhang."
-                            newlines.extend(lines[start:k])
-                            newlines.append("Den Kontoauszug Deines Direktkredits findest Du als Pdf-Datei im Anhang.")
-                            "Den Kontoauszug Deines Direktkredits findest Du als Pdf-Datei im Anhang."
-                            newlines.extend(lines[k+5:])
-                            newlines.append("\n")
-                            # newcontent = lines[:k-1].join("\n")
-                            # newcontent += "Den Kontoauszug Deines Direktkredits findest Du als Pdf-Datei im Anhang."
-                            # "Den Kontoauszug Deines Direktkredits findest Du als Pdf-Datei im Anhang."
-                            # newcontent += lines[k+3:].join("\n")
-                            break
-                    # content = lines.join("\n")
-                    newcontent = "\n".join(newlines)
-                    # newcontent = newlines.join("\n")
-                    # print newcontent
+                    newcontent += "\n"
+                    newcontent += "Liebe*r " + name + "," + "\n"
+                    newcontent += "\n"
+                    # newcontent += getContent()
+                    newcontent += "die Bewohner*innen des Wohnprojekts 472 wünschen ein schönes neues Jahr und bedanken sich herzlich für die Unterstützung." + "\n"
+                    newcontent += "Dies ist der Kontoauszug Deiner/Ihrer Direktkredite für das Jahr 2016 bei der F13 Turley GmbH." + "\n"
+                    newcontent += "Die Zinsen wurden dem Direktkreditkonto gutgeschrieben." + "\n"
+                    newcontent += "Auf Wunsch erstellen wir eine gesonderte Zinsbescheinigung für die Steuererklärung." + "\n"
+                    newcontent += "Wir bitten um Überprüfung. Falls etwas nicht stimmt oder unverständlich ist, bitte einfach per E-Mail (Kontakt-DK@13hafreiheit) oder Telefon (01575-1183759) bei uns melden." + "\n"
+                    newcontent += "Wir erhoffen und wünschen uns auch im neuen Jahre Eure/Ihre Solidarität." + "\n"
+                    newcontent += "Denn für die weitere Umschuldung brauchen wir weiterhin Eure/Ihre Hilfe in Form von Direktkrediten." + "\n"
+                    newcontent += "Also empfehlt 13ha Freiheit weiter an Freund*innen, Bekannte und Verwandte." + "\n"
+                    newcontent += "\n"
+                    newcontent += "Herzliche Grüße" + "\n" 
+                    newcontent += "\n"
+                    newcontent += "\n"
+                    newcontent += "\n"
+                    newcontent += "\n"
+                    newcontent += "Hans-Peter Neumann" + "\n"
+                    newcontent += "Geschäftsführer" + "\n"
+                    newcontent += "\n"
                     sendIt = True
                     if sendIt:
                         code = make_message(
                           content = newcontent,
-                          subject = "Kontoauszug 2015 DK F13 Turley GmbH",
+                          subject = "Kontoauszug 2016 DK F13 Turley GmbH",
                           to_addr = email,
                           # from_addr = args.r,
                           send = False,

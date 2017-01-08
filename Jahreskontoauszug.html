@@ -1,4 +1,9 @@
-<!DOCTYPE html><html><head><meta content="text/html; charset=utf-8" http-equiv="content-type">
+<!DOCTYPE html>
+<html>
+<head>
+<meta content="text/html; charset=utf-8" http-equiv="content-type">
+
+
 
 
     
@@ -15,7 +20,10 @@ body{
    margin-right: auto;  
 }
 
-#Rahmen{}
+#Rahmen{
+	min-height:100%;
+	position:relative;
+}
 
 /*
 #header1text {  
@@ -66,18 +74,19 @@ body{
 #content {  
   font-family: Verdana;
   font-size: 9pt;
+	padding-bottom:80px; /* Height of the footer element */
 }
 
-#footer_1 {        
-  font-family: Verdana;
-  font-size: 9pt;
-  position: fixed;
-}
-      
-#footer_2 {  
+#footer {  
   text-align: center;  
-  position: fixed;
+  // position: fixed;
   bottom:0;
+	width:100%;
+	height:80px;
+	position:absolute;
+	bottom:0;
+	left:0;
+  
 }
 
 </style>
@@ -99,8 +108,8 @@ body{
             <br>
             http://www.13hafreiheit.de
             <br>
-            Fon:&nbsp; (0 6 2 1) 39 18&nbsp; 48&nbsp; 24<br>
-          <span style="font-weight: bold ">kontakt@13hafreiheit.de</span>
+            Fon:&nbsp; (015 75) 1183759<br>
+          <span style="font-weight: bold ">kontakt-dk@13hafreiheit.de</span>
         </div>
         <div id="adresse_2">
         <span style="font-family:Verdana;font-size: 5.5pt;">
@@ -123,47 +132,45 @@ body{
         </div>                  
         <br>
         <br>
-        <br>
-        <br>        
         <div id="ueberschrift" style="font-weight: bold;">
         Kontoauszug Deiner/Ihrer Direktkredite bei der F13 Turley GmbH
         </div>
         <br>
-        <br>
-        <br>
-        <br>
         Liebe*r &lt;Vorname&gt; &lt;Name&gt;,
         <br>
         <br>
-        die Bewohner*innen des Wohnprojekts 472 wünschen ein schönes neues Jahr und bedanken sich herzlich für die freundliche Unterstützung. 
-        <br>
+        die Bewohner*innen des Wohnprojekts 472 wünschen ein schönes neues Jahr und bedanken sich herzlich für die Unterstützung. 
         <br>
         Dies ist der Kontoauszug Deiner/Ihrer Direktkredite für das Jahr &lt;Jahr&gt; bei der F13 Turley GmbH. 
+        <br>
+        Die Zinsen wurden dem Direktkreditkonto gutgeschrieben.
+        <br>
+        Auf Wunsch erstellen wir eine gesonderte Zinsbescheinigung für die Steuererklärung.
+        <br>
+        Wir bitten um Überprüfung. Falls etwas nicht stimmt oder unverständlich ist, bitte einfach per E-Mail (Kontakt-DK@13hafreiheit) oder Telefon (01575-1183759) bei uns melden.
+        <br>
+        Wir erhoffen und wünschen uns auch im neuen Jahre Eure/Ihre Solidarität.
+        <br>
+        Denn für die weitere Umschuldung brauchen wir weiterhin Eure/Ihre Hilfe in Form von Direktkrediten.
+        <br>
+        Also empfehlt 13ha Freiheit weiter an Freund*innen, Bekannte und Verwandte.
+        <br>
+        <br>
+        Herzliche Grüße
+        <br>
+        <br>
+        <br>
+        <br>
+        Hans-Peter Neumann	
+        <br>
+        Geschäftsführer          
         <br>
         <br>
         &lt;Auflistung&gt;
         <br>
-        <br>Bei Fragen oder Anregungen haben, ruf uns einfach kurz an.
-        <br>
-        <br>
+        Hinweis: Zinseinkünfte sind einkommensteuerpflichtig.
       </div>
-      <div id="footer_1">
-      Herzliche Grüße
-      <br>
-      F13 Turley GmbH
-      <br>
-      <br>
-      <br>
-      <br>
-      Hans-Peter Neumann	
-      <br>
-      Geschäftsführer          
-      <br>
-      <br>
-      <br>
-      <br>
-      </div>
-      <div id="footer_2">F13 Turley GmbH || Amtsgericht Mannheim HRB 718198<br>
+      <div id="footer">F13 Turley GmbH || Amtsgericht Mannheim HRB 718198<br>
         Geschäftsführung: Hans-Peter Neumann, Britta
         Schlichting, Amjad Al Kayed<br>
         Bankverbindung: IBAN DE78 4306 0967 6032 1324 00&nbsp; BIC: GENODEM1GLS

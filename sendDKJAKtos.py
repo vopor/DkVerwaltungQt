@@ -174,6 +174,7 @@ for i in os.listdir(subdir):
             words = i.split("_")
             for j, word in enumerate(words):
                 if ss in word:
+                    # TODO: EMail ist so abgeschnitten, wenn sie "_" underlines enthält
                     email = word
                     name = " ".join(words[j+1:])
                     name = name.replace(".pdf", "")

@@ -133,12 +133,15 @@ void MainForm::generateJahresDkBestaetigungen()
             // <PersonId>_<EMail>_<Vorname>_<Name>.txt
             // 008_Klaus.tetzner@t-online.de_Klaus_Tetzner0.pdf
             QString personFilePath = JahresDkBestaetigungenPath + QDir::separator();
-            personFilePath += personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_PersonId)).toString();
-            personFilePath += "_" + personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Email)).toString();
-            personFilePath += "_" + personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Vorname)).toString();
-            personFilePath += "_" + personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Name)).toString();
-            personFilePath += ".html";
+            QString personFileName;
+            personFileName += personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_PersonId)).toString();
+            personFileName += "_" + personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Email)).toString();
+            personFileName += "_" + personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Vorname)).toString();
+            personFileName += "_" + personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Name)).toString();
+            personFileName = escapeFileName(personFileName);
+            personFilePath += personFileName;
 
+            QString personFileNameHtml = personFilePath + ".html";
             QString str = readFromFile(fileName);
             str = str.replace("&lt;Vorname&gt;", personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Vorname)).toString());
             str = str.replace("&lt;Name&gt;", personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Name)).toString());
@@ -147,7 +150,7 @@ void MainForm::generateJahresDkBestaetigungen()
             str = str.replace("&lt;PLZ&gt;", personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_PLZ)).toString());
             str = str.replace("&lt;Ort&gt;", personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Ort)).toString());
             str = str.replace("&lt;Datum&gt;", strDatum);
-            str = str.replace("&lt;Jahr&gt;", strJahr);
+            str = str.replace("&lt;Jahr&gt;", strJahr4);
 
             QString strAuflistung;
             strAuflistung += "<table width=\"100%\" border=\"1\">\n";
@@ -157,12 +160,12 @@ void MainForm::generateJahresDkBestaetigungen()
             strHeader += "<thead>\n";
             strHeader += "<tr>\n";
             strHeader += "<th align=\"left\">Direktkredit</th>\n";
-            strHeader += "<th align=\"left\">Anfangsdatum</th>\n";
-            strHeader += "<th align=\"right\">Anfangsbetrag</th>\n";
+            strHeader += "<th align=\"right\">Stand</th>\n";
+            strHeader += "<th align=\"left\">am</th>\n";
             strHeader += "<th align=\"left\">Zinssatz</th>\n";
             strHeader += "<th align=\"right\">Zinsen</th>\n";
-            strHeader += "<th align=\"left\">Enddatum</th>\n";
-            strHeader += "<th align=\"right\">Endbetrag</th>\n";
+            strHeader += "<th align=\"right\">Stand</th>\n";
+            strHeader += "<th align=\"left\">zum</th>\n";
             strHeader += "</tr>\n";
             strHeader += "</thead>\n";
             strAuflistung += strHeader;
@@ -190,12 +193,12 @@ void MainForm::generateJahresDkBestaetigungen()
                     // strZeile += "</tr>\n";
                     strZeile += "<tr>\n";
                     strZeile += "<td align=\"left\">&lt;DkNummer&gt;</td>\n";
-                    strZeile += "<td align=\"left\">&lt;Anfangsdatum&gt;</td>\n";
                     strZeile += "<td align=\"right\">&lt;Anfangsbetrag&gt;</td>\n";
+                    strZeile += "<td align=\"left\">&lt;Anfangsdatum&gt;</td>\n";
                     strZeile += "<td align=\"left\">&lt;Zinssatz&gt;</td>\n";
                     strZeile += "<td align=\"right\">&lt;Zinsen&gt;</td>\n";
-                    strZeile += "<td align=\"left\">&lt;Enddatum&gt;</td>\n";
                     strZeile += "<td align=\"right\">&lt;Endbetrag&gt;</td>\n";
+                    strZeile += "<td align=\"left\">&lt;Enddatum&gt;</td>\n";
                     strZeile += "</tr>\n";
 
                     QString strDkNummer = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_DKNummer)).toString();
@@ -219,15 +222,19 @@ void MainForm::generateJahresDkBestaetigungen()
                             // strEnddatum = QDate::fromString(strEnddatum, "dd.MM.yy").toString("dd.MM.yyyy");
                         }
                     }
+
                     // Tagesgenaue Berechnung
-                    int anzTage = getAnzTage();
                     QDate dateFrom = QDate::fromString(strAnfangsdatum, "dd.MM.yy");
                     QDate dateTo = QDate::fromString(strEnddatum, "dd.MM.yy");
-                    if(dateFrom.isValid() && dateTo.isValid()){
-                        anzTage = qMin((int)dateFrom.daysTo(dateTo), 360);
-                    }
-                    double Zinsen = ((Betrag * Zinssatz) / 100.0);
-                    Zinsen = Zinsen * anzTage / getAnzTage();
+
+                    // int anzTage = getAnzTageJahr();
+                    // if(dateFrom.isValid() && dateTo.isValid()){
+                    //     anzTage = qMin((int)dateFrom.daysTo(dateTo), anzTage);
+                    // }
+                    int anzTage = getAnzTage(dateFrom, dateTo);
+                    // double Zinsen = ((Betrag * Zinssatz) / 100.0);
+                    // Zinsen = Runden(Zinsen * anzTage / getAnzTageJahr(), 2);
+                    double Zinsen = computeDkZinsen(Betrag, Zinssatz, anzTage);
                     double Endbetrag = Betrag + Zinsen;
 
                     SummeBetrag += Betrag;
@@ -261,12 +268,12 @@ void MainForm::generateJahresDkBestaetigungen()
             strFooter += "<tfoot>\n";
             strFooter += "<tr>\n";
             strFooter += "<th align=\"left\">Summen</th>\n";
-            strFooter += "<th></th>\n";
             strFooter += "<th align=\"right\">&lt;SummeBetrag&gt;</th>\n";
             strFooter += "<th></th>\n";
-            strFooter += "<th align=\"right\">&lt;SummeZinsen&gt;</th>\n";
             strFooter += "<th></th>\n";
+            strFooter += "<th align=\"right\">&lt;SummeZinsen&gt;</th>\n";
             strFooter += "<th align=\"right\">&lt;SummeEndbetrag&gt;</th>\n";
+            strFooter += "<th></th>\n";
             strFooter += "</tr>\n";
             strFooter += "</tfoot>\n";
 
@@ -278,37 +285,15 @@ void MainForm::generateJahresDkBestaetigungen()
             strAuflistung += "</table>\n";
             str = str.replace("&lt;Auflistung&gt;", strAuflistung);
 
-//            QFile personFile(personFilePath);
-//            if (personFile.open(QIODevice::WriteOnly | QIODevice::Text))
-//            {
-//                QTextStream personFileStream(&personFile);
-//                personFileStream << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Vorname)).toString() << "\n";
-//                personFileStream << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Name)).toString() << "\n";
-//                personFileStream << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Anrede)).toString() << "\n";
-//                 personFileStream  << "\n"; // co
-//                 personFileStream << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Strasse)).toString() << "\n";
-//                 personFileStream << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_PLZ)).toString() << "\n";
-//                 personFileStream << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Ort)).toString() << "\n";
-//                 // personFileStream << personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Email)).toString() << "\n";
+            writeToFile(personFileNameHtml, str);
+            // TODO: In PDF umwandeln oder per Script
 
-//                 for(int j=0;j<buchungenSortModel->rowCount();j++)
-//                 {
-//                     buchungenView->selectRow(j);
-//                     QModelIndex BuchungIndex = buchungenView->currentIndex();
-//                     if(BuchungIndex.isValid())
-//                     {
-//                         personFileStream << buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_DKNummer)).toString() << "\n";
-//                         personFileStream << buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Datum)).toString() << "\n";
-//                         personFileStream << buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Betrag)).toString() << "\n";
-//                         personFileStream << buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Zinssatz)).toString() << "\n";
-//                     }
-//                 }
-//            }
-            writeToFile(personFilePath, str);
-            // TODO: In PDF umwandeln
-            // TODO: Evtl. hier einzeln senden ( sendDKJAKtos.py)?
+            // TODO: txt-Dateien für Anschreiben in Mail generieren oder per Script
+            // QString personFileNameTxt = personFilePath + ".txt";
+
+            // TODO: Evtl. hier einzeln senden ( sendDKJAKtos.py) oder per Script
          }
-         // TODO: Evtl. hier  alle senden ( sendDKJAKtos.py)?
+         // TODO: Evtl. hier  alle senden ( sendDKJAKtos.py) oder per Script
     }
     generateJahresDkBestaetigungenButton->setEnabled(true);
 }
@@ -391,13 +376,14 @@ void MainForm::updateBuchungenSummen()
         statementDkZinsen += QString::number(PersonId);
     }
     double summeDkZinsen = getDoubleValue(statementDkZinsen);
-    int anzTage = getAnzTage();
     QDate dateTo = QDate::fromString(datumBuchungenDkZinsenEdit->text(), "dd.MM.yy");
     QDate dateFrom = QDate(dateTo.year(), 1, 1);
-    if(dateFrom.isValid() && dateTo.isValid()){
-        anzTage = qMin((int)dateFrom.daysTo(dateTo), getAnzTage());
-    }
-    summeDkZinsen = summeDkZinsen * anzTage / getAnzTage();
+    // int anzTage = getAnzTageJahr();
+    // if(dateFrom.isValid() && dateTo.isValid()){
+    //     anzTage = qMin((int)dateFrom.daysTo(dateTo), getAnzTageJahr());
+    // }
+    int anzTage = getAnzTage(dateFrom, dateTo);
+    summeDkZinsen = Runden2(summeDkZinsen * anzTage / getAnzTageJahr());
     QString summeDkZinsenText = QString::number(summeDkZinsen, 'f', 2);
     summeBuchungenDkZinsenEdit->setText(summeDkZinsenText);
 }

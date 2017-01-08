@@ -42,6 +42,16 @@ void writeToFile(const QString &fileName, const QString &str)
     }
 }
 
+QString escapeFileName(const QString &fileName)
+{
+    QString ret = fileName;
+    ret = ret.replace(" ", "_");
+    ret = ret.replace("ä", "ae");
+    ret = ret.replace("ö", "oe");
+    ret = ret.replace("ü", "ue");
+    ret = ret.replace("ß", "ss");
+    return ret;
+}
 //--------------------------------------------------------------
 // DkVerwaltungQt-Funktionen
 //--------------------------------------------------------------
@@ -162,7 +172,7 @@ QString getOpenOfficePath()
 
 QString getJahresDkBestaetigungenPath()
 {
-   QString JahresDkBestaetigungenPath = getStandardPath() + QDir::separator() + "JahresDkBestaetigungen";
+   QString JahresDkBestaetigungenPath = getStandardPath() + QDir::separator() + "JahresDkBestaetigungen" + QString::number(2000 + getJahr());
    return JahresDkBestaetigungenPath;
 }
 
@@ -171,10 +181,75 @@ int getJahr()
    return 16;
 }
 
-int getAnzTage()
+int getAnzTageJahr()
 {
    return 360;
 }
+
+void datediff()
+{
+QString source = "20090512";
+QDate sourceDate = QDate::fromString(source, "yyyyMMdd");
+
+qint64 daysBetween = QDate::currentDate().toJulianDay() - sourceDate.toJulianDay();
+QDate difference = QDate::fromJulianDay(daysBetween);
+
+QDate firstDate = QDate::fromJulianDay(0);
+
+int years = difference.year() - firstDate.year();
+int months = difference.month() - firstDate.month();
+int days = difference.day() - firstDate.day();
+
+// TODO: check if a number is negative and if so, normalize
+
+qDebug() << QDate::currentDate().toString("yy-MM-dd");
+qDebug() << sourceDate.toString("yy-MM-dd");
+qDebug() << daysBetween;
+qDebug() << QString("%1 years, %2 months and %3 days").arg(years).arg(months).arg(days);
+}
+
+// Zinstage = oFuncAcc.callFunction( "DAYS360", Array(dBeginn, dEnde, 1))
+// 359=TAGE360(DATUM(2016;1;1); DATUM(2016;12;31);1)
+// 4: - European method, 12 months of 30 days each (30E/360)
+// If either day1 or day2 is 31, it is changed to 30. Each month is now assumed to have 30 days, and the result calculated.
+
+// DATEDIFF(MONTH, @dt_Start, @dt_Ende) * 30
+//    + DAY(@dt_Ende)
+//    - DAY(@dt_Start)
+//    - CASE WHEN DAY(@dt_Ende) = 31 THEN 1 ELSE 0 END AS [Tage30/360]
+
+int getAnzTage(const QDate &dateFrom, const QDate &dateTo)
+{
+   Q_ASSERT(dateFrom.year() == dateTo.year());
+   int anzTage = getAnzTageJahr();
+   if(dateFrom.isValid() && dateTo.isValid())
+   {
+      // anzTage = (int)dateFrom.daysTo(dateTo)+1;
+      anzTage = (dateTo.month() - dateFrom.month()) * 30;
+      anzTage += dateTo.day();
+      anzTage -= dateFrom.day();
+      anzTage -= ((dateTo.day() == 31) ? 1 : 0);
+      anzTage += 1; // da bis 31.12. und nicht 1.1. gerechnet wird
+      // anzTage = qMin(anzTage, getAnzTageJahr());
+      // Q_ASSERT(anzTage <= getAnzTageJahr());
+   }
+   return anzTage;
+}
+
+double Runden2(double Betrag)
+{
+   int temp = qRound(Betrag * 100);
+   double ret = ((double)temp / 100);
+   return ret;
+}
+
+double computeDkZinsen(double Betrag, double Zinssatz, int anzTage)
+{
+    double Zinsen = ((Betrag * Zinssatz) / 100.0);
+    Zinsen = Runden2(Zinsen * anzTage / getAnzTageJahr());
+    return Zinsen;
+}
+
 //--------------------------------------------------------------
 // SQL-Funktionen
 //--------------------------------------------------------------

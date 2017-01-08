@@ -15,6 +15,7 @@ QT_END_NAMESPACE
 
 QString readFromFile(const QString &fileName);
 void writeToFile(const QString &fileName, const QString &str);
+QString escapeFileName(const QString &fileName);
 
 //--------------------------------------------------------------
 // DkVerwaltungQt-Funktionen
@@ -28,8 +29,13 @@ QSettings &getSettings();
 QString getFilePathFromIni(const QString &iniEntry, const QString &filePath, const QString &fileName);
 QString getOpenOfficePath();
 QString getJahresDkBestaetigungenPath();
+
 int getJahr();
-int getAnzTage();
+int getAnzTageJahr();
+int getAnzTage(const QDate &dateFrom, const QDate &dateTo);
+
+double Runden2(double Betrag);
+double computeDkZinsen(double Betrag, double Zinssatz, int anzTage);
 
 //--------------------------------------------------------------
 // SQL-Funktionen

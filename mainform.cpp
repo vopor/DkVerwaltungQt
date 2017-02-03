@@ -131,9 +131,10 @@ void MainForm::generateJahresDkBestaetigungen()
         {
             // Datei pro Person mit allen Buchungen
             // <PersonId>_<EMail>_<Vorname>_<Name>.txt
-            // 008_Klaus.tetzner@t-online.de_Klaus_Tetzner0.pdf
             QString personFilePath = JahresDkBestaetigungenPath + QDir::separator();
             QString personFileName;
+
+            // TODO: PersonId raus, wegen Parsen der EMail in sendDKJAKtos.py
             personFileName += personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_PersonId)).toString();
             personFileName += "_" + personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Email)).toString();
             personFileName += "_" + personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Vorname)).toString();

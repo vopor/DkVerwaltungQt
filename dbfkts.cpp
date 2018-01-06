@@ -178,7 +178,7 @@ QString getJahresDkBestaetigungenPath()
 
 int getJahr()
 {
-   return 16;
+   return 17;
 }
 
 int getAnzTageJahr()

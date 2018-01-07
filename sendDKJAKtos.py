@@ -3,12 +3,22 @@
 
 # -*- coding: utf-8 -*-
 
-# from:
+#
+# Das Script versendet alle Pdf-Dateien im aktuellen Verzeichnis an die jeweiligen EMail-Empfänger mit Anschreiben.
+# 
+# Die EMail-Adresse und der Name des Empfängers müssen dabei in dem Namen der Pdf-Datei enthalten sein.
+# <laufende Nummer>_<EMail-Adresse>_<Vorname>_<Nachname>
+#
+# Der Text für das Anschreiben befindet sich im Quelltext dieses Scripts (s.u.).
+#
+# Aufruf: ./sendDKJAtos.py
+#
+
+# original from:
 # http://nathangrigg.net/2012/04/send-emails-from-the-command-line/
 # help:
 # ./mailapp.py --help
 # example:
-# ls | python mailapp.py -s "Here's how my home directory looks"
 # ls | python mailapp.py -s "Here's how my home directory looks"
 
 import sys
@@ -166,8 +176,8 @@ for i in os.listdir(subdir):
             # if not (("fischer-stefan@live.de" in i)):
             # if not (("hapeneumann@googlemail.com" in i)):
             # if not (("evebeyer@gmx.net" in i)):
-            if not ("VPorzelt@gmx.de" in i):
-                continue
+            # if not ("VPorzelt@gmx.de" in i):
+            #     continue
             filename = i
             textfilename = i
             textfilename = textfilename.replace(".pdf", ".txt")

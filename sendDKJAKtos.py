@@ -142,7 +142,7 @@ def ask_to_continue():
     return True
 
 def ask_to_continue2():
-    msg = 'Shall I?'
+    msg = 'Fortfahren?'
     shall = raw_input("%s (y/N) " % msg).lower() == 'y'
     return shall
     
@@ -210,7 +210,7 @@ for i in os.listdir(subdir):
                     newcontent += "Wir bitten um Überprüfung. Falls etwas nicht stimmt oder unverständlich ist, bitte einfach per E-Mail (Kontakt-DK@13hafreiheit) oder Telefon (01575-1183759) bei uns melden." + "\n"
                     newcontent += "Wir erhoffen und wünschen uns auch im neuen Jahre Eure/Ihre Solidarität." + "\n"
                     newcontent += "Denn für die weitere Umschuldung brauchen wir weiterhin Eure/Ihre Hilfe in Form von Direktkrediten." + "\n"
-                    newcontent += "Also empfehlt 13ha Freiheit weiter an Freund*innen, Bekannte und Verwandte." + "\n"
+                    newcontent += "Wir würden uns freuen, wenn Ihr 13haFreiheit an Freund*innen, Bekannte und Verwandte weiterempfehlt." + "\n"
                     newcontent += "\n"
                     newcontent += "Herzliche Grüße" + "\n" 
                     newcontent += "\n"
@@ -226,7 +226,7 @@ for i in os.listdir(subdir):
                           content = newcontent,
                           subject = "Kontoauszug 2017 DK F13 Turley GmbH",
                           to_addr = email,
-                          # from_addr = args.r,
+                          from_addr = "13hafreiheit <13hafreiheit@gmx.de>",
                           send = False,
                           # cc_addr = args.c,
                           # bcc_addr = args.b,
@@ -237,3 +237,11 @@ for i in os.listdir(subdir):
                 exit(1)
         else:
             print ss + " not in " + i
+            manuellFolder = os.path.join(os.getcwd(), "manuell")
+            if not os.path.isdir(manuellFolder):
+                os.makedirs(manuellFolder)
+            fromFileName = os.path.join(os.getcwd(), i)            
+            toFileName = os.path.join(manuellFolder, i)
+            shutil.copy2(fromFileName, toFileName)
+            # os.rename("path/to/current/file.foo", "path/to/new/desination/for/file.foo")
+            # shutil.move("path/to/current/file.foo", "path/to/new/destination/for/file.foo")            

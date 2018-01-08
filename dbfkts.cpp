@@ -176,6 +176,12 @@ QString getJahresDkBestaetigungenPath()
    return JahresDkBestaetigungenPath;
 }
 
+QString getJahresDkZinsBescheinigungenPath()
+{
+   QString JahresDkZinsBescheinigungenPath = getStandardPath() + QDir::separator() + "JahresDkZinsBescheinigungen" + QString::number(2000 + getJahr());
+   return JahresDkZinsBescheinigungenPath;
+}
+
 int getJahr()
 {
    return 17;

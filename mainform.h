@@ -48,6 +48,7 @@ private slots:
     void filterBuchungen();
 
     void generateJahresDkBestaetigungen();
+    void generateJahresDkZinsBescheinigungen();
 
 private:
 
@@ -118,6 +119,7 @@ private:
     QLineEdit *summeDkEdit;
 
     QPushButton *generateJahresDkBestaetigungenButton;
+    QPushButton *generateJahresDkZinsBescheinigungenButton;
 
     QPushButton *quitButton;
     QDialogButtonBox *buttonBox;

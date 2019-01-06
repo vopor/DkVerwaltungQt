@@ -166,7 +166,7 @@ def getContent():
 	""".replace('\t', '')
 
 # main
-
+doIt = True # False
 ss = "@"
 subdir = os.getcwd() # + "/16-01-01 Export"
 for i in os.listdir(subdir):
@@ -178,6 +178,11 @@ for i in os.listdir(subdir):
             # if not (("evebeyer@gmx.net" in i)):
             # if not ("VPorzelt@gmx.de" in i):
             #     continue
+            # if ("VPorzelt@gmx.de" in i):
+            #     doIt = True
+            if not doIt:
+                print i
+                continue
             filename = i
             textfilename = i
             textfilename = textfilename.replace(".pdf", ".txt")

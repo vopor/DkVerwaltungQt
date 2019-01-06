@@ -149,7 +149,7 @@ def ask_to_continue2():
 def getContent():
 	return """
 	die Bewohner*innen des Wohnprojekts 472 wünschen ein schönes neues Jahr und bedanken sich herzlich für die Unterstützung. 
-	Dies ist der Kontoauszug Deiner/Ihrer Direktkredite für das Jahr 2017 bei der F13 Turley GmbH. 
+	Dies ist der Kontoauszug Deiner/Ihrer Direktkredite für das Jahr 2018 bei der F13 Turley GmbH. 
 	Die Zinsen wurden dem Direktkreditkonto gutgeschrieben. 
 	Auf Wunsch erstellen wir eine gesonderte Zinsbescheinigung für die Steuererklärung. 
 	Wir bitten um Überprüfung. Falls etwas nicht stimmt oder unverständlich ist, bitte einfach per E-Mail (Kontakt-DK@13hafreiheit) oder Telefon (01575-1183759) bei uns melden. 
@@ -204,7 +204,7 @@ for i in os.listdir(subdir):
                     newcontent += "\n"
                     # newcontent += getContent()
                     newcontent += "die Bewohner*innen des Wohnprojekts 472 wünschen ein schönes neues Jahr und bedanken sich herzlich für die Unterstützung." + "\n"
-                    newcontent += "Dies ist der Kontoauszug Deiner/Ihrer Direktkredite für das Jahr 2017 bei der F13 Turley GmbH." + "\n"
+                    newcontent += "Dies ist der Kontoauszug Deiner/Ihrer Direktkredite für das Jahr 2018 bei der F13 Turley GmbH." + "\n"
                     newcontent += "Die Zinsen wurden dem Direktkreditkonto gutgeschrieben." + "\n"
                     newcontent += "Auf Wunsch erstellen wir eine gesonderte Zinsbescheinigung für die Steuererklärung." + "\n"
                     newcontent += "Wir bitten um Überprüfung. Falls etwas nicht stimmt oder unverständlich ist, bitte einfach per E-Mail (Kontakt-DK@13hafreiheit) oder Telefon (01575-1183759) bei uns melden." + "\n"
@@ -224,7 +224,7 @@ for i in os.listdir(subdir):
                     if sendIt:
                         code = make_message(
                           content = newcontent,
-                          subject = "Kontoauszug 2017 DK F13 Turley GmbH",
+                          subject = "Kontoauszug 2018 DK F13 Turley GmbH",
                           to_addr = email,
                           from_addr = "13hafreiheit <13hafreiheit@gmx.de>",
                           send = False,

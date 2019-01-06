@@ -182,9 +182,27 @@ QString getJahresDkZinsBescheinigungenPath()
    return JahresDkZinsBescheinigungenPath;
 }
 
+int getJahrFromIni()
+{
+   QString userAndHostName = getUserAndHostName();
+   getSettings().beginGroup(userAndHostName);
+   int jahr = getSettings().value("Jahr").toInt();
+   if(jahr == 0){
+      jahr = 18;
+      getSettings().setValue("Jahr", jahr);
+   }
+   getSettings().endGroup();
+   return jahr;
+}
+
 int getJahr()
 {
-   return 17;
+   static int jahr = 0;
+   if(jahr == 0)
+   {
+      jahr = getJahrFromIni();
+   }
+   return jahr;
 }
 
 int getAnzTageJahr()

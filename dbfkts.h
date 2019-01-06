@@ -30,6 +30,7 @@ QString getFilePathFromIni(const QString &iniEntry, const QString &filePath, con
 QString getOpenOfficePath();
 QString getJahresDkBestaetigungenPath();
 QString getJahresDkZinsBescheinigungenPath();
+int getJahrFromIni();
 
 int getJahr();
 int getAnzTageJahr();

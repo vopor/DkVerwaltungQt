@@ -39,6 +39,8 @@ void writeToFile(const QString &fileName, const QString &str)
         QTextStream out(&file);
         out.setCodec("UTF-8");
         out << str;
+    }else{
+        QMessageBox::warning(0, "Fehler beim Speichern!", fileName + " konnte nicht gespeichert werden!");
     }
 }
 
@@ -50,6 +52,7 @@ QString escapeFileName(const QString &fileName)
     ret = ret.replace("ö", "oe");
     ret = ret.replace("ü", "ue");
     ret = ret.replace("ß", "ss");
+    ret = ret.replace("/", "+");
     return ret;
 }
 //--------------------------------------------------------------

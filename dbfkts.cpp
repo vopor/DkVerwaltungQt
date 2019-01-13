@@ -315,36 +315,18 @@ double getDoubleValue(const QString &statement){
     return doubleValue;
 }
 
+QString getStringValue(const QString &statement){
+   QString stringValue = "";
+   QVariant v = getVariantValue(statement);
+   if(v.isValid()){
+       stringValue = v.toString();
+   }
+   return stringValue;
+}
+
 int getMaxId(const QString &tableName, const QString &fieldName)
 {
     QString statement = QString("SELECT MAX(%1) FROM %2").arg(fieldName).arg(tableName);
     int intValue = getIntValue(statement);
     return intValue;
 }
-
-//int getIntValue(const QString &statement){
-//    QSqlQuery query;
-//    query.prepare(statement);
-//    query.exec();
-//    int intValue = -1;
-//    if (query.next()){
-//        intValue = query.value(0).toInt();
-//    }else{
-//        qDebug() << "statement: " << statement;
-//        if (query.lastError().isValid())
-//            qDebug() << query.lastError();
-//    }
-//    return intValue;
-//}
-
-//int getMaxId(const QString &tableName, const QString &fieldName)
-//{
-//    QSqlQuery query;
-//    query.prepare(QString("SELECT MAX(%1) FROM %2").arg(fieldName).arg(tableName));
-//    query.exec();
-//    int maxId = 0;
-//    if (query.next()) {
-//        maxId = query.value(0).toInt();
-//    }
-//    return maxId;
-//}

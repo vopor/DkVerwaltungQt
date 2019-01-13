@@ -209,27 +209,52 @@ void MainForm::generateJahresDkBestaetigungen()
                     QString strAnfangsdatum = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Datum)).toString();
                     double Zinssatz = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Zinssatz)).toDouble();
                     double Betrag = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Betrag)).toDouble();
-                    QString strEnddatum = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_vorgemerkt)).toString();
-
+                    // QString strEnddatum = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_vorgemerkt)).toString();
+                    QString strRueckzahlung = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Rueckzahlung)).toString();
+                    // if(Betrag < 0){
+                    //     continue;
+                    // }
+                    QString strEnddatum;
+                    // QString statement = "SELECT Rueckzahlung From DkBuchungen WHERE DkNummer = '" + strDkNummer + "'";
+                    // statement += " AND substr(Rueckzahlung ,7,2) == '" + strJahr + "'";
+                    // strEnddatum = getStringValue(statement);
+                    bool bRueckzahlung = false;
+                    if(strRueckzahlung.endsWith(strJahr))
+                    {
+                       bRueckzahlung = true;
+                       strEnddatum = strRueckzahlung;
+                    }
+                    // strEnddatum = "";
                     if(strEnddatum.length() == 0)
                     {
                         strEnddatum = "31.12." + strJahr;
+                    }else{
+; // __asm nop
                     }
-                    else
-                    {
-                        if(QDate::fromString(strEnddatum, "dd.MM.yy") >  QDate::fromString(strSylvester, "dd.MM.yy"))
-                        {
-                            strEnddatum = "31.12." + strJahr;
-                        }
-                        else
-                        {
-                            // strEnddatum = QDate::fromString(strEnddatum, "dd.MM.yy").toString("dd.MM.yyyy");
-                        }
-                    }
+//                    else
+//                    {
+//                        QDate d1 = QDate::fromString(strEnddatum, "dd.MM.yy");
+//                        QDate d2 = QDate::fromString(strSylvester, "dd.MM.yyyy");
+//                        if(d1.isValid()){
+//                            if( d1 > d2 )
+//                            {
+//                                strEnddatum = "31.12." + strJahr;
+//                            }
+//                            // else
+//                            {
+//                                // gekündigte Dks
+//                                // strEnddatum = QDate::fromString(strEnddatum, "dd.MM.yy").toString("dd.MM.yyyy");
+//                                // strEnddatum = strEnddatum.left(6) + "20" + strEnddatum.right(2);
+//                            }
+//                        }
+//                    }
 
                     // Tagesgenaue Berechnung
                     QDate dateFrom = QDate::fromString(strAnfangsdatum, "dd.MM.yy");
                     QDate dateTo = QDate::fromString(strEnddatum, "dd.MM.yy");
+                    if(bRueckzahlung){
+                       dateTo = dateTo.addDays(-1);
+                    }
 
                     // int anzTage = getAnzTageJahr();
                     // if(dateFrom.isValid() && dateTo.isValid()){

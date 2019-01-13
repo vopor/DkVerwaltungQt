@@ -46,6 +46,7 @@ double computeDkZinsen(double Betrag, double Zinssatz, int anzTage);
 QVariant getVariantValue(const QString &statement);
 int getIntValue(const QString &statement);
 double getDoubleValue(const QString &statement);
+QString getStringValue(const QString &statement);
 int getMaxId(const QString &tableName, const QString &fieldName);
 
 #endif // DBFKTS_H

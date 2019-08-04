@@ -166,7 +166,7 @@ QString getOpenOfficePath()
 #ifdef Q_OS_MAC
      // oo = "/Applications/OpenOffice.app/Contents/MacOS/soffice";
     oo = getFilePathFromIni("OOPath", "/Applications/OpenOffice.app/Contents/MacOS/", "soffice");
-#elif Q_OS_WIN
+#elif defined(Q_OS_WIN)
     // oo = "C:\\Program Files\\OpenOffice 4\\program\\soffice.exe";
     oo = getFilePathFromIni("OOPath", "C:\\Program Files\\OpenOffice 4\\program\\", "soffice.exe");
 #endif

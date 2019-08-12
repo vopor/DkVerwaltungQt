@@ -1,0 +1,12 @@
+debug/
+release/
+*.db3
+#created from qmake
+.qmake.stash 
+.qmake.cash
+Makefile 
+Makefile.debug
+Makefile.release
+.vscode/
+uic_wrapper.bat
+uic_wrapper.sh

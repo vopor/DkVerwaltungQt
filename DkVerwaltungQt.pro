@@ -11,11 +11,13 @@ QT += widgets sql network
 
 # Input
 HEADERS += mainform.h \
+    appconfiguration.h \
     personform.h \
     buchungform.h \
     dbfkts.h
 
 SOURCES += main.cpp mainform.cpp \
+    appconfiguration.cpp \
     personform.cpp \
     buchungform.cpp \
     dbfkts.cpp

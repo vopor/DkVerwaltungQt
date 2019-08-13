@@ -3,12 +3,13 @@
 #include <QVariant>
 #include <QSqlQuery>
 #include <QSqlError>
-
 #include <QtWidgets>
-
 #include <QHostInfo> // requires QT += network
+#include <qdebug.h>
+#include <QDate>
+#include <QPushButton>
 
-#include "qdebug.h"
+#include "appconfiguration.h"
 
 //--------------------------------------------------------------
 // Allgemeine Funktionen
@@ -22,10 +23,7 @@ QString readFromFile(const QString &fileName)
     {
         QTextStream in(&file);
         in.setCodec("UTF-8");
-        // while(!in.atEnd())
-        // {
-        //    QString line = in.readLine();
-        // }
+
         ret = in.readAll();
     }
     return ret;
@@ -40,7 +38,7 @@ void writeToFile(const QString &fileName, const QString &str)
         out.setCodec("UTF-8");
         out << str;
     }else{
-        QMessageBox::warning(0, "Fehler beim Speichern!", fileName + " konnte nicht gespeichert werden!");
+        QMessageBox::warning(nullptr, "Fehler beim Speichern!", fileName + " konnte nicht gespeichert werden!");
     }
 }
 
@@ -48,6 +46,8 @@ QString escapeFileName(const QString &fileName)
 {
     QString ret = fileName;
     ret = ret.replace(" ", "_");
+    ret = ret.replace("*", "+");
+    ret = ret.replace("?", "-");
     ret = ret.replace("ä", "ae");
     ret = ret.replace("ö", "oe");
     ret = ret.replace("ü", "ue");
@@ -55,16 +55,82 @@ QString escapeFileName(const QString &fileName)
     ret = ret.replace("/", "+");
     return ret;
 }
+
 //--------------------------------------------------------------
 // DkVerwaltungQt-Funktionen
 //--------------------------------------------------------------
 
-bool createConnection(const QString &dbName)
+bool CreateDatabase(const QString filename)
+{
+    if( QFile(filename).exists())
+    {
+        QFile::remove(filename +".old");
+        if( !QFile::rename(filename, filename +".old"))
+            return false;
+    }
+    bool ret = true;
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName(filename);
+    ret &= db.open();
+    QSqlQuery q;
+    ret &= q.exec("CREATE TABLE DKBuchungen (BuchungId INTEGER PRIMARY KEY AUTOINCREMENT, PersonId INTEGER, Datum TEXT, DKNr TEXT, DKNummer TEXT, Rueckzahlung TEXT, vorgemerkt TEXT, Betrag REAL, Zinssatz REAL, Bemerkung TEXT, FOREIGN KEY(PersonId) REFERENCES DKPerson(PersonId))");
+    ret &= q.exec("CREATE TABLE DKPersonen (PersonId INTEGER PRIMARY KEY AUTOINCREMENT, Vorname TEXT, Name TEXT, Anrede TEXT, StraÃŸe TEXT, PLZ TEXT, Ort TEXT, Email TEXT);");
+    ret &= q.exec("CREATE TABLE DKZinssaetze (Zinssatz REAL PRIMARY KEY, Beschreibung TEXT)");
+    for (double zins=0; zins < 2.; zins+=0.1)
+    {
+        QString sql (QString("INSERT INTO DKZinssaetze VALUES (") + QString().setNum(zins) + ", '')");
+        ret &= q.exec(sql);
+    }
+    db.close();
+    return ret;
+}
+
+bool isValidDb(const QString filename)
 {
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName(dbName);
+    db.setDatabaseName(filename);
+    if( !db.open())
+    {
+        return false;
+    }
+    QString sql ("SELECT * FROM DKBuchungen");
+    QSqlQuery q;
+    if( q.exec(sql))
+    {
+        db.close();
+        return true;
+    }
+    db.close();
+    return false;
+}
+
+bool askForDatabase()
+{
+    do
+    {
+        QString file = QFileDialog::getOpenFileName(nullptr, "DkVerarbeitungs Datenbank", pAppConfig->getWorkdir(), "*.db3", nullptr);
+        if( file.isEmpty())
+        {
+            qDebug() <<  "User pressed cancel in File selection dlg" << endl;
+            return false;
+        }
+        if( QFile(file).exists() && isValidDb(file))
+        {
+            pAppConfig->setDb( file);
+            return true;
+        }
+        else {
+            qDebug() << "invalid db3 file selected - retry" << endl;
+        }
+    }while(true);
+}
+
+bool createConnection()
+{
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName(pAppConfig->getDb());
     if (!db.open()) {
-        QMessageBox::warning(0, QObject::tr("Database Error"),
+        QMessageBox::warning(nullptr, QObject::tr("Database Error"),
                              db.lastError().text());
         return false;
     }
@@ -73,91 +139,11 @@ bool createConnection(const QString &dbName)
 
 QString getStandardPath()
 {
-//    QString homePath;
-//    #if QT_VERSION >= 0x050000
-//        homePath = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
-//    #else
-//        homePath = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
-//    #endif
-//    return homePath;
-    QString standardPath = QDir::toNativeSeparators(QCoreApplication::applicationDirPath());
+    QString standardPath = pAppConfig->getWorkdir();
 #ifdef Q_OS_MAC
     standardPath = standardPath.replace("DkVerwaltungQt.app/Contents/MacOS", "");
 #endif
     return standardPath;
-}
-
-QString getSettingsFile(){
-    QString iniPath = getStandardPath();
-    iniPath += QDir::separator() + QStringLiteral("DkVerwaltungQt.ini");
-    return iniPath;
-}
-
-QSettings &getSettings(){
-   static QSettings settings(getSettingsFile(), QSettings::IniFormat);
-   return settings;
-}
-
-// http://stackoverflow.com/questions/26552517/get-system-username-in-qt
-QString getUserName(){
-    QString userName;
-#ifdef Q_OS_WIN
-    userName = qgetenv("USERNAME");
-#else
-    userName = qgetenv("USER");
-#endif
-    return userName;
-}
-
-QString getComputerName(){
-    QString computerName;
-#ifdef Q_OS_WIN
-    computerName = qgetenv("COMPUTERNAME");
-#else
-    computerName = qgetenv("HOSTNAME");
-#endif
-    return computerName;
-}
-
-QString getUserAndHostName(){
-    QString userAndHostName;
-    QString userName = getUserName();
-    userAndHostName = userName ;
-    QString localHostName;
-    localHostName = QHostInfo::localHostName(); // requires QT += network
-    // localHostName = getComputerName();
-    if(localHostName.length()){
-        localHostName = localHostName.split('.').at(0);
-        userAndHostName += "_" + localHostName;
-    }
-    qDebug() << "userAndHostName" << userAndHostName;
-    return userAndHostName;
-}
-
-QString getFilePathFromIni(const QString &iniEntry, const QString &filePath, const QString &fileName)
-{
-//    QString iniEntryOS = iniEntry;
-//#ifdef Q_OS_MAC
-//    iniEntryOS += "Mac";
-//#elif Q_OS_WIN
-//    iniEntryOS += "Win";
-//#endif
-    QString iniEntrySpecific = iniEntry;
-    QString userAndHostName = getUserAndHostName();
-    getSettings().beginGroup(userAndHostName);
-    QString filePathFromIni = getSettings().value(iniEntrySpecific).toString();
-    if(filePathFromIni.isEmpty()){
-        filePathFromIni = filePath + QDir::separator() + fileName;
-        if(!QFileInfo(filePathFromIni).exists()){
-            filePathFromIni = QFileDialog::getOpenFileName(NULL, fileName + QStringLiteral(" öffnen"), filePathFromIni);
-            if(filePathFromIni.isEmpty()){
-                QMessageBox::warning(0, QStringLiteral("Fehler"), fileName + QStringLiteral(" nicht ausgewählt!"));
-            }
-        }
-        getSettings().setValue(iniEntrySpecific, filePathFromIni);
-    }
-    getSettings().endGroup();
-    return filePathFromIni;
 }
 
 QString getOpenOfficePath()
@@ -167,45 +153,47 @@ QString getOpenOfficePath()
      // oo = "/Applications/OpenOffice.app/Contents/MacOS/soffice";
     oo = getFilePathFromIni("OOPath", "/Applications/OpenOffice.app/Contents/MacOS/", "soffice");
 #elif defined(Q_OS_WIN)
-    // oo = "C:\\Program Files\\OpenOffice 4\\program\\soffice.exe";
-    oo = getFilePathFromIni("OOPath", "C:\\Program Files\\OpenOffice 4\\program\\", "soffice.exe");
+    oo = pAppConfig->getConfigPath_wUI("OOPath", "C:\\Program files\\OpenOffice 4\\Progarm", "soffice.exe");
 #endif
     return oo;
 }
 
-QString getJahresDkBestaetigungenPath()
+QString getJahresDkBestaetigungenPath(QString Year)
 {
-   QString JahresDkBestaetigungenPath = getStandardPath() + QDir::separator() + "JahresDkBestaetigungen" + QString::number(2000 + getJahr());
+   QString JahresDkBestaetigungenPath = pAppConfig->getWorkdir() + QDir::separator() + "JahresDkBestaetigungen" + Year;
    return JahresDkBestaetigungenPath;
 }
 
-QString getJahresDkZinsBescheinigungenPath()
+QString getJahresDkZinsBescheinigungenPath(QString Year)
 {
-   QString JahresDkZinsBescheinigungenPath = getStandardPath() + QDir::separator() + "JahresDkZinsBescheinigungen" + QString::number(2000 + getJahr());
+   QString JahresDkZinsBescheinigungenPath = pAppConfig->getWorkdir() + QDir::separator() + "JahresDkZinsBescheinigungen" + Year;
    return JahresDkZinsBescheinigungenPath;
 }
 
-int getJahrFromIni()
+QString getYear_wUI()
 {
-   QString userAndHostName = getUserAndHostName();
-   getSettings().beginGroup(userAndHostName);
-   int jahr = getSettings().value("Jahr").toInt();
-   if(jahr == 0){
-      jahr = 18;
-      getSettings().setValue("Jahr", jahr);
-   }
-   getSettings().endGroup();
-   return jahr;
-}
+    int year = QDate::currentDate().year();
+    QString thisYear(QString::number(year));
+    QString lastYear(QString::number(year -1));
+    QString two_yBack(QString::number(year-2));
 
-int getJahr()
-{
-   static int jahr = 0;
-   if(jahr == 0)
-   {
-      jahr = getJahrFromIni();
-   }
-   return jahr;
+    QMessageBox msgBox;
+    QPushButton *two_yBackButton = msgBox.addButton(two_yBack, QMessageBox::ActionRole);
+    QPushButton *lastYearButton = msgBox.addButton(lastYear, QMessageBox::ActionRole);
+    msgBox.addButton(thisYear, QMessageBox::ActionRole);
+    msgBox.setIcon(QMessageBox::Question);
+    msgBox.setText("Für welches Jahr soll die Berechnung durchgeführt werden?");
+
+    msgBox.exec();
+    if( two_yBackButton == msgBox.clickedButton())
+    {
+        return two_yBack;
+    }
+    if( lastYearButton == msgBox.clickedButton())
+    {
+        return lastYear;
+    }
+    return thisYear;
 }
 
 int getAnzTageJahr()
@@ -265,8 +253,7 @@ int getAnzTage(const QDate &dateFrom, const QDate &dateTo)
 
 double Runden2(double Betrag)
 {
-   int temp = qRound(Betrag * 100);
-   double ret = ((double)temp / 100);
+   double ret = qRound(Betrag * 100) / 100.;
    return ret;
 }
 

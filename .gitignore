@@ -10,3 +10,7 @@ Makefile.release
 .vscode/
 uic_wrapper.bat
 uic_wrapper.sh
+DkVerwaltungsQt.ini
+*.autosave
+*.pro.user
+*.old

@@ -20,19 +20,18 @@ QString escapeFileName(const QString &fileName);
 //--------------------------------------------------------------
 // DkVerwaltungQt-Funktionen
 //--------------------------------------------------------------
+bool CreateDatabase(const QString filename);
+bool askForDatabase();
+bool isValidDb(const QString file);
 
-bool createConnection(const QString &dbName);
+bool createConnection();
 
-QString getStandardPath();
-QString getSettingsFile();
-QSettings &getSettings();
-QString getFilePathFromIni(const QString &iniEntry, const QString &filePath, const QString &fileName);
 QString getOpenOfficePath();
-QString getJahresDkBestaetigungenPath();
-QString getJahresDkZinsBescheinigungenPath();
-int getJahrFromIni();
+QString getJahresDkBestaetigungenPath(QString y);
+QString getJahresDkZinsBescheinigungenPath(QString y);
+int getYearFromIni();
 
-int getJahr();
+QString getYear_wUI();
 int getAnzTageJahr();
 int getAnzTage(const QDate &dateFrom, const QDate &dateTo);
 

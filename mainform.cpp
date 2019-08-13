@@ -6,6 +6,7 @@
 #include "mainform.h"
 #include "personform.h"
 #include "buchungform.h"
+#include "appconfiguration.h"
 
 #include "dbfkts.h"
 
@@ -14,7 +15,7 @@
 class NumberFormatDelegate : public QStyledItemDelegate
 {
 public:
-   explicit NumberFormatDelegate(QObject *parent = 0);
+   explicit NumberFormatDelegate(QObject *parent = nullptr);
    virtual QString displayText(const QVariant &value, const QLocale &locale) const;
 };
 
@@ -113,13 +114,14 @@ void MainForm::generateJahresDkBestaetigungen()
     generateJahresDkBestaetigungenButton->setEnabled(false);
     // Unterordner JahresDkBestaetigungen in getStandardPath()
     // QString JahresDkBestaetigungenPath = getStandardPath() + QDir::separator() + "JahresDkBestaetigungen";
-    QString JahresDkBestaetigungenPath = getJahresDkBestaetigungenPath();
-    QDir().mkpath(JahresDkBestaetigungenPath);
-    QString fileName = getStandardPath() + QDir::separator() + "Jahreskontoauszug.html";
+    QString fileName = pAppConfig->getWorkdir() + QDir::separator() + pAppConfig->getAuszugsTemplate();
     QString strDatum = QDate::currentDate().toString("dd.MM.yyyy");
-    QString strJahr = QString::number(getJahr());
-    QString strJahr4 = QString::number(2000 + getJahr());
+    QString strJahr4 = getYear_wUI();
+    QString strJahr = strJahr4.right(2);
     QString strSylvester = "31.12." + strJahr4;
+
+    QString JahresDkBestaetigungenPath = getJahresDkBestaetigungenPath(strJahr4);
+    QDir().mkpath(JahresDkBestaetigungenPath);
 
     // TODO: Initialisierung und Aufräumen (z.B. selection merken und wieder setzen)
     // QModelIndex curIndex = personenView->currentIndex();
@@ -185,16 +187,6 @@ void MainForm::generateJahresDkBestaetigungen()
                 if(BuchungIndex.isValid())
                 {
                     QString strZeile;
-                    // // strZeile += "<tr>\n";
-                    //  // strZeile += "<td colspan=\"4\">Direktkredit: &lt;DkNummer&gt;</td>\n";
-                    //  // strZeile += "</tr>\n";
-                    // strZeile += "<tr>\n";
-                    // strZeile += "<td>Direktkredit</td>\n";
-                    // strZeile += "<td>Stand zum &lt;Anfangsdatum&gt;</td>\n";
-                    // strZeile += "<td>Zinssatz</td>\n";
-                    // strZeile += "<td>Zinsen</td>\n";
-                    // strZeile += "<td>Stand zum &lt;Enddatum&gt;</td>\n";
-                    // strZeile += "</tr>\n";
                     strZeile += "<tr>\n";
                     strZeile += "<td align=\"left\">&lt;DkNummer&gt;</td>\n";
                     strZeile += "<td align=\"right\">&lt;Anfangsbetrag&gt;</td>\n";
@@ -331,13 +323,13 @@ void MainForm::generateJahresDkZinsBescheinigungen()
 {
    // QMessageBox::warning(this, tr("Jahres Dk-ZinsBescheinigungen generieren"), tr("Nicht implementiert!"), QMessageBox::Ok);
    generateJahresDkZinsBescheinigungenButton->setEnabled(false);
-   QString JahresDkZinsBescheinigungenPath = getJahresDkZinsBescheinigungenPath();
-   QDir().mkpath(JahresDkZinsBescheinigungenPath);
-   QString fileName = getStandardPath() + QDir::separator() + "Zinsbescheinigung.html";
+   QString fileName = pAppConfig->getWorkdir() + QDir::separator() + pAppConfig->getZinsbescheinigungsTemplate();
    QString strDatum = QDate::currentDate().toString("dd.MM.yyyy");
-   QString strJahr = QString::number(getJahr());
-   QString strJahr4 = QString::number(2000 + getJahr());
+   QString strJahr4 = getYear_wUI();
+   QString strJahr = strJahr4.right(2);
    QString strSylvester = "31.12." + strJahr4;
+   QString JahresDkZinsBescheinigungenPath = getJahresDkZinsBescheinigungenPath(strJahr4);
+   QDir().mkpath(JahresDkZinsBescheinigungenPath);
 
    // TODO: Initialisierung und Aufräumen (z.B. selection merken und wieder setzen)
    // QModelIndex curIndex = personenView->currentIndex();
@@ -519,14 +511,6 @@ void MainForm::updateBuchungenView()
         }
         buchungenLabel->setText(tr("Buchungen"));
     }
-    // QModelIndex index = personenView->currentIndex();
-    // if (index.isValid()) {
-    //     QSqlRecord record = personenModel->record(index.row());
-    //     int PersonId = record.value("PersonId").toInt();
-    //     buchungenLabel->setText(tr("Buchungen von %1 %2").arg(record.value("Vorname").toString()).arg(record.value("Name").toString()));
-    // }else{
-    //     buchungenLabel->setText(tr("Buchungen"));
-    // }
     QModelIndex index = buchungenView->currentIndex();
     buchungenModel->select();
     buchungenView->horizontalHeader()->setVisible(buchungenModel->rowCount() > 0);
@@ -569,10 +553,7 @@ void MainForm::updateBuchungenSummen()
     double summeDkZinsen = getDoubleValue(statementDkZinsen);
     QDate dateTo = QDate::fromString(datumBuchungenDkZinsenEdit->text(), "dd.MM.yy");
     QDate dateFrom = QDate(dateTo.year(), 1, 1);
-    // int anzTage = getAnzTageJahr();
-    // if(dateFrom.isValid() && dateTo.isValid()){
-    //     anzTage = qMin((int)dateFrom.daysTo(dateTo), getAnzTageJahr());
-    // }
+
     int anzTage = getAnzTage(dateFrom, dateTo);
     summeDkZinsen = Runden2(summeDkZinsen * anzTage / getAnzTageJahr());
     QString summeDkZinsenText = QString::number(summeDkZinsen, 'f', 2);
@@ -898,7 +879,7 @@ void MainForm::toggleAnzeigenPersonen(){
         QModelIndex index = buchungenView->currentIndex();
         if (index.isValid()) {
             index = buchungenSortModel->mapToSource(index);
-            QSqlRecord record = ((QSqlTableModel *)buchungenSortModel->sourceModel())->record(index.row());
+            QSqlRecord record = (static_cast<QSqlTableModel*>(buchungenSortModel->sourceModel()))->record(index.row());
             PersonId = record.value(DkBuchungen_PersonId).toInt();
             // QModelIndexList QAbstractItemModel::match(const QModelIndex & start, int role, const QVariant & value, int hits = 1, Qt::MatchFlags flags = Qt::MatchFlags( Qt::MatchStartsWith | Qt::MatchWrap )) const
             QModelIndex startIndex = personenModel->index(0, DkPersonen_PersonId);

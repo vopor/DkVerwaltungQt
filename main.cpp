@@ -1,11 +1,37 @@
-#include <QtWidgets>
-#include <QtSql>
 #include <cstdlib>
 #include <locale.h>
 
+#include <QtWidgets>
+#include <QtSql>
+#include <QStringLiteral>
+#include <QFile>
+#include <qdebug.h>
+
+#include "appconfiguration.h"
+#include "dbfkts.h"
 #include "mainform.h"
 
-#include "dbfkts.h"
+bool resolveDbIssue()
+{
+    QString MsgText("Die Db3 Datei \n");
+    MsgText += pAppConfig->getDb();
+    MsgText += "\n ist defekt oder existiert nicht. \nWähle JA um eine neue Datei anzulegen, NEIN um eine Datei auszuwählen oder ABBRECHEN um das Programm zu beenden";
+    QMessageBox msgb;
+    msgb.setText(MsgText);
+    msgb.setInformativeText("Neue Datei Anlegen?");
+    msgb.setStandardButtons(QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
+
+    switch( msgb.exec())
+    {
+    case QMessageBox::Yes:
+        return CreateDatabase(pAppConfig->getDb());
+    case QMessageBox::No:
+        return askForDatabase();
+    case QMessageBox::Cancel:
+    default:
+        return false;
+    }
+}
 
 int main(int argc, char *argv[])
 {
@@ -17,18 +43,26 @@ int main(int argc, char *argv[])
 
     QApplication app(argc, argv);
 
-    qDebug() << "settings: " << getSettings().fileName();
-    QString dbPath = getFilePathFromIni("DBPath", getStandardPath(), "DkVerwaltungQt.db3");
-    qDebug() << "dbPath: " << dbPath;
-    if(!dbPath.length())
-        return 1;
-    bool existingData = QFile::exists(dbPath);
-    if (!existingData){
-        QMessageBox::warning(0, QStringLiteral("Datenbank Fehler"),
-                         dbPath + QStringLiteral(" existiert nicht!"));
-        return 2;
+    if( !QFile::exists(pAppConfig->getDb()))
+    {
+        if( !resolveDbIssue())
+            return ERROR_FILE_NOT_FOUND;
     }
-    if (!createConnection(dbPath))
+    else if( !isValidDb(pAppConfig->getDb()))
+    {
+        if( !resolveDbIssue())
+            return ERROR_FILE_NOT_FOUND;
+    }
+
+    if( !pAppConfig->isValidWorkdir())
+    {
+        QMessageBox("DkVerwaltung konnte nicht initialisiert werden",
+                    "Zur Laufzeit verwendete Dateien konnten nicht gefunden werden. Die Anwendung wird beendet",
+                    QMessageBox::Critical,
+                    QMessageBox::Ok,QMessageBox::NoButton,QMessageBox::NoButton).exec();
+        return ERROR_BAD_CONFIGURATION;
+    }
+    if (!createConnection())
         return 1;
 
     MainForm form;

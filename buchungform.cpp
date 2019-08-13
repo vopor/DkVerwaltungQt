@@ -2,9 +2,10 @@
 #include <QtSql>
 #include <QFile>
 
-#include "buchungform.h"
-#include "personform.h" // wg. enum
+#include "appconfiguration.h"
 #include "dbfkts.h"
+#include "personform.h" // wg. enum
+#include "buchungform.h"
 
 BuchungForm::BuchungForm(QWidget *parent, QSqlTableModel *personenModel, const QModelIndex &indexPersonId, QSqlRelationalTableModel *buchungenModel, const QModelIndex &indexBuchungId)
     : QDialog(parent)
@@ -18,10 +19,6 @@ BuchungForm::BuchungForm(QWidget *parent, QSqlTableModel *personenModel, const Q
     buchungIdEdit->setReadOnly(true);
     buchungIdLabel = new QLabel(tr("BuchungId"));
     buchungIdLabel->setBuddy(buchungIdEdit);
-
-    // personenComboBox = new QComboBox;
-    // personenLabel = new QLabel(tr("Person:"));
-    // personenLabel->setBuddy(personenComboBox);
 
     personIdEdit = new QLineEdit;
     personIdEdit->setReadOnly(true);
@@ -51,23 +48,11 @@ BuchungForm::BuchungForm(QWidget *parent, QSqlTableModel *personenModel, const Q
     vorgemerktLabel->setBuddy(vorgemerktEdit);
 
     betragEdit = new QLineEdit;
-    // betragEdit->setInputMask("00000.00 €");
-    // betragEdit->setValidator( new QDoubleValidator(0, 100000, 2, this) );
-    // QRegExp preco("^(\\d{1,3}(\\.\\d{3})*|(\\d+))(\\,\\d{2})?$");
-    // QRegExp regCurrency("^(\\d{1,5}})+(\\,)?(\\d{0,2})?$");
-    // betragEdit->setValidator(new QRegExpValidator(regCurrency, betragEdit));
-    // betragEdit->setInputMask("00000.00 €");
     betragEdit->setValidator(new QDoubleValidator(0.0, 100000.0, 2, betragEdit));
 
 
     betragLabel = new QLabel(tr("Betrag"));
     betragLabel->setBuddy(betragEdit);
-
-    // zinssatzEdit = new QLineEdit;
-    // //zinssatzEdit->setInputMask("00009.99 %");
-    // zinssatzEdit->setValidator(new QDoubleValidator(0.0, 100.0, 2, zinssatzEdit));
-    // zinssatzLabel = new QLabel(tr("Zinssatz"));
-    // zinssatzLabel->setBuddy(zinssatzEdit);
 
     zinssatzComboBox = new QComboBox;
     zinssatzLabel = new QLabel(tr("Zinssatz"));
@@ -96,13 +81,6 @@ BuchungForm::BuchungForm(QWidget *parent, QSqlTableModel *personenModel, const Q
     buttonBox->addButton(dkBestaetigenButton, QDialogButtonBox::ActionRole);
     buttonBox->addButton(closeButton, QDialogButtonBox::AcceptRole);
 
-    // m_buchungenModel = buchungenModel;
-    // QSqlRelationalTableModel *tableModel = new QSqlRelationalTableModel(this);
-    // tableModel->setTable("DkBuchungen");
-    // tableModel->setRelation(DkBuchungen_PersonId, QSqlRelation("DkPersonen", "PersonId", "Name"));
-    // // tableModel->setSort(DkBuchungen_Datum, Qt::AscendingOrder);
-    // tableModel->select();
-
     QSqlQueryModel *zinssaetzeModel = new QSqlQueryModel(zinssatzComboBox);
     zinssaetzeModel->setQuery("SELECT zinssatz FROM DKZinssaetze");
     zinssatzComboBox->setModel(zinssaetzeModel);
@@ -121,7 +99,6 @@ BuchungForm::BuchungForm(QWidget *parent, QSqlTableModel *personenModel, const Q
     mapper->addMapping(rueckzahlungEdit, DkBuchungen_Rueckzahlung);
     mapper->addMapping(vorgemerktEdit, DkBuchungen_vorgemerkt);
     mapper->addMapping(betragEdit, DkBuchungen_Betrag);
-    // mapper->addMapping(zinssatzEdit, DkBuchungen_Zinssatz);
     mapper->addMapping(zinssatzComboBox, DkBuchungen_Zinssatz);
     mapper->addMapping(bemerkungEdit, DkBuchungen_Bemerkung, "plainText");
 
@@ -226,7 +203,6 @@ void BuchungForm::addBuchung()
     mapper->submit();
     m_buchungenModel->insertRow(row);
     mapper->setCurrentIndex(row);
-    // m_BuchungIndex = m_buchungenModel->index(row, 0);
 
     int maxBuchungId = getMaxId("DkBuchungen", "BuchungId") + 1;
     buchungIdEdit->setText(QString::number(maxBuchungId));
@@ -244,7 +220,6 @@ void BuchungForm::addBuchung()
     rueckzahlungEdit->clear();
     vorgemerktEdit->clear();
     betragEdit->clear();
-    // zinssatzEdit->clear();
     bemerkungEdit->clear();
 
     datumEdit->setFocus();
@@ -256,20 +231,10 @@ void BuchungForm::deleteBuchung()
     m_buchungenModel->removeRow(row);
     mapper->submit();
     mapper->setCurrentIndex(qMin(row, m_buchungenModel->rowCount() - 1));
-    // m_BuchungIndex = m_buchungenModel->index(row, 0);
 }
 
 void BuchungForm::writeDataForDkBestaetigenBuchung(){
-    // if(!m_PersonIndex.isValid())
-    //    return;
-    // QSqlRecord personRecord = m_personenModel->record(m_PersonIndex.row());
-    // if(personRecord.isNull())
-    //    return;
-    // QString fileName = "DkVerwaltungQt.tmp";
-    // QString dbPath = getSettings().value(QStringLiteral("DBPath")).toString();
-    // QString filePath = dbPath + QDir::separator() + fileName; // todo: add current dir
-    // QString dbPath = getSettings().value(QStringLiteral("DBPath")).toString();
-    QString dbPath = getFilePathFromIni("DBPath", getStandardPath(), "DkVerwaltungQt.db3");
+    QString dbPath = pAppConfig->getDb();
     QString filePath = dbPath.replace(".db3", ".tmp");
     QFile file(filePath);
     if (file.open(QIODevice::WriteOnly | QIODevice::Text)){
@@ -282,7 +247,6 @@ void BuchungForm::writeDataForDkBestaetigenBuchung(){
             out << m_personenModel->data(m_personenModel->index(m_PersonIndex.row(), DkPersonen_Strasse)).toString() << "\n";
             out << m_personenModel->data(m_personenModel->index(m_PersonIndex.row(), DkPersonen_PLZ)).toString() << "\n";
             out << m_personenModel->data(m_personenModel->index(m_PersonIndex.row(), DkPersonen_Ort)).toString() << "\n";
-            // out << m_personenModel->data(m_personenModel->index(m_PersonIndex.row(), DkPersonen_Email)).toString() << "\n";
         }
         int row = mapper->currentIndex();
         m_BuchungIndex = m_buchungenModel->index(row, 0); // oder einfach row nehmen...
@@ -300,17 +264,10 @@ void BuchungForm::dkBestaetigenBuchung()
     writeDataForDkBestaetigenBuchung();
     // /Applications/OpenOffice.app/Contents/MacOS/soffice '/Users/volker/Documents/13ha/DkVerwaltungQt/Vorlage Anschreiben DK-Eingang.ott' 'vnd.sun.star.script:DkVerwaltungQt.Module1.FelderFuellen?language=Basic&location=application'
     QString oo = getOpenOfficePath();
-//#ifdef Q_OS_MAC
-//     // oo = "/Applications/OpenOffice.app/Contents/MacOS/soffice";
-//    oo = getFilePathFromIni("OOPath", "/Applications/OpenOffice.app/Contents/MacOS/", "soffice");
-//#elif Q_OS_WIN
-//    // oo = "C:\\Program Files\\OpenOffice 4\\program\\soffice.exe";
-//    oo = getFilePathFromIni("OOPath", "C:\\Program Files\\OpenOffice 4\\program\\", "soffice.exe");
-//#endif
     if(!oo.length())
         return;
-    // QString ott = "/Users/volker/Documents/13ha/DkVerwaltungQt/Vorlage Anschreiben DK-Eingang.ott";
-    QString ott = getFilePathFromIni("DkEingangVorlagePath", getStandardPath(), "Vorlage Anschreiben DK-Eingang.ott");
+    QString ott =pAppConfig->getWorkdir() + QDir::separator() + pAppConfig->getAnschreibenTemplate();
+
     if(!ott.length())
         return;
 
@@ -321,7 +278,6 @@ void BuchungForm::dkBestaetigenBuchung()
     arguments.append(macro);
     QString workingDirectory = QString();
     qint64 pid = 0;
-    // QProcess::execute(oo, arguments, workingDirectory, &pid); // synchron
     QProcess::startDetached(oo, arguments, workingDirectory, &pid); // assynchron
     qDebug() << "pid " << pid;
 }

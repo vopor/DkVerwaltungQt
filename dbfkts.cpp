@@ -60,6 +60,15 @@ QString escapeFileName(const QString &fileName)
 // DkVerwaltungQt-Funktionen
 //--------------------------------------------------------------
 
+class dbCloser
+{
+    public:
+    dbCloser (QSqlDatabase& d){Db=d;}
+    ~dbCloser(){Db.close();}
+private:
+    QSqlDatabase Db;
+};
+
 bool CreateDatabase(const QString filename)
 {
     if( QFile(filename).exists())
@@ -72,6 +81,8 @@ bool CreateDatabase(const QString filename)
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName(filename);
     ret &= db.open();
+    if( !ret) return ret;
+    dbCloser c(db);
     QSqlQuery q;
     ret &= q.exec("CREATE TABLE DKBuchungen (BuchungId INTEGER PRIMARY KEY AUTOINCREMENT, PersonId INTEGER, Datum TEXT, DKNr TEXT, DKNummer TEXT, Rueckzahlung TEXT, vorgemerkt TEXT, Betrag REAL, Zinssatz REAL, Bemerkung TEXT, FOREIGN KEY(PersonId) REFERENCES DKPerson(PersonId))");
     ret &= q.exec("CREATE TABLE DKPersonen (PersonId INTEGER PRIMARY KEY AUTOINCREMENT, Vorname TEXT, Name TEXT, Anrede TEXT, StraÃŸe TEXT, PLZ TEXT, Ort TEXT, Email TEXT);");
@@ -81,7 +92,6 @@ bool CreateDatabase(const QString filename)
         QString sql (QString("INSERT INTO DKZinssaetze VALUES (") + QString().setNum(zins) + ", '')");
         ret &= q.exec(sql);
     }
-    db.close();
     return ret;
 }
 
@@ -93,14 +103,11 @@ bool isValidDb(const QString filename)
     {
         return false;
     }
+    dbCloser c(db);
     QString sql ("SELECT * FROM DKBuchungen");
     QSqlQuery q;
     if( q.exec(sql))
-    {
-        db.close();
         return true;
-    }
-    db.close();
     return false;
 }
 

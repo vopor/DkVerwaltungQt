@@ -144,6 +144,19 @@ PersonForm::PersonForm(QWidget *parent, QSqlTableModel *personenModel, int Perso
     setWindowTitle(tr("Person bearbeiten"));
 }
 
+void PersonForm::disableNavigationButtons()
+{
+    firstButton->hide();
+    previousButton->hide();
+    nextButton->hide();
+    lastButton->hide();
+}
+
+void PersonForm::disableCreationButton()
+{
+    addButton->hide();
+}
+
 void PersonForm::done(int result)
 {
     mapper->submit();

@@ -32,7 +32,8 @@ class PersonForm : public QDialog
 
 public:
     PersonForm(QWidget *parent, QSqlTableModel *perosnenModel, int PersonId);
-
+    void disableNavigationButtons();
+    void disableCreationButton();
     void done(int result);
 
 private slots:

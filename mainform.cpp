@@ -593,24 +593,18 @@ int MainForm::getPersonId()
 void MainForm::addPerson()
 {
     int row = personenModel->rowCount();
-    // personenModel->beginInsertRows(index, row, row);
-    // personenModel->beginInsertRows(QModelIndex(), row, row);
     bool b = personenModel->insertRow(row);
     Q_UNUSED(b);
-    // personenModel->endInsertRows();
 
     QModelIndex index = personenModel->index(row, DkPersonen_PersonId);
-    // noch zu früh
-    // personenView->setCurrentIndex(index);
 
     personenView->edit(index);
     int maxPersonId = getMaxId("DkPersonen", "PersonId") + 1;
     personenModel->setData(index, maxPersonId);
-    // personenModel->endInsertRow(index, row);
 
     // Dialog anzeigen
-    int PersonId = maxPersonId;
-    PersonForm form(this, personenModel, PersonId);
+    PersonForm form(this, personenModel, maxPersonId);
+    form.disableNavigationButtons();
     form.exec();
     updatePersonenView();
     personenView->setCurrentIndex(index);
@@ -619,6 +613,7 @@ void MainForm::addPerson()
 void MainForm::editPerson(){
     int PersonId = getPersonId();
     PersonForm form(this, personenModel, PersonId);
+    form.disableCreationButton();
     form.exec();
     updatePersonenView();
 }

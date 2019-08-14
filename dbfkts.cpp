@@ -149,7 +149,7 @@ QString getStandardPath()
 QString getOpenOfficePath()
 {
     QString oo;
-#ifdef Q_OS_MAC
+#if defined (Q_OS_MAC)
      // oo = "/Applications/OpenOffice.app/Contents/MacOS/soffice";
     oo = getFilePathFromIni("OOPath", "/Applications/OpenOffice.app/Contents/MacOS/", "soffice");
 #elif defined(Q_OS_WIN)

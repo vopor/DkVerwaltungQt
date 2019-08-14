@@ -67,7 +67,6 @@ private:
     QPushButton *nextButton;
     QPushButton *lastButton;
     QPushButton *addButton;
-    QPushButton *deleteButton;
     QPushButton *closeButton;
     QDialogButtonBox *buttonBox;
 };

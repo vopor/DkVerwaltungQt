@@ -1,6 +1,7 @@
 debug/
 release/
 *.db3
+*db3bak
 #created from qmake
 .qmake.stash 
 .qmake.cash

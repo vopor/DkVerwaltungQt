@@ -7,7 +7,7 @@ TARGET = DkVerwaltungQt
 DEPENDPATH += .
 INCLUDEPATH += .
 
-QT += widgets sql network
+QT += widgets sql network printsupport
 
 # Input
 HEADERS += mainform.h \

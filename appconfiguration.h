@@ -26,7 +26,13 @@ public:
     bool isValidWorkdir();
     QString getDb(){ return DbName;}
     QString getAnschreibenTemplate(){return AnschreibenTemplate;}
-    QString getZinsbescheinigungsTemplate(){return ZinsbeschTemplate;}
+    QString getZinsbescheinigungsTemplate(){return getWorkdir()+QDir::separator()+ZinsbeschTemplate;}
+    QString getOutputDirZinsbescheinigungen(QString Jahr){
+        return getOutputDir("JahresDkZinsBescheinigungen", Jahr);
+    }
+    QString getOutputDirDkBestaetigungen(QString Jahr){
+        return getOutputDir("JahresDkBestaetigungen", Jahr);
+    }
     QString getAuszugsTemplate(){return JahresAuszugsTemplate;}
     void setDb(QString f);
     QString getWorkdir(){ return WorkDir.absolutePath();}
@@ -57,6 +63,12 @@ private:
     QDir WorkDir;
     QList<QString> WorkDirFiles;
     QString DbName;
+    QString getOutputDir(QString Dirname, QString Jahr){
+        QString tmp = getWorkdir()+QDir::separator()+ Dirname +"-" + Jahr;
+        if( !QDir(tmp).exists())
+            if( !QDir().mkpath(tmp)) throw("Failed to create output directory");
+        return tmp;
+    }
 
 private: // singleton stuff
     static AppConfig* Instance;

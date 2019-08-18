@@ -16,6 +16,8 @@ AppConfig::AppConfig () :
 {
 #ifdef Q_OS_MAC
     ExeDir = ExeDir.replace("DkVerwaltungQt.app/Contents/MacOS", "");
+    CurrentDir = ExeDir;
+    WorkDir.setPath(CurrentDir);
 #endif
     initDbName();
     WorkDirFiles << getAnschreibenTemplate();

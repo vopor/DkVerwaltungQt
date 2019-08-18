@@ -15,6 +15,8 @@ QT_END_NAMESPACE
 
 QString readFromFile(const QString &fileName);
 void writeToFile(const QString &fileName, const QString &str);
+void writeHtmlToPdf(const QString& Filename, const QString& html);
+
 QString escapeFileName(const QString &fileName);
 
 //--------------------------------------------------------------
@@ -27,8 +29,6 @@ void BackupDatabase();
 bool createConnection();
 
 QString getOpenOfficePath();
-QString getJahresDkBestaetigungenPath(QString y);
-QString getJahresDkZinsBescheinigungenPath(QString y);
 int getYearFromIni();
 
 QString getYear_wUI();

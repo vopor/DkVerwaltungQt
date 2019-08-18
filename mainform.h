@@ -123,6 +123,15 @@ private:
 
     QPushButton *quitButton;
     QDialogButtonBox *buttonBox;
+    QString createpersonalHtmlFilenameFromId(const long personrow);
+    void InsertAddressData(QString& html, const long personrow, const QString& jahr_4d);
+    void AddTableHeader(QString& html);
+    void BeginTableBody(QString& html);
+    void EndTableBody(QString& html);
+    void EndTable(QString& OutputHtml);
+
+    void AddTableRow(QString& OutputHtml, const long index, const QString& year_2d);
+    void CalculateSums(const long index, double& sBetrag, double& sZins);
 };
 
 #endif

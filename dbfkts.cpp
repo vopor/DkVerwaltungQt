@@ -8,6 +8,7 @@
 #include <qdebug.h>
 #include <QDate>
 #include <QPushButton>
+#include <QtPrintSupport>
 
 #include "appconfiguration.h"
 
@@ -42,6 +43,18 @@ void writeToFile(const QString &fileName, const QString &str)
     }
 }
 
+void writeHtmlToPdf(const QString& Filename, const QString& html)
+{
+    QPrinter printer(QPrinter::PrinterResolution);
+    printer.setOutputFormat(QPrinter::PdfFormat);
+    printer.setPaperSize(QPrinter::A4);
+    printer.setOutputFileName(Filename);
+
+    QTextDocument td;
+    td.setHtml(html);
+    td.print(&printer);
+}
+
 QString escapeFileName(const QString &fileName)
 {
     QString ret = fileName;
@@ -61,12 +74,13 @@ QString escapeFileName(const QString &fileName)
 //--------------------------------------------------------------
 
 class dbCloser
-{
-    public:
-    dbCloser (QSqlDatabase& d){Db=d;}
-    ~dbCloser(){Db.close();}
+{   // for use on the stack only
+public:
+    dbCloser (QSqlDatabase* d){Db=d;}
+    dbCloser() = delete;
+    ~dbCloser(){Db->close();}
 private:
-    QSqlDatabase Db;
+    QSqlDatabase* Db;
 };
 
 bool CreateDatabase(const QString filename)
@@ -82,10 +96,11 @@ bool CreateDatabase(const QString filename)
     db.setDatabaseName(filename);
     ret &= db.open();
     if( !ret) return ret;
-    dbCloser c(db);
+
+    dbCloser c(&db);
     QSqlQuery q;
+    ret &= q.exec("CREATE TABLE DKPersonen (PersonId INTEGER PRIMARY KEY AUTOINCREMENT, Vorname TEXT, Name TEXT, Anrede TEXT, Straße TEXT, PLZ TEXT, Ort TEXT, Email TEXT);");
     ret &= q.exec("CREATE TABLE DKBuchungen (BuchungId INTEGER PRIMARY KEY AUTOINCREMENT, PersonId INTEGER, Datum TEXT, DKNr TEXT, DKNummer TEXT, Rueckzahlung TEXT, vorgemerkt TEXT, Betrag REAL, Zinssatz REAL, Bemerkung TEXT, FOREIGN KEY(PersonId) REFERENCES DKPerson(PersonId))");
-    ret &= q.exec("CREATE TABLE DKPersonen (PersonId INTEGER PRIMARY KEY AUTOINCREMENT, Vorname TEXT, Name TEXT, Anrede TEXT, StraÃŸe TEXT, PLZ TEXT, Ort TEXT, Email TEXT);");
     ret &= q.exec("CREATE TABLE DKZinssaetze (Zinssatz REAL PRIMARY KEY, Beschreibung TEXT)");
     for (double zins=0; zins < 2.; zins+=0.1)
     {
@@ -100,15 +115,21 @@ bool isValidDb(const QString filename)
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName(filename);
     if( !db.open())
-    {
         return false;
-    }
-    dbCloser c(db);
-    QString sql ("SELECT * FROM DKBuchungen");
-    QSqlQuery q;
-    if( q.exec(sql))
-        return true;
-    return false;
+
+    dbCloser c(&db);
+
+    QSqlQuery sqlp("SELECT * FROM DKPersonen");
+    if( !sqlp.exec())
+        return false;
+    QSqlQuery sqlb("SELECT * FROM DKBuchungen");
+    if( !sqlb.exec())
+        return false;
+    QSqlQuery sqlz("SELECT * FROM DKZinssaetze");
+    if( !sqlz.exec())
+        return false;
+
+    return true;
 }
 
 bool askForDatabase()
@@ -195,12 +216,6 @@ QString getOpenOfficePath()
     oo = pAppConfig->getConfigPath_wUI("OOPath", "C:\\Program files\\OpenOffice 4\\Progarm", "soffice.exe");
 #endif
     return oo;
-}
-
-QString getJahresDkBestaetigungenPath(QString Year)
-{
-   QString JahresDkBestaetigungenPath = pAppConfig->getWorkdir() + QDir::separator() + "JahresDkBestaetigungen" + Year;
-   return JahresDkBestaetigungenPath;
 }
 
 QString getJahresDkZinsBescheinigungenPath(QString Year)

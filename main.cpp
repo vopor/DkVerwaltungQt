@@ -62,6 +62,9 @@ int main(int argc, char *argv[])
                     QMessageBox::Ok,QMessageBox::NoButton,QMessageBox::NoButton).exec();
         return ERROR_BAD_CONFIGURATION;
     }
+
+    BackupDatabase();
+
     if (!createConnection())
         return 1;
 

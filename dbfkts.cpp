@@ -132,6 +132,38 @@ bool askForDatabase()
     }while(true);
 }
 
+bool overwrite_copy(QString from, QString to)
+{
+    qDebug() << from << " to " << to << endl;
+    if( QFile().exists(to))
+        QFile().remove(to);
+    return QFile().copy(from, to);
+}
+
+void BackupDatabase()
+{
+    QList<QString> backupnames;
+    for(int i = 0; i<10; i++)
+    {
+        QString nbr;
+        QTextStream ts(&nbr); ts.setFieldWidth(2); ts.setPadChar('0');
+        ts << i;
+        QString backupextension (QString("-"+ nbr + ".db3bak"));
+        QString name = pAppConfig->getDb().replace(".db3", backupextension);
+        backupnames.append(name);
+    }
+    QFile().remove(backupnames[9]);
+    for(int i = 8; i>=0; i--)
+    {
+        if( !QFile().exists(backupnames[i]))
+            continue;
+        if( !overwrite_copy(backupnames[i], backupnames[i+1]))
+            qDebug() << "Backup copy failed" << endl;
+    }
+    if( !overwrite_copy(pAppConfig->getDb(), backupnames[0]))
+        qDebug() << "Backup copy failed" << endl;
+}
+
 bool createConnection()
 {
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");

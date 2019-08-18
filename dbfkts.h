@@ -23,7 +23,7 @@ QString escapeFileName(const QString &fileName);
 bool CreateDatabase(const QString filename);
 bool askForDatabase();
 bool isValidDb(const QString file);
-
+void BackupDatabase();
 bool createConnection();
 
 QString getOpenOfficePath();

@@ -38,7 +38,6 @@ public:
 
 private slots:
     void addPerson();
-    void deletePerson();
 
 private:
     QSqlTableModel *m_personenModel;

@@ -2,6 +2,8 @@
 
 #include <QVariant>
 #include <QSqlQuery>
+#include <QSqlRecord>
+#include <QSqlTableModel>
 #include <QSqlError>
 #include <QtWidgets>
 #include <QHostInfo> // requires QT += network
@@ -110,6 +112,65 @@ bool CreateDatabase(const QString filename)
     return ret;
 }
 
+bool hasTables(QSqlDatabase& db)
+{
+    QSqlQuery sqlp("SELECT * FROM DKPersonen", db);
+    if( !sqlp.exec())
+        return false;
+    QSqlQuery sqlb("SELECT * FROM DKBuchungen", db);
+    if( !sqlb.exec())
+        return false;
+    QSqlQuery sqlz("SELECT * FROM DKZinssaetze", db);
+    if( !sqlz.exec())
+        return false;
+    return true;
+}
+
+QString correctedDateString(QString ds)
+{
+    QList<QString> formats;
+    formats << "dd.MM.yy" << "d.M.yy" << "dd.MM.yyyy" << "d.M.yyyy";
+    formats << "dd-MM-yy" << "d-M-yy" << "dd-MM-yyyy" << "d-M-yyyy";
+    formats << "YY-MM-dd";
+    formats << "yyyy/MM/dd";
+    for( auto format : formats)
+    {
+        auto NewDate (QDate::fromString(ds, format));
+        if( NewDate.isValid())
+        {
+            QString retval = NewDate.toString("yyyy-MM-dd");
+            qDebug() << "Corrected Date format: " << ds << " -> " << retval;
+            return retval;
+        }
+    }
+    qDebug() << "Date value could not be validated: " << ds;
+    return QString();
+}
+
+bool makeAllDatesValid(const QSqlDatabase& db)
+{
+    QSqlTableModel model(nullptr, db);
+    model.setTable("DKBuchungen");
+    model.setEditStrategy(QSqlTableModel::OnManualSubmit);
+    model.select();
+
+    for(int i = 0; i< model.rowCount(); i++)
+    {
+        QString dateFromDb = model.record(i).value("Datum").toString();
+        if( QDate::fromString(dateFromDb, "yyyy-MM-dd").isValid())
+            continue;
+        QVariant newValue( correctedDateString(dateFromDb));
+        QSqlRecord row= model.record(i);
+        //row.setGenerated("Datum", false);
+        row.setValue("Datum", newValue);
+        model.setRecord(i, row);
+    }
+    if( !model.submitAll())
+        qDebug() << model.lastError();
+
+    return true;
+}
+
 bool isValidDb(const QString filename)
 {
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
@@ -118,15 +179,9 @@ bool isValidDb(const QString filename)
         return false;
 
     dbCloser c(&db);
-
-    QSqlQuery sqlp("SELECT * FROM DKPersonen");
-    if( !sqlp.exec())
+    if( !hasTables(db))
         return false;
-    QSqlQuery sqlb("SELECT * FROM DKBuchungen");
-    if( !sqlb.exec())
-        return false;
-    QSqlQuery sqlz("SELECT * FROM DKZinssaetze");
-    if( !sqlz.exec())
+    if( !makeAllDatesValid(db))
         return false;
 
     return true;
@@ -134,23 +189,14 @@ bool isValidDb(const QString filename)
 
 bool askForDatabase()
 {
-    do
+    QString file = QFileDialog::getOpenFileName(nullptr, "DkVerarbeitungs Datenbank", pAppConfig->getWorkdir(), "*.db3", nullptr);
+    if( file.isEmpty())
     {
-        QString file = QFileDialog::getOpenFileName(nullptr, "DkVerarbeitungs Datenbank", pAppConfig->getWorkdir(), "*.db3", nullptr);
-        if( file.isEmpty())
-        {
-            qDebug() <<  "User pressed cancel in File selection dlg" << endl;
-            return false;
-        }
-        if( QFile(file).exists() && isValidDb(file))
-        {
-            pAppConfig->setDb( file);
-            return true;
-        }
-        else {
-            qDebug() << "invalid db3 file selected - retry" << endl;
-        }
-    }while(true);
+        qDebug() <<  "User pressed cancel in File selection dlg" << endl;
+        return false;
+    }
+    pAppConfig->setDb(file);
+    return true;
 }
 
 bool overwrite_copy(QString from, QString to)
@@ -185,16 +231,67 @@ void BackupDatabase()
         qDebug() << "Backup copy failed" << endl;
 }
 
-bool createConnection()
+bool findDatabase_wUI()
 {
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName(pAppConfig->getDb());
-    if (!db.open()) {
-        QMessageBox::warning(nullptr, QObject::tr("Database Error"),
-                             db.lastError().text());
+    QString MsgText("Die Db3 Datei \n");
+    MsgText += pAppConfig->getDb();
+    MsgText += "\n ist defekt oder existiert nicht. \nWähle JA um eine neue Datei anzulegen, NEIN um eine Datei auszuwählen oder ABBRECHEN um das Programm zu beenden";
+    QMessageBox msgb;
+    msgb.setText(MsgText);
+    msgb.setInformativeText("Neue Datei Anlegen?");
+    msgb.setStandardButtons(QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
+
+    switch( msgb.exec())
+    {
+    case QMessageBox::Yes:
+        return CreateDatabase(pAppConfig->getDb());
+    case QMessageBox::No:
+        return askForDatabase();
+    case QMessageBox::Cancel:
+    default:
         return false;
     }
-    return true;
+}
+
+bool asureDatabase_wUI()
+{
+    bool retval = false;
+    do{
+        if( !QFile::exists(pAppConfig->getDb()))
+        {
+            if( !findDatabase_wUI())
+                break;
+        }
+
+        // validation (next step) might be a write operation, so backup now
+        BackupDatabase();
+
+        if( !isValidDb(pAppConfig->getDb()))
+        {
+            QMessageBox mb( QMessageBox::Icon::Critical, QString("DK Datenbank nicht gültig"),
+                        QString("Die gewählte Datenbank ist nicht gültig. Wähle eine gültige Datenbank oder erzeuge eine Neue"),
+                        QMessageBox::StandardButton::Ok| QMessageBox::StandardButton::Cancel);
+            if(mb.exec() == QMessageBox::Cancel)
+                break;
+            pAppConfig->clearDb();
+            // retry
+            continue;
+        }
+        retval = true;
+        break;
+    }
+    while(true);
+
+    if( retval && !pAppConfig->isValidWorkdir())
+    {
+        QMessageBox("DkVerwaltung konnte nicht initialisiert werden",
+                    "Zur Laufzeit verwendete Dateien konnten nicht gefunden werden. Die Anwendung wird beendet",
+                    QMessageBox::Critical,
+                    QMessageBox::Ok,QMessageBox::NoButton,QMessageBox::NoButton).exec();
+        retval = false;
+    }
+
+    return retval;
 }
 
 QString getStandardPath()
@@ -250,33 +347,6 @@ QString getYear_wUI()
     return thisYear;
 }
 
-int getAnzTageJahr()
-{
-   return 360;
-}
-
-void datediff()
-{
-QString source = "20090512";
-QDate sourceDate = QDate::fromString(source, "yyyyMMdd");
-
-qint64 daysBetween = QDate::currentDate().toJulianDay() - sourceDate.toJulianDay();
-QDate difference = QDate::fromJulianDay(daysBetween);
-
-QDate firstDate = QDate::fromJulianDay(0);
-
-int years = difference.year() - firstDate.year();
-int months = difference.month() - firstDate.month();
-int days = difference.day() - firstDate.day();
-
-// TODO: check if a number is negative and if so, normalize
-
-qDebug() << QDate::currentDate().toString("yy-MM-dd");
-qDebug() << sourceDate.toString("yy-MM-dd");
-qDebug() << daysBetween;
-qDebug() << QString("%1 years, %2 months and %3 days").arg(years).arg(months).arg(days);
-}
-
 // Zinstage = oFuncAcc.callFunction( "DAYS360", Array(dBeginn, dEnde, 1))
 // 359=TAGE360(DATUM(2016;1;1); DATUM(2016;12;31);1)
 // 4: - European method, 12 months of 30 days each (30E/360)
@@ -290,7 +360,7 @@ qDebug() << QString("%1 years, %2 months and %3 days").arg(years).arg(months).ar
 int getAnzTage(const QDate &dateFrom, const QDate &dateTo)
 {
    Q_ASSERT(dateFrom.year() == dateTo.year());
-   int anzTage = getAnzTageJahr();
+   int anzTage = AnzTageJahr;
    if(dateFrom.isValid() && dateTo.isValid())
    {
       // anzTage = (int)dateFrom.daysTo(dateTo)+1;
@@ -299,8 +369,6 @@ int getAnzTage(const QDate &dateFrom, const QDate &dateTo)
       anzTage -= dateFrom.day();
       anzTage -= ((dateTo.day() == 31) ? 1 : 0);
       anzTage += 1; // da bis 31.12. und nicht 1.1. gerechnet wird
-      // anzTage = qMin(anzTage, getAnzTageJahr());
-      // Q_ASSERT(anzTage <= getAnzTageJahr());
    }
    return anzTage;
 }
@@ -313,8 +381,8 @@ double Runden2(double Betrag)
 
 double computeDkZinsen(double Betrag, double Zinssatz, int anzTage)
 {
-    double Zinsen = ((Betrag * Zinssatz) / 100.0);
-    Zinsen = Runden2(Zinsen * anzTage / getAnzTageJahr());
+    double JahresZinsen = ((Betrag * Zinssatz) / 100.0);
+    double Zinsen = Runden2(JahresZinsen * anzTage / AnzTageJahr);
     return Zinsen;
 }
 

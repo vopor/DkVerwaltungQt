@@ -35,6 +35,7 @@ public:
     }
     QString getAuszugsTemplate(){return JahresAuszugsTemplate;}
     void setDb(QString f);
+    void clearDb();
     QString getWorkdir(){ return WorkDir.absolutePath();}
     QString getConfigString( const QString &key, const QString &defaultvalue=QString(""));
     QString getConfigPath_wUI(const QString &key, const QString path, const QString &filename);

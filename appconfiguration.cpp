@@ -34,6 +34,11 @@ void AppConfig::setDb(QString f)
     Ini.endGroup();
 }
 
+void AppConfig::clearDb()
+{
+    DbName = "";
+}
+
 QString AppConfig::getConfigString( const QString &key, const QString &DefVal)
 {
     USE_Ini;

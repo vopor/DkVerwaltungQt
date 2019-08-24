@@ -26,13 +26,14 @@ bool CreateDatabase(const QString filename);
 bool askForDatabase();
 bool isValidDb(const QString file);
 void BackupDatabase();
-bool createConnection();
+bool findDatabase_wUI();
+bool asureDatabase_wUI();
 
 QString getOpenOfficePath();
 int getYearFromIni();
 
 QString getYear_wUI();
-int getAnzTageJahr();
+const int AnzTageJahr = 360;
 int getAnzTage(const QDate &dateFrom, const QDate &dateTo);
 
 double Runden2(double Betrag);

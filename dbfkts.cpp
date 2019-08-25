@@ -112,6 +112,38 @@ bool CreateDatabase(const QString filename)
     return ret;
 }
 
+bool overwrite_copy(QString from, QString to)
+{
+    qDebug() << from << " to " << to << endl;
+    if( QFile().exists(to))
+        QFile().remove(to);
+    return QFile().copy(from, to);
+}
+
+void BackupDatabase()
+{
+    QList<QString> backupnames;
+    for(int i = 0; i<10; i++)
+    {
+        QString nbr;
+        QTextStream ts(&nbr); ts.setFieldWidth(2); ts.setPadChar('0');
+        ts << i;
+        QString backupextension (QString("-"+ nbr + ".db3bak"));
+        QString name = pAppConfig->getDb().replace(".db3", backupextension);
+        backupnames.append(name);
+    }
+    QFile().remove(backupnames[9]);
+    for(int i = 8; i>=0; i--)
+    {
+        if( !QFile().exists(backupnames[i]))
+            continue;
+        if( !overwrite_copy(backupnames[i], backupnames[i+1]))
+            qDebug() << "Backup copy failed" << endl;
+    }
+    if( !overwrite_copy(pAppConfig->getDb(), backupnames[0]))
+        qDebug() << "Backup copy failed" << endl;
+}
+
 bool hasTables(QSqlDatabase& db)
 {
     QSqlQuery sqlp("SELECT * FROM DKPersonen", db);
@@ -197,38 +229,6 @@ bool askForDatabase()
     return true;
 }
 
-bool overwrite_copy(QString from, QString to)
-{
-    qDebug() << from << " to " << to << endl;
-    if( QFile().exists(to))
-        QFile().remove(to);
-    return QFile().copy(from, to);
-}
-
-void BackupDatabase()
-{
-    QList<QString> backupnames;
-    for(int i = 0; i<10; i++)
-    {
-        QString nbr;
-        QTextStream ts(&nbr); ts.setFieldWidth(2); ts.setPadChar('0');
-        ts << i;
-        QString backupextension (QString("-"+ nbr + ".db3bak"));
-        QString name = pAppConfig->getDb().replace(".db3", backupextension);
-        backupnames.append(name);
-    }
-    QFile().remove(backupnames[9]);
-    for(int i = 8; i>=0; i--)
-    {
-        if( !QFile().exists(backupnames[i]))
-            continue;
-        if( !overwrite_copy(backupnames[i], backupnames[i+1]))
-            qDebug() << "Backup copy failed" << endl;
-    }
-    if( !overwrite_copy(pAppConfig->getDb(), backupnames[0]))
-        qDebug() << "Backup copy failed" << endl;
-}
-
 bool findDatabase_wUI()
 {
     QString MsgText("Die Db3 Datei \n");
@@ -253,43 +253,24 @@ bool findDatabase_wUI()
 
 bool asureDatabase_wUI()
 {
-    bool dbSelected = false;
     do{
         if( !QFile::exists(pAppConfig->getDb()))
-        {
             if( !findDatabase_wUI())
-                break;
-        }
+                return false; // no database -> no reason to continue
 
         // validation (next step) might be a write operation, so backup now
         BackupDatabase();
 
-        if( !isValidDb(pAppConfig->getDb()))
-        {
-            QMessageBox mb( QMessageBox::Icon::Critical, QString("DK Datenbank nicht gültig"),
-                        QString("Die gewählte Datenbank ist nicht gültig. Wähle eine gültige Datenbank oder erzeuge eine Neue"),
-                        QMessageBox::StandardButton::Ok| QMessageBox::StandardButton::Cancel);
-            if(mb.exec() == QMessageBox::Cancel)
-                break;
-
+        if( isValidDb(pAppConfig->getDb()))
+            return true;
+        else {
             pAppConfig->clearDb();
             // retry
             continue;
         }
-        dbSelected = true;
-    }
-    while(!dbSelected);
 
-    if( dbSelected && !pAppConfig->isValidWorkdir())
-    {
-        QMessageBox("DkVerwaltung konnte nicht initialisiert werden",
-                    "Zur Laufzeit verwendete Dateien konnten nicht gefunden werden. Die Anwendung wird beendet",
-                    QMessageBox::Critical,
-                    QMessageBox::Ok,QMessageBox::NoButton,QMessageBox::NoButton).exec();
-        return( false);
     }
-
-    return true;
+    while(true);
 }
 
 QString getStandardPath()

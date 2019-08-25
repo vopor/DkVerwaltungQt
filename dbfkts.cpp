@@ -159,10 +159,8 @@ bool makeAllDatesValid(const QSqlDatabase& db)
         QString dateFromDb = model.record(i).value("Datum").toString();
         if( QDate::fromString(dateFromDb, "yyyy-MM-dd").isValid())
             continue;
-        QVariant newValue( correctedDateString(dateFromDb));
         QSqlRecord row= model.record(i);
-        //row.setGenerated("Datum", false);
-        row.setValue("Datum", newValue);
+        row.setValue("Datum", correctedDateString(dateFromDb));
         model.setRecord(i, row);
     }
     if( !model.submitAll())
@@ -255,7 +253,7 @@ bool findDatabase_wUI()
 
 bool asureDatabase_wUI()
 {
-    bool retval = false;
+    bool dbSelected = false;
     do{
         if( !QFile::exists(pAppConfig->getDb()))
         {
@@ -273,25 +271,25 @@ bool asureDatabase_wUI()
                         QMessageBox::StandardButton::Ok| QMessageBox::StandardButton::Cancel);
             if(mb.exec() == QMessageBox::Cancel)
                 break;
+
             pAppConfig->clearDb();
             // retry
             continue;
         }
-        retval = true;
-        break;
+        dbSelected = true;
     }
-    while(true);
+    while(!dbSelected);
 
-    if( retval && !pAppConfig->isValidWorkdir())
+    if( dbSelected && !pAppConfig->isValidWorkdir())
     {
         QMessageBox("DkVerwaltung konnte nicht initialisiert werden",
                     "Zur Laufzeit verwendete Dateien konnten nicht gefunden werden. Die Anwendung wird beendet",
                     QMessageBox::Critical,
                     QMessageBox::Ok,QMessageBox::NoButton,QMessageBox::NoButton).exec();
-        retval = false;
+        return( false);
     }
 
-    return retval;
+    return true;
 }
 
 QString getStandardPath()

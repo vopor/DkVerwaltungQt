@@ -194,6 +194,7 @@ bool createConnection()
                              db.lastError().text());
         return false;
     }
+    db.close();
     return true;
 }
 
@@ -250,33 +251,6 @@ QString getYear_wUI()
     return thisYear;
 }
 
-int getAnzTageJahr()
-{
-   return 360;
-}
-
-void datediff()
-{
-QString source = "20090512";
-QDate sourceDate = QDate::fromString(source, "yyyyMMdd");
-
-qint64 daysBetween = QDate::currentDate().toJulianDay() - sourceDate.toJulianDay();
-QDate difference = QDate::fromJulianDay(daysBetween);
-
-QDate firstDate = QDate::fromJulianDay(0);
-
-int years = difference.year() - firstDate.year();
-int months = difference.month() - firstDate.month();
-int days = difference.day() - firstDate.day();
-
-// TODO: check if a number is negative and if so, normalize
-
-qDebug() << QDate::currentDate().toString("yy-MM-dd");
-qDebug() << sourceDate.toString("yy-MM-dd");
-qDebug() << daysBetween;
-qDebug() << QString("%1 years, %2 months and %3 days").arg(years).arg(months).arg(days);
-}
-
 // Zinstage = oFuncAcc.callFunction( "DAYS360", Array(dBeginn, dEnde, 1))
 // 359=TAGE360(DATUM(2016;1;1); DATUM(2016;12;31);1)
 // 4: - European method, 12 months of 30 days each (30E/360)
@@ -290,7 +264,7 @@ qDebug() << QString("%1 years, %2 months and %3 days").arg(years).arg(months).ar
 int getAnzTage(const QDate &dateFrom, const QDate &dateTo)
 {
    Q_ASSERT(dateFrom.year() == dateTo.year());
-   int anzTage = getAnzTageJahr();
+   int anzTage = AnzTageJahr;
    if(dateFrom.isValid() && dateTo.isValid())
    {
       // anzTage = (int)dateFrom.daysTo(dateTo)+1;
@@ -299,8 +273,6 @@ int getAnzTage(const QDate &dateFrom, const QDate &dateTo)
       anzTage -= dateFrom.day();
       anzTage -= ((dateTo.day() == 31) ? 1 : 0);
       anzTage += 1; // da bis 31.12. und nicht 1.1. gerechnet wird
-      // anzTage = qMin(anzTage, getAnzTageJahr());
-      // Q_ASSERT(anzTage <= getAnzTageJahr());
    }
    return anzTage;
 }
@@ -313,8 +285,8 @@ double Runden2(double Betrag)
 
 double computeDkZinsen(double Betrag, double Zinssatz, int anzTage)
 {
-    double Zinsen = ((Betrag * Zinssatz) / 100.0);
-    Zinsen = Runden2(Zinsen * anzTage / getAnzTageJahr());
+    double JahresZinsen = ((Betrag * Zinssatz) / 100.0);
+    double Zinsen = Runden2(JahresZinsen * anzTage / AnzTageJahr);
     return Zinsen;
 }
 

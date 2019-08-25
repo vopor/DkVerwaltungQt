@@ -202,15 +202,8 @@ void MainForm::generateJahresDkBestaetigungen()
                     QString strAnfangsdatum = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Datum)).toString();
                     double Zinssatz = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Zinssatz)).toDouble();
                     double Betrag = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Betrag)).toDouble();
-                    // QString strEnddatum = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_vorgemerkt)).toString();
                     QString strRueckzahlung = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Rueckzahlung)).toString();
-                    // if(Betrag < 0){
-                    //     continue;
-                    // }
                     QString strEnddatum;
-                    // QString statement = "SELECT Rueckzahlung From DkBuchungen WHERE DkNummer = '" + strDkNummer + "'";
-                    // statement += " AND substr(Rueckzahlung ,7,2) == '" + strJahr + "'";
-                    // strEnddatum = getStringValue(statement);
                     bool bRueckzahlung = false;
                     if(strRueckzahlung.endsWith(strJahr))
                     {
@@ -224,23 +217,6 @@ void MainForm::generateJahresDkBestaetigungen()
                     }else{
                         ; // __asm nop
                     }
-                    //                    else
-                    //                    {
-                    //                        QDate d1 = QDate::fromString(strEnddatum, "dd.MM.yy");
-                    //                        QDate d2 = QDate::fromString(strSylvester, "dd.MM.yyyy");
-                    //                        if(d1.isValid()){
-                    //                            if( d1 > d2 )
-                    //                            {
-                    //                                strEnddatum = "31.12." + strJahr;
-                    //                            }
-                    //                            // else
-                    //                            {
-                    //                                // gekündigte Dks
-                    //                                // strEnddatum = QDate::fromString(strEnddatum, "dd.MM.yy").toString("dd.MM.yyyy");
-                    //                                // strEnddatum = strEnddatum.left(6) + "20" + strEnddatum.right(2);
-                    //                            }
-                    //                        }
-                    //                    }
 
                     // Tagesgenaue Berechnung
                     QDate dateFrom = QDate::fromString(strAnfangsdatum, "dd.MM.yy");
@@ -249,13 +225,7 @@ void MainForm::generateJahresDkBestaetigungen()
                         dateTo = dateTo.addDays(-1);
                     }
 
-                    // int anzTage = getAnzTageJahr();
-                    // if(dateFrom.isValid() && dateTo.isValid()){
-                    //     anzTage = qMin((int)dateFrom.daysTo(dateTo), anzTage);
-                    // }
                     int anzTage = getAnzTage(dateFrom, dateTo);
-                    // double Zinsen = ((Betrag * Zinssatz) / 100.0);
-                    // Zinsen = Runden(Zinsen * anzTage / getAnzTageJahr(), 2);
                     double Zinsen = computeDkZinsen(Betrag, Zinssatz, anzTage);
                     double Endbetrag = Betrag + Zinsen;
 
@@ -592,11 +562,13 @@ void MainForm::updateBuchungenSummen()
         statementDkZinsen += QString::number(PersonId);
     }
     double summeDkZinsen = getDoubleValue(statementDkZinsen);
+    QString strDatumAusDatenbank ( datumBuchungenDkZinsenEdit->text());
     QDate dateTo = QDate::fromString(datumBuchungenDkZinsenEdit->text(), "dd.MM.yy");
+    qDebug() << strDatumAusDatenbank << " <-> " << dateTo << endl;
     QDate dateFrom = QDate(dateTo.year(), 1, 1);
 
     int anzTage = getAnzTage(dateFrom, dateTo);
-    summeDkZinsen = Runden2(summeDkZinsen * anzTage / getAnzTageJahr());
+    summeDkZinsen = Runden2(summeDkZinsen * anzTage / AnzTageJahr);
     QString summeDkZinsenText = QString::number(summeDkZinsen, 'f', 2);
     summeBuchungenDkZinsenEdit->setText(summeDkZinsenText);
 }

@@ -25,8 +25,7 @@ BuchungForm::BuchungForm(QWidget *parent, QSqlTableModel *personenModel, const Q
     personIdLabel = new QLabel(tr("PersonId"));
     personIdLabel->setBuddy(personIdEdit);
 
-    datumEdit = new QLineEdit;
-    datumEdit->setInputMask("00.00.00;_");
+    datumEdit = new QDateEdit;
 
     datumLabel = new QLabel(tr("Datum"));
     datumLabel->setBuddy(datumEdit);

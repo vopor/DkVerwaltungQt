@@ -32,7 +32,7 @@ QString getOpenOfficePath();
 int getYearFromIni();
 
 QString getYear_wUI();
-int getAnzTageJahr();
+const int AnzTageJahr = 360;
 int getAnzTage(const QDate &dateFrom, const QDate &dateTo);
 
 double Runden2(double Betrag);

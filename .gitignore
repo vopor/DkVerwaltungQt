@@ -15,3 +15,6 @@ DkVerwaltungsQt.ini
 *.autosave
 *.pro.user
 *.old
+test_datum.s3db
+*.tmp
+*.keep

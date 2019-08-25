@@ -26,7 +26,8 @@ bool CreateDatabase(const QString filename);
 bool askForDatabase();
 bool isValidDb(const QString file);
 void BackupDatabase();
-bool createConnection();
+bool findDatabase_wUI();
+bool asureDatabase_wUI();
 
 QString getOpenOfficePath();
 int getYearFromIni();

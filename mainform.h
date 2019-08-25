@@ -7,6 +7,7 @@ QT_BEGIN_NAMESPACE
 class QDialogButtonBox;
 class QLabel;
 class QLineEdit;
+class QDateEdit;
 class QCheckBox;
 class QModelIndex;
 class QPushButton;
@@ -102,7 +103,7 @@ private:
     QDialogButtonBox *personButtonBox;
 
     QLabel *datumBuchungenDkZinsenLabel;
-    QLineEdit *datumBuchungenDkZinsenEdit;
+    QDateEdit *datumBuchungenDkZinsenDateEdit;
     QLabel *summeBuchungenDkZinsenLabel;
     QLineEdit *summeBuchungenDkZinsenEdit;
     QLabel *summeBuchungenDkLabel;

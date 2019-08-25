@@ -541,7 +541,7 @@ void MainForm::updateBuchungenView()
 
 void MainForm::updateBuchungenSummen()
 {
-    QString zinsenText = "Summe Zinsen zum " + datumBuchungenDkZinsenEdit->text();
+    QString zinsenText = "Summe Zinsen zum " + datumBuchungenDkZinsenDateEdit->text();
     summeBuchungenDkZinsenLabel->setText(zinsenText);
 
     QString statementDk = "SELECT SUM(Betrag) FROM DkBuchungen";
@@ -562,8 +562,9 @@ void MainForm::updateBuchungenSummen()
         statementDkZinsen += QString::number(PersonId);
     }
     double summeDkZinsen = getDoubleValue(statementDkZinsen);
-    QString strDatumAusDatenbank ( datumBuchungenDkZinsenEdit->text());
-    QDate dateTo = QDate::fromString(datumBuchungenDkZinsenEdit->text(), "dd.MM.yy");
+    QString strDatumAusDatenbank ( datumBuchungenDkZinsenDateEdit->text());
+//    QDate dateTo = QDate::fromString(datumBuchungenDkZinsenDateEdit->text(), "yyyy-MM-dd");
+    QDate dateTo = datumBuchungenDkZinsenDateEdit->date();
     qDebug() << strDatumAusDatenbank << " <-> " << dateTo << endl;
     QDate dateFrom = QDate(dateTo.year(), 1, 1);
 
@@ -1051,10 +1052,10 @@ void MainForm::createBuchungenPanel()
     buchungenLabel->setBuddy(buchungenView);
 
     datumBuchungenDkZinsenLabel = new QLabel("Datum Zinsen");
-    datumBuchungenDkZinsenEdit = new QLineEdit;
-    datumBuchungenDkZinsenEdit->setInputMask("00.00.00;_");
-    connect(datumBuchungenDkZinsenEdit, SIGNAL(editingFinished()), this, SLOT(updateBuchungenSummen()));
-    datumBuchungenDkZinsenEdit->setText(QDate::currentDate().toString("dd.MM.yy"));
+    datumBuchungenDkZinsenDateEdit = new QDateEdit;
+    datumBuchungenDkZinsenDateEdit->setDisplayFormat("dd.MM.yyyy");
+    connect(datumBuchungenDkZinsenDateEdit, SIGNAL(editingFinished()), this, SLOT(updateBuchungenSummen()));
+    datumBuchungenDkZinsenDateEdit->setDate(QDate::currentDate());
     summeBuchungenDkZinsenLabel = new QLabel("Summe Zinsen");
     summeBuchungenDkZinsenEdit = new QLineEdit;
     summeBuchungenDkZinsenEdit->setReadOnly(true);
@@ -1064,7 +1065,7 @@ void MainForm::createBuchungenPanel()
 
     QHBoxLayout *hlayout = new QHBoxLayout;
     hlayout->addWidget(datumBuchungenDkZinsenLabel);
-    hlayout->addWidget(datumBuchungenDkZinsenEdit);
+    hlayout->addWidget(datumBuchungenDkZinsenDateEdit);
     hlayout->addWidget(summeBuchungenDkZinsenLabel);
     hlayout->addWidget(summeBuchungenDkZinsenEdit);
     hlayout->addWidget(summeBuchungenDkLabel);

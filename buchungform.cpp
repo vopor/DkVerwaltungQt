@@ -26,6 +26,7 @@ BuchungForm::BuchungForm(QWidget *parent, QSqlTableModel *personenModel, const Q
     personIdLabel->setBuddy(personIdEdit);
 
     datumEdit = new QDateEdit;
+    datumEdit->setDisplayFormat("dd.MM.yyyy");
 
     datumLabel = new QLabel(tr("Datum"));
     datumLabel->setBuddy(datumEdit);

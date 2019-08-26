@@ -9,6 +9,8 @@ class QString;
 class QSettings;
 QT_END_NAMESPACE
 
+
+
 //--------------------------------------------------------------
 // Allgemeine Funktionen
 //--------------------------------------------------------------
@@ -32,7 +34,7 @@ bool asureDatabase_wUI();
 QString getOpenOfficePath();
 int getYearFromIni();
 
-QString getYear_wUI();
+QString getYearOfCalculation_wUI();
 const int AnzTageJahr = 360;
 int getAnzTage(const QDate &dateFrom, const QDate &dateTo);
 

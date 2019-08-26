@@ -114,14 +114,14 @@ void MainForm::generateJahresDkBestaetigungen()
     generateJahresDkBestaetigungenButton->setEnabled(false);
     // Unterordner JahresDkBestaetigungen in getStandardPath()
     // QString JahresDkBestaetigungenPath = getStandardPath() + QDir::separator() + "JahresDkBestaetigungen";
-    QString fileName = pAppConfig->getWorkdir() + QDir::separator() + pAppConfig->getAuszugsTemplate();
-    QString strDatum = QDate::currentDate().toString("dd.MM.yyyy");
-    QString strJahr4 = getYear_wUI();
-    QString strJahr = strJahr4.right(2);
-    QString strSylvester = "31.12." + strJahr4;
+    QString Ausgabedatei = pAppConfig->getWorkdir() + QDir::separator() + pAppConfig->getAuszugsTemplate();
+    QString strDatumBriefkopf = QDate::currentDate().toString("dd.MM.yyyy");
+    QString BerechnungsZeitraum_Jahr = getYearOfCalculation_wUI();
+    QString strJahr = BerechnungsZeitraum_Jahr.right(2);
+    QString Silvester_dBerechnungszeitraums = BerechnungsZeitraum_Jahr +"-12-31";
 
     //    QString JahresDkBestaetigungenPath = getJahresDkBestaetigungenPath(strJahr4);
-    QString JahresDkBestaetigungenPath = pAppConfig->getOutputDirDkBestaetigungen(strJahr4);
+    QString JahresDkBestaetigungenPath = pAppConfig->getOutputDirDkBestaetigungen(BerechnungsZeitraum_Jahr);
     QDir().mkpath(JahresDkBestaetigungenPath);
 
     // TODO: Initialisierung und Aufräumen (z.B. selection merken und wieder setzen)
@@ -149,15 +149,15 @@ void MainForm::generateJahresDkBestaetigungen()
             personFilePath += personFileName;
 
             QString personFileNameHtml = personFilePath + ".html";
-            QString str = readFromFile(fileName);
+            QString str = readFromFile(Ausgabedatei);
             str = str.replace("&lt;Vorname&gt;", personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Vorname)).toString());
             str = str.replace("&lt;Name&gt;", personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Name)).toString());
 
             str = str.replace("&lt;Strasse&gt;", personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Strasse)).toString());
             str = str.replace("&lt;PLZ&gt;", personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_PLZ)).toString());
             str = str.replace("&lt;Ort&gt;", personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Ort)).toString());
-            str = str.replace("&lt;Datum&gt;", strDatum);
-            str = str.replace("&lt;Jahr&gt;", strJahr4);
+            str = str.replace("&lt;Datum&gt;", strDatumBriefkopf);
+            str = str.replace("&lt;Jahr&gt;", BerechnungsZeitraum_Jahr);
 
             QString strAuflistung;
             strAuflistung += "<table width=\"100%\" border=\"1\">\n";
@@ -213,14 +213,15 @@ void MainForm::generateJahresDkBestaetigungen()
                     // strEnddatum = "";
                     if(strEnddatum.length() == 0)
                     {
-                        strEnddatum = "31.12." + strJahr;
+                        strEnddatum = BerechnungsZeitraum_Jahr+"-12-31";
                     }else{
                         ; // __asm nop
                     }
 
                     // Tagesgenaue Berechnung
-                    QDate dateFrom = QDate::fromString(strAnfangsdatum, "dd.MM.yy");
-                    QDate dateTo = QDate::fromString(strEnddatum, "dd.MM.yy");
+                    QDate dateFrom = QDate::fromString(strAnfangsdatum, Qt::ISODate);
+
+                    QDate dateTo = QDate::fromString(strEnddatum, Qt::ISODate);
                     if(bRueckzahlung){
                         dateTo = dateTo.addDays(-1);
                     }
@@ -336,7 +337,8 @@ void MainForm::EndTableBody(QString& OutputHtml)
 
 void MainForm::AddTableRow(QString& OutputHtml, const long index, const QString& year)
 {
-    QString strSylvester = "31.12." + year;
+    QString strSylvester = year + "-12-31";
+    QDate Sylvester (year.toInt(), 12, 31);
 
     buchungenView->selectRow(index);
     QModelIndex BuchungIndex = buchungenView->currentIndex();
@@ -351,29 +353,29 @@ void MainForm::AddTableRow(QString& OutputHtml, const long index, const QString&
 
         QString strDkNummer = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_DKNummer)).toString();
         QString strAnfangsdatum = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Datum)).toString();
+        QDate AnfangsDatum(QDate::fromString(strAnfangsdatum, Qt::ISODate));
         double Zinssatz = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Zinssatz)).toDouble();
         double Betrag = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Betrag)).toDouble();
         QString strEnddatum = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_vorgemerkt)).toString();
+        QDate EndDatum(QDate::fromString(strEnddatum, Qt::ISODate));
 
         if(strEnddatum.length() == 0)
         {
-            strEnddatum = "31.12." + year;
+            strEnddatum = year + "-12-31";
+            EndDatum = QDate::fromString(strEnddatum, Qt::ISODate);
         }
         else
         {
-            if(QDate::fromString(strEnddatum, "dd.MM.yyyy") >  QDate::fromString(strSylvester, "dd.MM.yyyy"))
+            if(EndDatum >  Sylvester)
             {
-                strEnddatum = "31.12." + year;
-            }
-            else
-            {
-                // strEnddatum = QDate::fromString(strEnddatum, "dd.MM.yy").toString("dd.MM.yyyy");
+                strEnddatum = year + "-12-31";
+                EndDatum = Sylvester;
             }
         }
 
         // Tagesgenaue Berechnung
-        QDate dateFrom = QDate::fromString(strAnfangsdatum, "dd.MM.yyyy");
-        QDate dateTo = QDate::fromString(strEnddatum, "dd.MM.yyyy");
+        QDate dateFrom = QDate::fromString(strAnfangsdatum, Qt::ISODate);
+        QDate dateTo = QDate::fromString(strEnddatum, Qt::ISODate);
 
         int anzTage = getAnzTage(dateFrom, dateTo);
         double Zinsen = computeDkZinsen(Betrag, Zinssatz, anzTage);
@@ -439,7 +441,7 @@ void MainForm::generateJahresDkZinsBescheinigungen()
 
     QString TemplateHtml = readFromFile(pAppConfig->getZinsbescheinigungsTemplate());
 
-    QString strJahr_4d = getYear_wUI();
+    QString strJahr_4d = getYearOfCalculation_wUI();
     QString strJahr_2d = strJahr_4d.right(2);
 
     // TODO: Initialisierung und Aufräumen (z.B. selection merken und wieder setzen)

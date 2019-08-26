@@ -170,7 +170,7 @@ QString correctedDateString(QString ds)
         auto NewDate (QDate::fromString(ds, format));
         if( NewDate.isValid())
         {
-            QString retval = NewDate.toString("yyyy-MM-dd");
+            QString retval = NewDate.toString(Qt::ISODate);
             qDebug() << "Corrected Date format: " << ds << " -> " << retval;
             return retval;
         }
@@ -189,7 +189,7 @@ bool makeAllDatesValid(const QSqlDatabase& db)
     for(int i = 0; i< model.rowCount(); i++)
     {
         QString dateFromDb = model.record(i).value("Datum").toString();
-        if( QDate::fromString(dateFromDb, "yyyy-MM-dd").isValid())
+        if( QDate::fromString(dateFromDb, Qt::ISODate).isValid())
             continue;
         QSqlRecord row= model.record(i);
         row.setValue("Datum", correctedDateString(dateFromDb));
@@ -300,7 +300,7 @@ QString getJahresDkZinsBescheinigungenPath(QString Year)
    return JahresDkZinsBescheinigungenPath;
 }
 
-QString getYear_wUI()
+QString getYearOfCalculation_wUI()
 {
     int year = QDate::currentDate().year();
     QString thisYear(QString::number(year));
@@ -338,18 +338,20 @@ QString getYear_wUI()
 
 int getAnzTage(const QDate &dateFrom, const QDate &dateTo)
 {
-   Q_ASSERT(dateFrom.year() == dateTo.year());
-   int anzTage = AnzTageJahr;
-   if(dateFrom.isValid() && dateTo.isValid())
-   {
-      // anzTage = (int)dateFrom.daysTo(dateTo)+1;
-      anzTage = (dateTo.month() - dateFrom.month()) * 30;
-      anzTage += dateTo.day();
-      anzTage -= dateFrom.day();
-      anzTage -= ((dateTo.day() == 31) ? 1 : 0);
-      anzTage += 1; // da bis 31.12. und nicht 1.1. gerechnet wird
-   }
-   return anzTage;
+    Q_ASSERT(dateFrom.isValid());
+    Q_ASSERT(dateTo.isValid());
+    Q_ASSERT(dateFrom.year() == dateTo.year());
+    int anzTage = AnzTageJahr;
+    if(dateFrom.isValid() && dateTo.isValid())
+    {
+        // anzTage = (int)dateFrom.daysTo(dateTo)+1;
+        anzTage = (dateTo.month() - dateFrom.month()) * 30;
+        anzTage += dateTo.day();
+        anzTage -= dateFrom.day();
+        anzTage -= ((dateTo.day() == 31) ? 1 : 0);
+        anzTage += 1; // da bis 31.12. und nicht 1.1. gerechnet wird
+    }
+    return anzTage;
 }
 
 double Runden2(double Betrag)

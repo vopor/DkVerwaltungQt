@@ -24,6 +24,8 @@ int main(int argc, char *argv[])
 
     if( !asureDatabase_wUI())
         return ERROR_FILE_NOT_FOUND;
+    if( !pAppConfig->isValidWorkdir())
+        return ERROR_BAD_ENVIRONMENT;
 
     MainForm form;
     form.resize(1024, 768);

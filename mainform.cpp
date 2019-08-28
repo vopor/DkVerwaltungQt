@@ -337,19 +337,16 @@ void MainForm::EndTableBody(QString& OutputHtml)
 
 void MainForm::AddTableRow(QString& OutputHtml, const long index, const QString& year)
 {
-    QString strSylvester = year + "-12-31";
-    QDate Sylvester (year.toInt(), 12, 31);
+    QDate LastDayOfYear (year.toInt(), 12, 31);
+    QDate FirstDayOfYear (year.toInt(), 1, 1);
 
     buchungenView->selectRow(index);
     QModelIndex BuchungIndex = buchungenView->currentIndex();
     if(BuchungIndex.isValid())
     {
-        QString strZeile;
-        strZeile += "<tr>\n";
-        strZeile += "<td align=\"left\">&lt;DkNummer&gt;</td>\n";
-        strZeile += "<td align=\"right\">&lt;Jahreszinsbetrag&gt;</td>\n";
-        strZeile += "<td align=\"left\">&lt;Zinssatz&gt;</td>\n";
-        strZeile += "</tr>\n";
+        QString strZeile("<tr>\n");
+        strZeile += "<td align=\"left\">&lt;DkNummer&gt;</td>\n<td align=\"right\">&lt;Jahreszinsbetrag&gt;</td>\n";
+        strZeile += "<td align=\"left\">&lt;Zinssatz&gt;</td>\n</tr>\n";
 
         QString strDkNummer = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_DKNummer)).toString();
         QString strAnfangsdatum = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Datum)).toString();
@@ -360,14 +357,11 @@ void MainForm::AddTableRow(QString& OutputHtml, const long index, const QString&
         QDate EndDatum(QDate::fromString(strEnddatum, Qt::ISODate));
 
         if(!EndDatum.isValid())
-            strEnddatum = year + "-12-31";
-        else
-        {
-            if(EndDatum >  Sylvester)
-            {
-                EndDatum = Sylvester;
-            }
-        }
+            EndDatum = LastDayOfYear;
+        if(EndDatum >  LastDayOfYear)
+            EndDatum = LastDayOfYear;
+        if( AnfangsDatum < FirstDayOfYear)
+            AnfangsDatum = FirstDayOfYear;
 
         // Tagesgenaue Berechnung
         QDate dateFrom = AnfangsDatum;
@@ -561,9 +555,7 @@ void MainForm::updateBuchungenSummen()
     }
     double summeDkZinsen = getDoubleValue(statementDkZinsen);
     QString strDatumAusDatenbank ( datumBuchungenDkZinsenDateEdit->text());
-//    QDate dateTo = QDate::fromString(datumBuchungenDkZinsenDateEdit->text(), "yyyy-MM-dd");
     QDate dateTo = datumBuchungenDkZinsenDateEdit->date();
-    qDebug() << strDatumAusDatenbank << " <-> " << dateTo << endl;
     QDate dateFrom = QDate(dateTo.year(), 1, 1);
 
     int anzTage = getAnzTage(dateFrom, dateTo);

@@ -32,12 +32,12 @@ class PersonForm : public QDialog
 
 public:
     PersonForm(QWidget *parent, QSqlTableModel *perosnenModel, int PersonId);
-
+    void disableNavigationButtons();
+    void disableCreationButton();
     void done(int result);
 
 private slots:
     void addPerson();
-    void deletePerson();
 
 private:
     QSqlTableModel *m_personenModel;
@@ -67,7 +67,6 @@ private:
     QPushButton *nextButton;
     QPushButton *lastButton;
     QPushButton *addButton;
-    QPushButton *deleteButton;
     QPushButton *closeButton;
     QDialogButtonBox *buttonBox;
 };

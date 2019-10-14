@@ -13,9 +13,11 @@ class QDialogButtonBox;
 class QLabel;
 class QLineEdit;
 class QTextEdit;
+class QDateEdit;
 class QPushButton;
 class QSqlTableModel;
 class QSqlRelationalTableModel;
+
 QT_END_NAMESPACE
 
 enum {
@@ -71,7 +73,7 @@ private:
 
     QLineEdit *buchungIdEdit;
     QLineEdit *personIdEdit;
-    QLineEdit *datumEdit;
+    QDateEdit *datumEdit;
     QLineEdit *dkNrEdit;
     QLineEdit *dkNummerEdit;
     QLineEdit *rueckzahlungEdit;

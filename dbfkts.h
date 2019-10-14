@@ -9,31 +9,33 @@ class QString;
 class QSettings;
 QT_END_NAMESPACE
 
+
+
 //--------------------------------------------------------------
 // Allgemeine Funktionen
 //--------------------------------------------------------------
 
 QString readFromFile(const QString &fileName);
 void writeToFile(const QString &fileName, const QString &str);
+void writeHtmlToPdf(const QString& Filename, const QString& html);
+
 QString escapeFileName(const QString &fileName);
 
 //--------------------------------------------------------------
 // DkVerwaltungQt-Funktionen
 //--------------------------------------------------------------
+bool CreateDatabase(const QString filename);
+bool askForDatabase();
+bool isValidDb(const QString file);
+void BackupDatabase();
+bool findDatabase_wUI();
+bool asureDatabase_wUI();
 
-bool createConnection(const QString &dbName);
-
-QString getStandardPath();
-QString getSettingsFile();
-QSettings &getSettings();
-QString getFilePathFromIni(const QString &iniEntry, const QString &filePath, const QString &fileName);
 QString getOpenOfficePath();
-QString getJahresDkBestaetigungenPath();
-QString getJahresDkZinsBescheinigungenPath();
-int getJahrFromIni();
+int getYearFromIni();
 
-int getJahr();
-int getAnzTageJahr();
+QString getYearOfCalculation_wUI();
+const int AnzTageJahr = 360;
 int getAnzTage(const QDate &dateFrom, const QDate &dateTo);
 
 double Runden2(double Betrag);

@@ -52,12 +52,10 @@ PersonForm::PersonForm(QWidget *parent, QSqlTableModel *personenModel, int Perso
     lastButton = new QPushButton(tr("Letzte >>"));
 
     addButton = new QPushButton(tr("Hinzufügen"));
-    deleteButton = new QPushButton(tr("Löschen"));
     closeButton = new QPushButton(tr("Schliessen"));
 
     buttonBox = new QDialogButtonBox;
     buttonBox->addButton(addButton, QDialogButtonBox::ActionRole);
-    buttonBox->addButton(deleteButton, QDialogButtonBox::ActionRole);
     buttonBox->addButton(closeButton, QDialogButtonBox::AcceptRole);
 
     mapper = new QDataWidgetMapper(this);
@@ -92,7 +90,6 @@ PersonForm::PersonForm(QWidget *parent, QSqlTableModel *personenModel, int Perso
     connect(nextButton, SIGNAL(clicked()), mapper, SLOT(toNext()));
     connect(lastButton, SIGNAL(clicked()), mapper, SLOT(toLast()));
     connect(addButton, SIGNAL(clicked()), this, SLOT(addPerson()));
-    connect(deleteButton, SIGNAL(clicked()), this, SLOT(deletePerson()));
     connect(closeButton, SIGNAL(clicked()), this, SLOT(accept()));
 
     QHBoxLayout *topButtonLayout = new QHBoxLayout;
@@ -147,6 +144,19 @@ PersonForm::PersonForm(QWidget *parent, QSqlTableModel *personenModel, int Perso
     setWindowTitle(tr("Person bearbeiten"));
 }
 
+void PersonForm::disableNavigationButtons()
+{
+    firstButton->hide();
+    previousButton->hide();
+    nextButton->hide();
+    lastButton->hide();
+}
+
+void PersonForm::disableCreationButton()
+{
+    addButton->hide();
+}
+
 void PersonForm::done(int result)
 {
     mapper->submit();
@@ -172,12 +182,4 @@ void PersonForm::addPerson()
     emailEdit->clear();
 
     vornameEdit->setFocus();
-}
-
-void PersonForm::deletePerson()
-{
-    int row = mapper->currentIndex();
-    m_personenModel->removeRow(row);
-    mapper->submit();
-    mapper->setCurrentIndex(qMin(row, m_personenModel->rowCount() - 1));
 }

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE script:module PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "module.dtd">
+<script:module xmlns:script="http://openoffice.org/2000/script" script:name="Module1" script:language="StarBasic">REM  *****  BASIC  *****
+
+Sub Main
+
+FelderFuellen
+
+End Sub
+
+Sub Test
+
+MsgBox &quot;Hallo&quot;
+
+End Sub
+
+Sub TestArg(arg as string)
+
+MsgBox arg
+
+End Sub
+
+Sub FelderFuellen
+&apos;Exportiert die Adressdaten in eine Briefvorlage 
+ Dim oVorlage as Object                &apos;Writer-Vorlage
+ Dim mNoArgs()              
+ Dim sExport(17) as String             &apos;Exportdaten      
+ Dim sPlatzhalter(17) as String        &apos;Platzhalter im Zieldokument
+ Dim oErsetzen as Object           
+ Dim Datum as Date
+ 
+&apos; MsgBox &quot;Es wurde kein Betrag eingegeben.&quot; &amp; Chr(13) &amp; Chr (13), 48, &quot;Irgendwas passiert immer...&quot;   
+&apos;&apos;Vorlage auswählen
+&apos;Dim sPfad as String
+&apos;sPfad = &quot;/Users/volker/Documents/13ha/DkVerwaltungQt/Vorlage Anschreiben DK-Eingang.ott&quot;
+&apos;&apos;Vorlage öffnen
+&apos;oVorlage = StarDesktop.loadComponentFromURL(ConvertToURL(sPfad), &quot;_blank&quot;, 0, mNoArgs())
+ 
+  tmpPath = &quot;/Users/volker/Documents/13ha/DkVerwaltungQt/DkVerwaltungQt.tmp&quot;
+  FileNo = FreeFile
+  if FileExists(tmpPath) Then
+     &apos; MsgBox tmpPath &amp; &quot; existiert.&quot;
+  Open tmpPath For Input As FileNo
+  i = 1
+  Do While Not Eof(FileNo)
+     Line Input #FileNo, InputData
+     sExport(i) = InputData
+     i = i + 1
+  Loop 
+  else
+     MsgBox tmpPath &amp; &quot; existiert nicht!&quot; 
+  end if
+  
+ oVorlage = ThisComponent
+ oErsetzen = oVorlage.createReplaceDescriptor
+ oErsetzen.SearchCaseSensitive = True
+  
+&apos;Vorlage anpassen
+&apos; sExport(1) = &quot;Hallo&quot;
+ sPlatzhalter(1) = &quot;Vorname&quot;
+&apos; sExport(2) = &quot;&quot;
+ sPlatzhalter(2) = &quot;Name&quot;
+&apos; sExport(3) = &quot;&quot;
+ sPlatzhalter(3) = &quot;Anrede&quot;
+&apos; sExport(4) = &quot;&quot;
+ sPlatzhalter(4) = &quot;co&quot;
+&apos; sExport(5) = &quot;&quot;
+ sPlatzhalter(5) = &quot;Straße&quot;
+&apos; sExport(6) = &quot;&quot;
+ sPlatzhalter(6) = &quot;PLZ&quot;
+&apos; sExport(7) = &quot;&quot;
+ sPlatzhalter(7) = &quot;Ort&quot;
+&apos; sExport(8) = &quot;&quot;
+ sPlatzhalter(8) = &quot;Email&quot;
+
+&apos; sExport(9) = &quot;&quot;
+ sPlatzhalter(9) = &quot;Nummer&quot;
+&apos; sExport(10) = &quot;&quot; &apos; CDateFromIso(oForm.getByName(&quot;Datum&quot;).CurrentValue)
+ sPlatzhalter(10) = &quot;Datum&quot;
+&apos; sExport(11) = &quot;&quot;
+ sPlatzhalter(11) = &quot;Betrag&quot;
+&apos; sExport(12) = &quot;&quot;
+ sPlatzhalter(12) = &quot;Zinsen&quot;
+&apos; sExport(13) = &quot;&quot;
+ sPlatzhalter(13) = &quot;Zinssatz&quot;
+&apos; sExport(14) = &quot;r&quot;
+ sPlatzhalter(14) = &quot;r&quot;
+&apos; sExport(15) = &quot;&quot;
+ sPlatzhalter(15) = &quot;Vormerkung&quot;
+&apos; sExport(16) = &quot;&quot;
+ sPlatzhalter(16) = &quot;Anfangsdatum&quot;
+ &apos; sExport(17) = &quot;&quot;
+ sPlatzhalter(17) = &quot;AnfangsBetrag&quot;
+    
+ For i = 1 to 17
+   oErsetzen.SearchString = &quot;{&quot; &amp; sPlatzhalter(i) &amp; &quot;}&quot;
+   oErsetzen.ReplaceString = sExport(i)
+   oVorlage.replaceAll(oErsetzen)
+ next i 
+
+End Sub
+
+
+</script:module>

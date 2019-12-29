@@ -88,12 +88,16 @@ BuchungForm::BuchungForm(QWidget *parent, QSqlTableModel *personenModel, const Q
     }
     deleteButton = new QPushButton(tr("Löschen"));
     dkBestaetigenButton = new QPushButton(tr("Dk bestätigen"));
+    dkVerlaengernButton = new QPushButton(tr("Dk verlängern"));
+    dkAnfrageVerlaengernButton = new QPushButton(tr("Dk Anfrage verlängern"));
     closeButton = new QPushButton(tr("Schliessen"));
 
     buttonBox = new QDialogButtonBox;
     buttonBox->addButton(addButton, QDialogButtonBox::ActionRole);
     buttonBox->addButton(deleteButton, QDialogButtonBox::ActionRole);
     buttonBox->addButton(dkBestaetigenButton, QDialogButtonBox::ActionRole);
+    buttonBox->addButton(dkVerlaengernButton, QDialogButtonBox::ActionRole);
+    buttonBox->addButton(dkAnfrageVerlaengernButton, QDialogButtonBox::ActionRole);
     buttonBox->addButton(closeButton, QDialogButtonBox::AcceptRole);
 
     // m_buchungenModel = buchungenModel;
@@ -151,6 +155,9 @@ BuchungForm::BuchungForm(QWidget *parent, QSqlTableModel *personenModel, const Q
     connect(addButton, SIGNAL(clicked()), this, SLOT(addBuchung()));
     connect(deleteButton, SIGNAL(clicked()), this, SLOT(deleteBuchung()));
     connect(dkBestaetigenButton, SIGNAL(clicked()), this, SLOT(dkBestaetigenBuchung()));
+    connect(dkVerlaengernButton, SIGNAL(clicked()), this, SLOT(dkVerlaengernBuchung()));
+    connect(dkAnfrageVerlaengernButton, SIGNAL(clicked()), this, SLOT(dkAnfrageVerlaengernBuchung()));
+
     connect(closeButton, SIGNAL(clicked()), this, SLOT(accept()));
 
     QHBoxLayout *topButtonLayout = new QHBoxLayout;
@@ -259,7 +266,7 @@ void BuchungForm::deleteBuchung()
     // m_BuchungIndex = m_buchungenModel->index(row, 0);
 }
 
-void BuchungForm::writeDataForDkBestaetigenBuchung(){
+void BuchungForm::writeDataForDkVorlageBuchung(){
     // if(!m_PersonIndex.isValid())
     //    return;
     // QSqlRecord personRecord = m_personenModel->record(m_PersonIndex.row());
@@ -278,11 +285,11 @@ void BuchungForm::writeDataForDkBestaetigenBuchung(){
             out << m_personenModel->data(m_personenModel->index(m_PersonIndex.row(), DkPersonen_Vorname)).toString() << "\n";
             out << m_personenModel->data(m_personenModel->index(m_PersonIndex.row(), DkPersonen_Name)).toString() << "\n";
             out << m_personenModel->data(m_personenModel->index(m_PersonIndex.row(), DkPersonen_Anrede)).toString() << "\n";
-            out  << "\n"; // co
+            out << "\n"; // co
             out << m_personenModel->data(m_personenModel->index(m_PersonIndex.row(), DkPersonen_Strasse)).toString() << "\n";
             out << m_personenModel->data(m_personenModel->index(m_PersonIndex.row(), DkPersonen_PLZ)).toString() << "\n";
             out << m_personenModel->data(m_personenModel->index(m_PersonIndex.row(), DkPersonen_Ort)).toString() << "\n";
-            // out << m_personenModel->data(m_personenModel->index(m_PersonIndex.row(), DkPersonen_Email)).toString() << "\n";
+            out << m_personenModel->data(m_personenModel->index(m_PersonIndex.row(), DkPersonen_Email)).toString() << "\n";
         }
         int row = mapper->currentIndex();
         m_BuchungIndex = m_buchungenModel->index(row, 0); // oder einfach row nehmen...
@@ -290,14 +297,37 @@ void BuchungForm::writeDataForDkBestaetigenBuchung(){
             out << m_buchungenModel->data(m_buchungenModel->index(m_BuchungIndex.row(), DkBuchungen_DKNummer)).toString() << "\n";
             out << m_buchungenModel->data(m_buchungenModel->index(m_BuchungIndex.row(), DkBuchungen_Datum)).toString() << "\n";
             out << m_buchungenModel->data(m_buchungenModel->index(m_BuchungIndex.row(), DkBuchungen_Betrag)).toString() << "\n";
+            double AnfangsBetrag = m_buchungenModel->data(m_buchungenModel->index(m_BuchungIndex.row(), DkBuchungen_AnfangsBetrag)).toDouble();
+            double Betrag = m_buchungenModel->data(m_buchungenModel->index(m_BuchungIndex.row(), DkBuchungen_Betrag)).toDouble();
+            double Zinssatz = m_buchungenModel->data(m_buchungenModel->index(m_BuchungIndex.row(), DkBuchungen_Zinssatz)).toDouble();
+            QString strAnfangsdatum = m_buchungenModel->data(m_buchungenModel->index(m_BuchungIndex.row(), DkBuchungen_Anfangsdatum)).toString();
+            QString strDatum = m_buchungenModel->data(m_buchungenModel->index(m_BuchungIndex.row(), DkBuchungen_Datum)).toString();
+            // QDate dateFrom = QDate::fromString(strDatum, "dd.MM.yy");
+            QDate dateFrom = QDate::fromString(strAnfangsdatum, "dd.MM.yy");
+            // QString strEnddatum = QDate::currentDate().addDays(-1).toString("dd.MM.yy");
+            QString strEnddatum = m_buchungenModel->data(m_buchungenModel->index(m_BuchungIndex.row(), DkBuchungen_vorgemerkt)).toString();
+            QDate dateTo = QDate::fromString(strEnddatum, "dd.MM.yy").addDays(-1);
+            if(strEnddatum.length() == 0)
+            {
+                strEnddatum = "31.12." + QDate::currentDate().toString("dd.MM.yy").right(2);
+                dateTo = QDate::fromString(strEnddatum, "dd.MM.yy");
+            }
+            // double Zinsen = computeDkZinsenZeitraum(Betrag, Zinssatz, dateFrom, dateTo);
+            // Zinsen += (Betrag - AnfangsBetrag);
+            double Zinsen = computeDkZinsenZeitraum(AnfangsBetrag, Zinssatz, dateFrom, dateTo);
+            out << Zinsen << "\n";
             out << m_buchungenModel->data(m_buchungenModel->index(m_BuchungIndex.row(), DkBuchungen_Zinssatz)).toString() << "\n";
+            out << "\n"; // "r" Mann/Frau ???
+            out << m_buchungenModel->data(m_buchungenModel->index(m_BuchungIndex.row(), DkBuchungen_vorgemerkt)).toString() << "\n";
+            out << m_buchungenModel->data(m_buchungenModel->index(m_BuchungIndex.row(), DkBuchungen_Anfangsdatum)).toString() << "\n";
+            out << m_buchungenModel->data(m_buchungenModel->index(m_BuchungIndex.row(), DkBuchungen_AnfangsBetrag)).toString() << "\n";
         }
     }
 }
 
-void BuchungForm::dkBestaetigenBuchung()
+void BuchungForm::dkVorlageBuchung(const QString &vorlageIniEntry, const QString &vorlageName)
 {
-    writeDataForDkBestaetigenBuchung();
+    writeDataForDkVorlageBuchung();
     // /Applications/OpenOffice.app/Contents/MacOS/soffice '/Users/volker/Documents/13ha/DkVerwaltungQt/Vorlage Anschreiben DK-Eingang.ott' 'vnd.sun.star.script:DkVerwaltungQt.Module1.FelderFuellen?language=Basic&location=application'
     QString oo = getOpenOfficePath();
 //#ifdef Q_OS_MAC
@@ -310,7 +340,7 @@ void BuchungForm::dkBestaetigenBuchung()
     if(!oo.length())
         return;
     // QString ott = "/Users/volker/Documents/13ha/DkVerwaltungQt/Vorlage Anschreiben DK-Eingang.ott";
-    QString ott = getFilePathFromIni("DkEingangVorlagePath", getStandardPath(), "Vorlage Anschreiben DK-Eingang.ott");
+    QString ott = getFilePathFromIni(vorlageIniEntry, getStandardPath(), vorlageName);
     if(!ott.length())
         return;
 
@@ -324,4 +354,25 @@ void BuchungForm::dkBestaetigenBuchung()
     // QProcess::execute(oo, arguments, workingDirectory, &pid); // synchron
     QProcess::startDetached(oo, arguments, workingDirectory, &pid); // assynchron
     qDebug() << "pid " << pid;
+}
+
+void BuchungForm::dkBestaetigenBuchung()
+{
+    QString vorlageIniEntry = "DkEingangVorlagePath";
+    QString vorlageName = "Vorlage Anschreiben DK-Eingang.ott";
+    dkVorlageBuchung(vorlageIniEntry, vorlageName);
+}
+
+void BuchungForm::dkVerlaengernBuchung()
+{
+    QString vorlageIniEntry = "DkVerlaengerungVorlagePath";
+    QString vorlageName = "Vorlage Anschreiben DK-Verlängerung.ott";
+    dkVorlageBuchung(vorlageIniEntry, vorlageName);
+}
+
+void BuchungForm::dkAnfrageVerlaengernBuchung()
+{
+    QString vorlageIniEntry = "DkAnfrageVerlaengerungVorlagePath";
+    QString vorlageName = "Vorlage Anschreiben Anfrage DK-Verlängerung.ott";
+    dkVorlageBuchung(vorlageIniEntry, vorlageName);
 }

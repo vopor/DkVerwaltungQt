@@ -34,10 +34,13 @@ int getJahrFromIni();
 
 int getJahr();
 int getAnzTageJahr();
-int getAnzTage(const QDate &dateFrom, const QDate &dateTo);
+int getAnzTage(const QDate &dateFrom, const QDate &dateTo, bool inclLastDay=true);
+int getAnzTageZeitraum(const QDate &dateFrom, const QDate &dateTo);
 
 double Runden2(double Betrag);
 double computeDkZinsen(double Betrag, double Zinssatz, int anzTage);
+double computeDkZinsen(double Betrag, double Zinssatz, const QDate &dateFrom, const QDate &dateTo);
+double computeDkZinsenZeitraum(double Betrag, double Zinssatz, const QDate &dateFrom, const QDate &dateTo);
 
 //--------------------------------------------------------------
 // SQL-Funktionen

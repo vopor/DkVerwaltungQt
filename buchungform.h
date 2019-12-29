@@ -28,7 +28,9 @@ enum {
     DkBuchungen_vorgemerkt = 6,
     DkBuchungen_Betrag = 7,
     DkBuchungen_Zinssatz = 8,
-    DkBuchungen_Bemerkung = 9
+    DkBuchungen_Bemerkung = 9,
+    DkBuchungen_Anfangsdatum = 10,
+    DkBuchungen_AnfangsBetrag = 11
 };
 
 class BuchungForm : public QDialog
@@ -46,9 +48,12 @@ private slots:
     void addBuchung();
     void deleteBuchung();
     void dkBestaetigenBuchung();
+    void dkVerlaengernBuchung();
+    void dkAnfrageVerlaengernBuchung();
 
 private:
-    void writeDataForDkBestaetigenBuchung();
+    void dkVorlageBuchung(const QString &vorlageIniEntry, const QString &vorlageName);
+    void writeDataForDkVorlageBuchung();
 
 private:
 
@@ -86,9 +91,12 @@ private:
     QPushButton *nextButton;
     QPushButton *lastButton;
 
+    QPushButton *dkBestaetigenButton;
+    QPushButton *dkVerlaengernButton;
+    QPushButton *dkAnfrageVerlaengernButton;
+
     QPushButton *addButton;
     QPushButton *deleteButton;
-    QPushButton *dkBestaetigenButton;
     QPushButton *closeButton;
 
     QDialogButtonBox *buttonBox;

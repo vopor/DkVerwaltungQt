@@ -1,8 +1,8 @@
 /* sqlite3 DkVerwaltungQt.db3 < CreateDkVerwaltungQt.sql */
 CREATE TABLE DKVerwaltungOrg (Datum TEXT, DKNr TEXT, Vorname TEXT, Name TEXT, Anrede TEXT, DKNummer TEXT, Straße TEXT, PLZ TEXT, Ort TEXT, Email TEXT, Rueckzahlung TEXT, vorgemerkt TEXT, Betrag TEXT, Zinssatz TEXT, Bemerkung TEXT);
-.separator ";"
+.separator ","
 .header on
-.import DK-Verwaltung.csv DKVerwaltungOrg
+.import DK-Verwaltung_F13_Turley_GmbH.csv DKVerwaltungOrg
 CREATE TABLE DKVerwaltung (Datum TEXT, DKNr TEXT, Vorname TEXT, Name TEXT, Anrede TEXT, DKNummer TEXT, Straße TEXT, PLZ TEXT, Ort TEXT, Email TEXT, Rueckzahlung TEXT, vorgemerkt TEXT, Betrag TEXT, Zinssatz TEXT, Bemerkung TEXT);
 INSERT INTO DKVerwaltung SELECT * FROM DKVerwaltungOrg ORDER BY CAST(DkNr AS INTEGER);
 DROP table DKVerwaltungORG;

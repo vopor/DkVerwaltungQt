@@ -245,7 +245,7 @@ qDebug() << QString("%1 years, %2 months and %3 days").arg(years).arg(months).ar
 //    - DAY(@dt_Start)
 //    - CASE WHEN DAY(@dt_Ende) = 31 THEN 1 ELSE 0 END AS [Tage30/360]
 
-int getAnzTage(const QDate &dateFrom, const QDate &dateTo)
+int getAnzTage(const QDate &dateFrom, const QDate &dateTo, bool inclLastDay)
 {
    Q_ASSERT(dateFrom.year() == dateTo.year());
    int anzTage = getAnzTageJahr();
@@ -256,11 +256,34 @@ int getAnzTage(const QDate &dateFrom, const QDate &dateTo)
       anzTage += dateTo.day();
       anzTage -= dateFrom.day();
       anzTage -= ((dateTo.day() == 31) ? 1 : 0);
-      anzTage += 1; // da bis 31.12. und nicht 1.1. gerechnet wird
+      if(inclLastDay) anzTage += 1; // da bis 31.12. und nicht 1.1. gerechnet wird
       // anzTage = qMin(anzTage, getAnzTageJahr());
       // Q_ASSERT(anzTage <= getAnzTageJahr());
    }
    return anzTage;
+}
+
+int getAnzTageZeitraum(const QDate &dateFrom, const QDate &dateTo)
+{
+    int anzTage = getAnzTageJahr();
+    if( dateFrom.isValid() && dateTo.isValid() )
+    {
+       anzTage = 0;
+       QDate startDate = dateFrom;
+       QDate endDate = dateTo;
+       while(startDate < endDate)
+       {
+          if(startDate.year() < endDate.year())
+          {
+             anzTage += getAnzTage(startDate, QDate(startDate.year(), 12, 31));
+             startDate = QDate(startDate.year()+1, 1, 1);
+          }else{
+             anzTage += getAnzTage(startDate, endDate, false);
+             break;
+          }
+       }
+    }
+    return anzTage;
 }
 
 double Runden2(double Betrag)
@@ -274,6 +297,41 @@ double computeDkZinsen(double Betrag, double Zinssatz, int anzTage)
 {
     double Zinsen = ((Betrag * Zinssatz) / 100.0);
     Zinsen = Runden2(Zinsen * anzTage / getAnzTageJahr());
+    return Zinsen;
+}
+
+double computeDkZinsen(double Betrag, double Zinssatz, const QDate &dateFrom, const QDate &dateTo)
+{
+   int anzTage = getAnzTage(dateFrom, dateTo);
+   double Zinsen = computeDkZinsen(Betrag, Zinssatz, anzTage);
+   return Zinsen;
+}
+
+double computeDkZinsenZeitraum(double Betrag, double Zinssatz, const QDate &dateFrom, const QDate &dateTo)
+{
+    // int anzTage = getAnzTageZeitraum(dateFrom, dateTo);
+    // double Zinsen = computeDkZinsen(Betrag, Zinssatz, anzTage);
+    double Zinsen = 0;
+    if( dateFrom.isValid() && dateTo.isValid() )
+    {
+       int anzTage = 0;
+       // int AnfangsBetrag = Betrag;
+       QDate startDate = dateFrom;
+       QDate endDate = dateTo;
+       while(startDate < endDate)
+       {
+          if(startDate.year() < endDate.year())
+          {
+             anzTage = getAnzTageZeitraum(startDate, QDate(startDate.year()+1, 1, 1));
+             startDate = QDate(startDate.year()+1, 1, 1);
+             Zinsen += computeDkZinsen(Betrag + Zinsen, Zinssatz, anzTage);
+          }else{
+             anzTage = getAnzTageZeitraum(startDate, endDate);
+             Zinsen += computeDkZinsen(Betrag + Zinsen, Zinssatz, anzTage);
+             break;
+          }
+       }
+    }
     return Zinsen;
 }
 

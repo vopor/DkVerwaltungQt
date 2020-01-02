@@ -45,8 +45,11 @@ try:
     insert_stmt = 'INSERT INTO db_to.Vertraege (id, KreditorId, Kennung, Betrag, Wert, ZSatz, thesaurierend, Vertragsdatum, aktiv, LaufzeitEnde, LetzteZinsberechnung, Kfrist) '
     insert_stmt += 'SELECT BuchungId, PersonId, DKNummer, AnfangsBetrag, Betrag, db_to.Zinssaetze.id, 1, '
     insert_stmt += '"20" || substr(Anfangsdatum,7,2) || "-" || substr(Anfangsdatum,4,2) || "-" || substr(Anfangsdatum,1,2), 1, '
-    insert_stmt += 'CASE WHEN vorgemerkt <> "" THEN "20" || substr(vorgemerkt,7,2) || "-" || substr(vorgemerkt,4,2) || "-" || substr(vorgemerkt,1,2) ELSE "" END, NULL, 6 '
-    insert_stmt += 'FROM db_from.DKBuchungen, db_to.Zinssaetze WHERE db_to.Zinssaetze.Zinssatz = db_from.DKBuchungen.Zinssatz AND Anfangsdatum <> "" AND DkNummer <> "Stammkapital" AND Rueckzahlung = ""'
+    insert_stmt += 'CASE WHEN (vorgemerkt != "") THEN ("20" || substr(vorgemerkt,7,2) || "-" || substr(vorgemerkt,4,2) || "-" || substr(vorgemerkt,1,2)) ELSE "3000-12-31" END, NULL, '
+    insert_stmt += 'CASE WHEN (vorgemerkt != "") THEN -1 ELSE 6 END '
+    insert_stmt += 'FROM db_from.DKBuchungen, db_to.Zinssaetze '
+    insert_stmt += 'WHERE db_to.Zinssaetze.Zinssatz = db_from.DKBuchungen.Zinssatz AND Anfangsdatum <> "" AND DkNummer <> "Stammkapital" AND Rueckzahlung = ""'
+    print insert_stmt
     stmt.execute(insert_stmt);
     # Buchungen aufsummieren
     update_stmt = 'UPDATE db_to.Vertraege SET Wert='

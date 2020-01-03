@@ -35,6 +35,17 @@ try:
     stmt.execute('DELETE FROM db_to.Buchungen')
     stmt.execute('DELETE FROM db_to.Vertraege')
     stmt.execute('DELETE FROM db_to.Kreditoren')
+    stmt.execute('DELETE FROM db_to.Zinssaetze WHERE Zinssatz > 1.99')
+    conn.commit()
+    # stmt.execute('DELETE FROM db_from.DKZinssaetze WHERE db_from.DKZinssaetze.Zinssatz LIKE "%Zinssatz%"')
+    # conn.commit()
+    # Zinssaetze
+    insert_stmt = 'INSERT INTO db_to.Zinssaetze (Zinssatz, Bemerkung) '
+    insert_stmt += 'SELECT db_from.DKZinssaetze.Zinssatz, "Unser Investor" FROM db_from.DKZinssaetze WHERE NOT EXISTS '
+    insert_stmt += '('
+    insert_stmt += 'SELECT db_to.Zinssaetze.Zinssatz FROM db_to.Zinssaetze WHERE db_to.Zinssaetze.Zinssatz = db_from.DKZinssaetze.Zinssatz '
+    insert_stmt += ')'
+    stmt.execute(insert_stmt);
     conn.commit()
     # Kreditoren
     insert_stmt = 'INSERT INTO db_to.Kreditoren (id, Vorname, Nachname, Strasse, Plz, Stadt, EMail) '
@@ -49,17 +60,34 @@ try:
     insert_stmt += 'CASE WHEN (vorgemerkt != "") THEN -1 ELSE 6 END '
     insert_stmt += 'FROM db_from.DKBuchungen, db_to.Zinssaetze '
     insert_stmt += 'WHERE db_to.Zinssaetze.Zinssatz = db_from.DKBuchungen.Zinssatz AND Anfangsdatum <> "" AND DkNummer <> "Stammkapital" AND Rueckzahlung = ""'
-    print insert_stmt
     stmt.execute(insert_stmt);
     # Buchungen aufsummieren
     update_stmt = 'UPDATE db_to.Vertraege SET Wert='
     update_stmt += '('
-    update_stmt += 'SELECT SUM(Betrag) FROM db_from.DKBuchungen GROUP BY db_from.DKBuchungen.DkNummer WHERE db_to.Vertraege.Kennung = db_from.DKBuchungen.DkNummer '
+    update_stmt += 'SELECT SUM(Betrag) FROM db_from.DKBuchungen WHERE db_to.Vertraege.Kennung = db_from.DKBuchungen.DkNummer '
     update_stmt += 'AND db_from.DKBuchungen.DkNummer <> "Stammkapital"'
-    update_stmt += ')' 
+    update_stmt += 'GROUP BY db_from.DKBuchungen.DkNummer'
+    update_stmt += ')'
+
+    # update_stmt = 'UPDATE db_to.Vertraege a INNER JOIN'
+    # update_stmt += '('
+    # update_stmt += 'SELECT DkNummer, SUM(Betrag) AS sum_betrag FROM db_from.DKBuchungen GROUP BY db_from.DKBuchungen.DkNummer '
+    # # update_stmt += 'AND db_from.DKBuchungen.DkNummer <> "Stammkapital"'
+    # update_stmt += ') b ON a.Kennung = b.DkNummer'
+    # update_stmt += 'SET a.Wert=b.sum_betrag'
+    
+    # UPDATE playercareer c
+    # (
+    # SELECT gameplayer, SUM(points) as total
+    # FROM games
+    # GROUP BY gameplayer
+    # ) x ON c.playercareername = x.gameplayer
+    # SET c.playercareerpoints = x.total
+    
+    # print update_stmt
+    
+    stmt.execute(update_stmt);
     conn.commit()
-    # Buchungen
-    # conn.commit()
 except:
     print "Unexpected error:", sys.exc_info()[0]
     print sys.exc_info()

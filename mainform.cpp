@@ -211,56 +211,34 @@ void MainForm::generateJahresDkBestaetigungen()
                     double Betrag = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Betrag)).toDouble();
                     // QString strEnddatum = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_vorgemerkt)).toString();
                     QString strRueckzahlung = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Rueckzahlung)).toString();
-                    // if(Betrag < 0){
-                    //     continue;
-                    // }
+                    if(strRueckzahlung.length() && !strRueckzahlung.endsWith(strJahr)){
+                        continue;
+                    }
                     QString strEnddatum;
-                    // QString statement = "SELECT Rueckzahlung From DkBuchungen WHERE DkNummer = '" + strDkNummer + "'";
-                    // statement += " AND substr(Rueckzahlung ,7,2) == '" + strJahr + "'";
-                    // strEnddatum = getStringValue(statement);
                     bool bRueckzahlung = false;
                     if(strRueckzahlung.endsWith(strJahr))
                     {
                        bRueckzahlung = true;
                        strEnddatum = strRueckzahlung;
                     }
-                    // strEnddatum = "";
                     if(strEnddatum.length() == 0)
                     {
                         strEnddatum = "31.12." + strJahr;
-                    }else{
-; // __asm nop
                     }
-//                    else
-//                    {
-//                        QDate d1 = QDate::fromString(strEnddatum, "dd.MM.yy");
-//                        QDate d2 = QDate::fromString(strSylvester, "dd.MM.yyyy");
-//                        if(d1.isValid()){
-//                            if( d1 > d2 )
-//                            {
-//                                strEnddatum = "31.12." + strJahr;
-//                            }
-//                            // else
-//                            {
-//                                // gekündigte Dks
-//                                // strEnddatum = QDate::fromString(strEnddatum, "dd.MM.yy").toString("dd.MM.yyyy");
-//                                // strEnddatum = strEnddatum.left(6) + "20" + strEnddatum.right(2);
-//                            }
-//                        }
-//                    }
-
                     // Tagesgenaue Berechnung
                     QDate dateFrom = QDate::fromString(strAnfangsdatum, "dd.MM.yy");
                     QDate dateTo = QDate::fromString(strEnddatum, "dd.MM.yy");
+                    bool inclLastDay = true;
                     if(bRueckzahlung){
-                       dateTo = dateTo.addDays(-1);
+                       // dateTo = dateTo.addDays(-1);
+                        inclLastDay = false;
                     }
 
                     // int anzTage = getAnzTageJahr();
                     // if(dateFrom.isValid() && dateTo.isValid()){
                     //     anzTage = qMin((int)dateFrom.daysTo(dateTo), anzTage);
                     // }
-                    int anzTage = getAnzTage(dateFrom, dateTo);
+                    int anzTage = getAnzTage(dateFrom, dateTo, inclLastDay);
                     // double Zinsen = ((Betrag * Zinssatz) / 100.0);
                     // Zinsen = Runden(Zinsen * anzTage / getAnzTageJahr(), 2);
                     double Zinsen = computeDkZinsen(Betrag, Zinssatz, anzTage);
@@ -409,29 +387,30 @@ void MainForm::generateJahresDkZinsBescheinigungen()
                    QString strAnfangsdatum = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Datum)).toString();
                    double Zinssatz = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Zinssatz)).toDouble();
                    double Betrag = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Betrag)).toDouble();
-                   QString strEnddatum = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_vorgemerkt)).toString();
-
+                   // QString strEnddatum = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_vorgemerkt)).toString();
+                   QString strRueckzahlung = buchungenSortModel->data(buchungenSortModel->index(BuchungIndex.row(), DkBuchungen_Rueckzahlung)).toString();
+                   if(strRueckzahlung.length() && !strRueckzahlung.endsWith(strJahr)){
+                       continue;
+                   }
+                   QString strEnddatum;
+                   bool bRueckzahlung = false;
+                   if(strRueckzahlung.endsWith(strJahr))
+                   {
+                      bRueckzahlung = true;
+                      strEnddatum = strRueckzahlung;
+                   }
                    if(strEnddatum.length() == 0)
                    {
                        strEnddatum = "31.12." + strJahr;
                    }
-                   else
-                   {
-                       if(QDate::fromString(strEnddatum, "dd.MM.yy") >  QDate::fromString(strSylvester, "dd.MM.yy"))
-                       {
-                           strEnddatum = "31.12." + strJahr;
-                       }
-                       else
-                       {
-                           // strEnddatum = QDate::fromString(strEnddatum, "dd.MM.yy").toString("dd.MM.yyyy");
-                       }
-                   }
-
                    // Tagesgenaue Berechnung
                    QDate dateFrom = QDate::fromString(strAnfangsdatum, "dd.MM.yy");
                    QDate dateTo = QDate::fromString(strEnddatum, "dd.MM.yy");
-
-                   int anzTage = getAnzTage(dateFrom, dateTo);
+                   bool inclLastDay = true;
+                   if(bRueckzahlung){
+                       inclLastDay = false;
+                   }
+                   int anzTage = getAnzTage(dateFrom, dateTo, inclLastDay);
                    double Zinsen = computeDkZinsen(Betrag, Zinssatz, anzTage);
                    double Endbetrag = Betrag + Zinsen;
 

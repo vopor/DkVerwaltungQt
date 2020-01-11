@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <locale.h>
 
+#include "mainwindow.h"
 #include "mainform.h"
 
 #include "dbfkts.h"
@@ -31,8 +32,7 @@ int main(int argc, char *argv[])
     if (!createConnection(dbPath))
         return 1;
 
-    MainForm form;
-    form.resize(1024, 768);
-    form.show();
+    MainWindow mw;
+    mw.show();
     return app.exec();
 }

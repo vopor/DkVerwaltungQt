@@ -275,7 +275,7 @@ int getAnzTageZeitraum(const QDate &dateFrom, const QDate &dateTo)
        {
           if(startDate.year() < endDate.year())
           {
-             anzTage += getAnzTage(startDate, QDate(startDate.year(), 12, 31));
+             anzTage += getAnzTage(startDate, QDate(startDate.year(), 12, 31), true);
              startDate = QDate(startDate.year()+1, 1, 1);
           }else{
              anzTage += getAnzTage(startDate, endDate, false);
@@ -302,7 +302,7 @@ double computeDkZinsen(double Betrag, double Zinssatz, int anzTage)
 
 double computeDkZinsen(double Betrag, double Zinssatz, const QDate &dateFrom, const QDate &dateTo)
 {
-   int anzTage = getAnzTage(dateFrom, dateTo);
+   int anzTage = getAnzTage(dateFrom, dateTo, true);
    double Zinsen = computeDkZinsen(Betrag, Zinssatz, anzTage);
    return Zinsen;
 }

@@ -60,7 +60,7 @@ bool BuchungenSortFilterProxyModel::lessThan(const QModelIndex & source_left, co
     return QSortFilterProxyModel::lessThan(source_left, source_right);
 }
 
-MainForm::MainForm()
+MainForm::MainForm(QWidget *parent) : QWidget(parent)
 {
     createAnzeigenPersonenPanel();
     createPersonenPanel();
@@ -552,7 +552,7 @@ void MainForm::updateBuchungenSummen()
     // if(dateFrom.isValid() && dateTo.isValid()){
     //     anzTage = qMin((int)dateFrom.daysTo(dateTo), getAnzTageJahr());
     // }
-    int anzTage = getAnzTage(dateFrom, dateTo);
+    int anzTage = getAnzTage(dateFrom, dateTo, true);
     summeDkZinsen = Runden2(summeDkZinsen * anzTage / getAnzTageJahr());
     QString summeDkZinsenText = QString::number(summeDkZinsen, 'f', 2);
     summeBuchungenDkZinsenEdit->setText(summeDkZinsenText);

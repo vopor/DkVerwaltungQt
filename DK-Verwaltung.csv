@@ -1,5 +1,0 @@
-Datum;DK-Nr.;Vorname;Name;Anrede;DK Nummer;Straße;PLZ;Ort;Email;Rückzahlung;vorgemerkt;Betrag;Zinssatz;Bemerkung
-01.01.16;1;Vorname1;Nachname1;Herr;F13T-2016-001;Str. 1;68167;Mannheim;;;;1.000,00 €;1,00%;"01.01.16 F13T-2016-001 [auto] DK-Nr. 001 neu angelegt. Betrag: 1.000,00 €."
-01.01.16;2;Vorname2;Nachname2;Herr;F13T-2016-002;Str. 1;68167;Mannheim;;;;1.000,00 €;1,00%;"01.01.16 F13T-2016-002 [auto] DK-Nr. 002 neu angelegt. Betrag: 1.000,00 €."
-01.02.16;3;Vorname1;Nachname1;Herr;F13T-2016-003;Str. 1;68167;Mannheim;;;;2.000,00 €;2,00%;"01.02.16 F13T-2016-003 [auto] DK-Nr. 003 neu angelegt. Betrag: 2.000,00 €."
-01.03.16;3;Vorname1;Nachname1;Herr;F13T-2016-004;Str. 1;68167;Mannheim;;;;3.000,00 €;3,00%;"01.03.16 F13T-2016-004 [auto] DK-Nr. 004 neu angelegt. Betrag: 3.000,00 €."

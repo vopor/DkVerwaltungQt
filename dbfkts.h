@@ -34,7 +34,7 @@ int getJahrFromIni();
 
 int getJahr();
 int getAnzTageJahr();
-int getAnzTage(const QDate &dateFrom, const QDate &dateTo, bool inclLastDay=true);
+int getAnzTage(const QDate &dateFrom, const QDate &dateTo, bool inclLastDay); // =true
 int getAnzTageZeitraum(const QDate &dateFrom, const QDate &dateTo);
 
 double Runden2(double Betrag);

@@ -22,7 +22,7 @@ class MainForm : public QWidget
     Q_OBJECT
 
 public:
-    MainForm();
+    MainForm(QWidget *parent);
 
 private slots:
 

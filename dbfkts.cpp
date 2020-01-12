@@ -251,19 +251,16 @@ int getAnzTage(const QDate &dateFrom, const QDate &dateTo, bool inclLastDay)
    int anzTage = getAnzTageJahr();
    if(dateFrom.isValid() && dateTo.isValid())
    {
-      // anzTage = (int)dateFrom.daysTo(dateTo)+1;
       anzTage = (dateTo.month() - dateFrom.month()) * 30;
       anzTage += dateTo.day();
       anzTage -= dateFrom.day();
       anzTage -= ((dateTo.day() == 31) ? 1 : 0);
       if(inclLastDay) anzTage += 1; // da bis 31.12. und nicht 1.1. gerechnet wird
-      // anzTage = qMin(anzTage, getAnzTageJahr());
-      // Q_ASSERT(anzTage <= getAnzTageJahr());
    }
    return anzTage;
 }
 
-int getAnzTageZeitraum(const QDate &dateFrom, const QDate &dateTo)
+int getAnzTageZeitraumOld(const QDate &dateFrom, const QDate &dateTo)
 {
     int anzTage = getAnzTageJahr();
     if( dateFrom.isValid() && dateTo.isValid() )
@@ -307,15 +304,12 @@ double computeDkZinsen(double Betrag, double Zinssatz, const QDate &dateFrom, co
    return Zinsen;
 }
 
-double computeDkZinsenZeitraum(double Betrag, double Zinssatz, const QDate &dateFrom, const QDate &dateTo)
+double computeDkZinsenZeitraumOld(double Betrag, double Zinssatz, const QDate &dateFrom, const QDate &dateTo)
 {
-    // int anzTage = getAnzTageZeitraum(dateFrom, dateTo);
-    // double Zinsen = computeDkZinsen(Betrag, Zinssatz, anzTage);
     double Zinsen = 0;
     if( dateFrom.isValid() && dateTo.isValid() )
     {
        int anzTage = 0;
-       // int AnfangsBetrag = Betrag;
        QDate startDate = dateFrom;
        QDate endDate = dateTo;
        while(startDate < endDate)
@@ -333,6 +327,135 @@ double computeDkZinsenZeitraum(double Betrag, double Zinssatz, const QDate &date
        }
     }
     return Zinsen;
+}
+
+bool IsLastDayOfFebruary(const QDate &date)
+{
+    return date.month() == 2 && date.day() == date.daysInMonth();
+}
+
+int Days360(const QDate &StartDate, const QDate &EndDate)
+{
+    int StartDay = StartDate.day();
+    int StartMonth = StartDate.month();
+    int StartYear = StartDate.year();
+    int EndDay = EndDate.day();
+    int EndMonth = EndDate.month();
+    int EndYear = EndDate.year();
+
+    if (StartDay == 31 || IsLastDayOfFebruary(StartDate))
+    {
+        StartDay = 30;
+    }
+
+    if (StartDay == 30 && EndDay == 31)
+    {
+        EndDay = 30;
+    }
+
+    return ((EndYear - StartYear) * 360) + ((EndMonth - StartMonth) * 30) + (EndDay - StartDay);
+}
+
+bool isLeapYear(int year)
+{
+    bool b = ((((year % 4) == 0) && ((year % 100) != 0)) || ((year % 400) == 0));
+    return b;
+}
+
+int dateDiff360(int startDay, int startMonth, int startYear, int endDay, int endMonth, int endYear, bool methodUS)
+{
+    if (startDay == 31) {
+        --startDay;
+    } else if (methodUS && (startMonth == 2 && (startDay == 29 || (startDay == 28 && !isLeapYear(startYear))))) {
+        startDay = 30;
+    }
+    if (endDay == 31) {
+        if (methodUS && startDay != 30) {
+            endDay = 1;
+            if (endMonth == 12) {
+                ++endYear;
+                endMonth = 1;
+            } else {
+                ++endMonth;
+            }
+        } else {
+            endDay = 30;
+        }
+    }
+    return endDay + endMonth * 30 + endYear * 360 - startDay - startMonth * 30 - startYear * 360;
+}
+
+int dateDiff360(const QDate &StartDate, const QDate &EndDate, bool methodUS)
+{
+   int startDay = StartDate.day();
+   int startMonth = StartDate.month();
+   int startYear = StartDate.year();
+   int endDay = EndDate.day();
+   int endMonth = EndDate.month();
+   int endYear = EndDate.year();
+   int ret = dateDiff360(startDay, startMonth, startYear, endDay, endMonth, endYear, methodUS);
+   return ret;
+}
+
+int getAnzTageZeitraum(const QDate &StartDate, const QDate &EndDate)
+{
+   // int ret = Days360(StartDate, EndDate);
+   int ret = dateDiff360(StartDate, EndDate, false);
+   return ret;
+}
+
+int getAnzTageUndJahreZeitraum(const QDate &dateFrom, const QDate &dateTo, int &tageBis, int &ganzeJahre, int &tageVon){
+   int ret = 0;
+   tageBis = 0;
+   ganzeJahre = 0;
+   tageVon = 0;
+   if( dateFrom.isValid() && dateTo.isValid() && (dateFrom <= dateTo))
+   {
+       if(dateFrom.year() == dateTo.year())
+       {
+           tageBis = getAnzTageZeitraum(dateFrom, dateTo);
+           return 0;
+       }
+      if(dateFrom.year() < dateTo.year())
+      {
+          tageBis = getAnzTageZeitraum(dateFrom, QDate(dateFrom.year(), 12, 31));
+      }
+      QDate startDate = dateFrom;
+      QDate endDate = dateTo;
+      startDate = QDate(startDate.year()+1, 1, 1);
+      while(startDate <= endDate)
+      {
+         if(startDate.year() < endDate.year())
+         {
+            ganzeJahre++;
+            startDate = QDate(startDate.year()+1, 1, 1);
+         }else{
+            tageVon = getAnzTageZeitraum(startDate, dateTo) + 1;
+            break;
+         }
+      }
+   }
+   return ret;
+}
+
+double computeDkZinsenZeitraum(double Betrag, double Zinssatz, const QDate &dateFrom, const QDate &dateTo)
+{
+    double Zinsen = 0;
+    if( dateFrom.isValid() && dateTo.isValid() && (dateFrom <= dateTo))
+    {
+        int tageBis = 0;
+        int ganzeJahre = 0;
+        int tageVon = 0;
+        getAnzTageUndJahreZeitraum(dateFrom, dateTo, tageBis, ganzeJahre, tageVon);
+        Zinsen += computeDkZinsen(Betrag + Zinsen, Zinssatz, tageBis);
+        for(int i=0;i<ganzeJahre;i++)
+        {
+           // Zinsen += ((Betrag + Zinsen) * Zinssatz) / 100.0;
+            Zinsen += (Betrag + Zinsen) * Zinssatz / 100.0;
+        }
+        Zinsen += computeDkZinsen(Betrag + Zinsen, Zinssatz, tageVon);
+    }
+    return Runden2(Zinsen);
 }
 
 //--------------------------------------------------------------

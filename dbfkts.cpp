@@ -260,6 +260,31 @@ int getAnzTage(const QDate &dateFrom, const QDate &dateTo, bool inclLastDay)
    return anzTage;
 }
 
+int getAnzTageNew(const QDate &dateFrom, const QDate &dateTo, bool inclLastDay)
+{
+   Q_ASSERT(dateFrom.year() == dateTo.year());
+   int anzTage = getAnzTageJahr();
+   if(dateFrom.isValid() && dateTo.isValid())
+   {
+      anzTage = (dateTo.month() - dateFrom.month()) * 30;
+      anzTage += dateTo.day();
+      anzTage -= dateFrom.day();
+      anzTage -= ((dateTo.day() == 31) ? 1 : 0);
+      if((dateFrom.month() == 2) && (dateTo.month() != 2))
+      {
+         anzTage += 1;
+         if(!QDate::isLeapYear(dateFrom.year())) anzTage++;
+      }
+      if((dateFrom.month() != 2) && (dateTo.month() == 2))
+      {
+         anzTage += 1;
+         if(!QDate::isLeapYear(dateTo.year())) anzTage++;
+      }
+      if(inclLastDay) anzTage += 1;
+   }
+   return anzTage;
+}
+
 int getAnzTageZeitraumOld(const QDate &dateFrom, const QDate &dateTo)
 {
     int anzTage = getAnzTageJahr();

@@ -15,8 +15,9 @@ import traceback
 import sqlite3
 # print sqlite3.version
 # print sys.argv
-if len(sys. argv) < 3:
-    print "Aufruf: ./exportToDKV2.py <DkVerwaltungQt-db3-file> <DKV2-db3-file>"
+#print len(sys. argv)
+if len(sys. argv) < 4:
+    print "Aufruf: ./exportToDKV2.py <DkVerwaltungQt-db3-file> <DKV2-db3-file> <Year2>"
     exit(1)
 
 DkVerwaltungQt_db3_file=sys.argv[1]
@@ -27,6 +28,8 @@ if not os.path.isfile(DkVerwaltungQt_db3_file):
 if not os.path.isfile(DKV2_db3_file):
     print DKV2_db3_file + "existiert nicht."
     exit(3)
+
+Year2 = sys.argv[3]
 
 try:
     conn = sqlite3.connect('')
@@ -73,22 +76,37 @@ try:
     stmt.execute(update_stmt);
     # Rueckzahlung berücksichtigen
     update_stmt = 'UPDATE db_to.Vertraege SET Wert='
-    update_stmt += 'round((Betrag + (-1*Wert)),2) '
-    # update_stmt += '(Betrag + (-1.0*CAST( Wert AS FLOAT)))
-    # update_stmt += '-1.0*Wert '
-    # update_stmt += 'WHERE Wert < 0'
+    update_stmt += '('
+    update_stmt += 'SELECT (Betrag * -1) FROM db_from.DKBuchungen WHERE db_to.Vertraege.Kennung = db_from.DKBuchungen.DkNummer '
+    update_stmt += 'AND (Anfangsdatum IS NULL OR Anfangsdatum = "") '
+    update_stmt += 'AND Betrag < 0 '
+    update_stmt += 'AND (substr(Rueckzahlung ,7,2) = "' + Year2 + '")'
+    update_stmt += 'AND DkNummer <> "Stammkapital"'
+    update_stmt += ')'
+    # update_stmt += 'round((Betrag + (-1*Wert)),2) '
+    # # update_stmt += '(Betrag + (-1.0*CAST( Wert AS FLOAT)))
+    # # update_stmt += '-1.0*Wert '
+    # # update_stmt += 'WHERE Wert < 0'
     update_stmt += 'WHERE EXISTS '
     update_stmt += '('
     update_stmt += 'SELECT DkNummer FROM db_from.DKBuchungen WHERE db_to.Vertraege.Kennung = db_from.DKBuchungen.DkNummer '
     update_stmt += 'AND db_from.DKBuchungen.Rueckzahlung <> "" '    
     update_stmt += ') '
     stmt.execute(update_stmt);
+    update_stmt = 'UPDATE db_to.Vertraege SET Wert=0 '
+    update_stmt += 'WHERE EXISTS '
+    update_stmt += '('
+    update_stmt += 'SELECT DkNummer FROM db_from.DKBuchungen WHERE db_to.Vertraege.Kennung = db_from.DKBuchungen.DkNummer '
+    update_stmt += 'AND db_from.DKBuchungen.Rueckzahlung <> "" AND substr(db_from.DKBuchungen.Rueckzahlung,7,2) < "' + Year2 + '" '    
+    update_stmt += ') '
+    stmt.execute(update_stmt);    
+
     # LetzteZinsberechnung auf db_from.DKBuchungen.Datum ('2019-01-01'), wenn db_from.DKBuchungen.Datum = '01.01.19'
     update_stmt = 'UPDATE db_to.Vertraege SET LetzteZinsberechnung='
     update_stmt += '('
     update_stmt += 'SELECT ("20" || substr(Datum,7,2) || "-" || substr(Datum,4,2) || "-" || substr(Datum,1,2)) '
     update_stmt += 'FROM db_from.DKBuchungen WHERE db_to.Vertraege.Kennung = db_from.DKBuchungen.DkNummer '
-    update_stmt += 'AND db_from.DKBuchungen.Datum = "01.01.19"'
+    update_stmt += 'AND db_from.DKBuchungen.Datum = "01.01.' + Year2 + '"'
     update_stmt += ') '
     # update_stmt += 'WHERE db_to.Vertraege.Kennung IN (SELECT db_from.DKBuchungen.DkNummer FROM db_from.DKBuchungen WHERE db_from.DKBuchungen.Datum = "01.01.19")'
     stmt.execute(update_stmt);

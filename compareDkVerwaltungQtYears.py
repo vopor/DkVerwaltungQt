@@ -22,10 +22,11 @@ if len(sys. argv) < 5:
     print "Aufruf: ./compareDKkVerwaltungYears.py <DkVerwaltungQt-db3-file-vorjahr> <DkVerwaltungQt-db3-file> <Year2> <modus>"
     print "modus = 1: Ausbezahlte Zinsen "
     print "modus = 2: Nicht Ausbezahlte Zinsen Laufzeit kleiner 1 Jahr"
-    print "modus = 3: Nicht Ausbezahlte Zinsen Laufzeit größer 1 und kleiner 5"
-    print "modus = 4: Nicht Ausbezahlte Zinsen Laufzeit größer 5 Jahre"
+    print "modus = 3: Nicht Ausbezahlte Zinsen Laufzeit größer gleich 1 und kleiner 5"
+    print "modus = 4: Nicht Ausbezahlte Zinsen Laufzeit größer gleich 5 Jahre"
     print "modus = 5: Alle Nicht Ausbezahlte Zinsen"
-    print "modus = 6: Dk's als Mietsicherheit"
+    print "modus = 6: Alle ohne Zinsen"
+
     exit(1)
 
 DkVerwaltungQt_db3_file_vorjahr=sys.argv[1]
@@ -68,6 +69,7 @@ dks_als_mietsicherheit += ",\"F13T-2018-030\""
 dks_als_mietsicherheit += ",\"F13T-2018-031\""
 dks_als_mietsicherheit += ",\"F13T-2019-009\""
 dks_als_mietsicherheit += ",\"F13T-2019-012\""
+dks_als_mietsicherheit += ",\"F13T-2019-024\""
 
 try:
     conn = sqlite3.connect('')
@@ -77,36 +79,102 @@ try:
     conn.commit()
 
     if modus=="1":
-        print "Ausbezahlte Zinsen 20" + Year2 + ": "
-        print "DkNummer;Betrag;Betrag mit Zinsen;Zinsen"
-        select_stmt = "SELECT DkNummer, SUM(Betrag), MAX(Betrag), MIN(Betrag), Count(*) FROM db_vorjahr.DkBuchungen "
-        select_stmt += " WHERE ((substr(Rueckzahlung ,7,2) || substr(Rueckzahlung ,4,2)|| substr(Rueckzahlung ,1,2)) > '" + Year2 + "0101') "
-        select_stmt += " GROUP BY DkNummer ORDER BY DkNummer;"
+        print "\"" + modus  + "." + "Ausbezahlte Zinsen" + " " + Year4 + "\""  + ".csv" 
+        print "DkNummer    ;    Betrag;    Betrag mit Zinsen;    Zinsen;vorgemerkt    ;Kündigungsdatum    ;counter"
+        
+        select_stmt = "SELECT DkNummer, SUM(Betrag), MAX(Betrag), MIN(Betrag), Count(*), vorgemerkt, Rueckzahlung FROM db_vorjahr.DkBuchungen "
+        select_stmt += " WHERE "
+        select_stmt += " ((substr(Rueckzahlung ,7,2) || substr(Rueckzahlung ,4,2)|| substr(Rueckzahlung ,1,2)) > '" + Year2 + "0101') "
+        # select_stmt += "AND Zinssatz <> 0 " 
+        # select_stmt += "Rueckzahlung <> '' "
+        # select_stmt += "AND DkNummer NOT IN (" +  dks_als_mietsicherheit + ") "
+        select_stmt += " GROUP BY DkNummer "
+        # select_stmt += " HAVING SUM(Betrag) < 0 "
+        select_stmt += " ORDER BY DkNummer"
+
+        # SELECT COUNT(*), SUM(ZinsBetrag), SUM(BetragOhneZinsen), SUM(BetragMitZinsen) FROM 
+        # (SELECT DkNummer, SUM(Betrag) AS ZinsBetrag, MAX(Betrag) AS BetragOhneZinsen, MIN(Betrag) AS BetragMitZinsen, Count(*), vorgemerkt, Rueckzahlung FROM DkBuchungen  
+        # WHERE ((substr(Rueckzahlung ,7,2) || substr(Rueckzahlung ,4,2)|| substr(Rueckzahlung ,1,2)) > '190101')  GROUP BY DkNummer ORDER BY DkNummer);
+
         stmt.execute(select_stmt)
         buchungen = stmt.fetchall()
         sumzinsen = 0
+        sumbetrag = 0
+        sumbetrag2 = 0
+        count = 0
         for row in buchungen:
             zinsen = 0
             DkNummer = row[0]
             SumBetrag = row[1]
             Betrag = row[2]
+            MinBetrag = row[3]
+            counter  = row[4]
+            vorgemerkt = row[5]
+            Rueckzahlung = row[6]
             if SumBetrag < 0:
                 zinsen = SumBetrag * -1
                 Betrag2 = Betrag + zinsen
                 sumzinsen = sumzinsen + zinsen
-                print DkNummer + ";" + str(Betrag).replace(".",",")  + ";" + str(Betrag2).replace(".",",")  + ";" + str(zinsen).replace(".",",") 
-        print "Summe der Zinsen: " + str(sumzinsen).replace(".",",") #  + " " + str(len(buchungen))
+                sumbetrag = sumbetrag + Betrag
+                sumbetrag2 = sumbetrag2 + Betrag2
+                count = count + 1
+                print DkNummer + ";" + str(Betrag).replace(".",",")  + ";" + str(Betrag2).replace(".",",")  + ";" + str(zinsen).replace(".",",")  + ";" + str(vorgemerkt) + ";" + str(Rueckzahlung) + ";" + str(counter)
+        print modus +".Anzahl : " + str(count) + ";" + str(sumbetrag).replace(".",",") + ";" + str(sumbetrag2).replace(".",",") + ";" + str(sumzinsen).replace(".",",")
+        # print select_stmt
 
-    elif (modus == "2") or (modus == "3") or (modus == "4") or (modus == "5"):
-        print "Nicht Ausbezahlte Zinsen 20" + Year2 + ": "
-        print "DkNummer;Betrag;Betrag mit Zinsen;Zinsen;vorgemerkt;Kündigungsdatum"
-        select_stmt = "SELECT DkNummer, SUM(Betrag), vorgemerkt, Rueckzahlung FROM db_vorjahr.DkBuchungen "
-        select_stmt += "WHERE Rueckzahlung = '' "
-        select_stmt += " AND DkNummer NOT IN (" +  dks_als_mietsicherheit + ") "
-        select_stmt += "GROUP BY DkNummer ORDER BY DkNummer "
+    elif (modus == "1") or (modus == "2") or (modus == "3") or (modus == "4") or (modus == "5") or (modus == "6") or (modus == "7"):
+        if (modus == "1"):
+            print "\"" + modus + "." + "Ausbezahlte Zinsen" + " " + Year4 + "\"" + ".csv" 
+        elif (modus == "2"):
+            print "\"" + modus + "." + "Nicht Ausbezahlte Zinsen Laufzeit kleiner 1 Jahr" + " " + Year4 + "\""  + ".csv" 
+        elif (modus == "3"):
+            print "\"" + modus + "." + "Nicht Ausbezahlte Zinsen Laufzeit größer gleich 1 und kleiner 5" + " " + Year4 + "\""  + ".csv" 
+        elif (modus == "4"):
+            print "\"" + modus + "." + "Nicht Ausbezahlte Zinsen Laufzeit größer gleich 5 Jahre" + " " + Year4 + "\""  + ".csv" 
+        elif (modus == "5"):
+            print "\"" + modus + "." + "Alle Nicht Ausbezahlte Zinsen" + " " + Year4 + "\""  + ".csv" 
+        elif (modus == "6"):
+            print "\"" + modus + "." + "Alle ohne Zinsen" + " " + Year4 + "\""  + ".csv" 
+        elif (modus == "7"):
+            print "\"" + modus + "." + "Dks als Mietsicherheit" + " " + Year4 + "\""  + ".csv" 
+
+        # print "DkNummer;Betrag;Betrag mit Zinsen;Zinsen;vorgemerkt;Kündigungsdatum"
+        print "DkNummer    ;    Betrag;    Betrag mit Zinsen;    Zinsen;vorgemerkt    ;Kündigungsdatum    "
+        select_stmt = "SELECT DkNummer, SUM(round(Betrag,2)), vorgemerkt, Rueckzahlung FROM db_vorjahr.DkBuchungen "
+        select_stmt += "WHERE "
+        
+        if (modus == "1"):
+            select_stmt += "((substr(Rueckzahlung ,7,2) || substr(Rueckzahlung ,4,2)|| substr(Rueckzahlung ,1,2)) >= '" + Year2 + "0101') "
+        else:
+            select_stmt += "(";
+            select_stmt += "Rueckzahlung = '' "
+            select_stmt += "OR ((substr(Rueckzahlung ,7,2) || substr(Rueckzahlung ,4,2)|| substr(Rueckzahlung ,1,2)) < '" + Year2 + "0101') "
+            select_stmt += ")";
+
+        select_stmt += "AND DkNummer <> 'Stammkapital' "
+        
+        if (modus == "6"):
+            # select_stmt += "AND Zinssatz = 0 " 
+            select_stmt += "AND (Zinssatz = 0 OR ((substr(Rueckzahlung ,7,2) || substr(Rueckzahlung ,4,2)|| substr(Rueckzahlung ,1,2)) < '" + Year2 + "0101')) "
+        else:
+            select_stmt += "AND Zinssatz <> 0 "
+        
+        if ((modus != "1") and (modus != "5") and (modus != "6")):
+            if(modus == "7"):
+                select_stmt += "AND DkNummer IN (" +  dks_als_mietsicherheit + ") "
+            else:  
+                select_stmt += "AND DkNummer NOT IN (" +  dks_als_mietsicherheit + ") "
+
+        select_stmt += " GROUP BY DkNummer "
+        # select_stmt += " HAVING SUM(Betrag) > 0 "
+        select_stmt += " ORDER BY DkNummer"
+
         stmt.execute(select_stmt)
         buchungen = stmt.fetchall()
         sumzinsen = 0
+        sumbetrag = 0
+        sumbetrag2 = 0
+        count = 0
         for row in buchungen:
             zinsen = 0
             DkNummer = row[0]
@@ -115,7 +183,9 @@ try:
             Betrag = row[1]
             vorgemerkt = row[2]
             Rueckzahlung = row[3]
-            select_stmt2 = "SELECT DkNummer, Betrag FROM db.DkBuchungen WHERE DkNummer ='" + DkNummer + "'";
+            # select_stmt2 = "SELECT DkNummer, round(Betrag,2) FROM db.DkBuchungen WHERE DkNummer ='" + DkNummer + "'";
+            select_stmt2 = "SELECT DkNummer, SUM(round(Betrag,2)) FROM db.DkBuchungen WHERE DkNummer ='" + DkNummer + "'";
+            # select_stmt2 += " AND Rueckzahlung = ''  "
             stmt.execute(select_stmt2)
             result = stmt.fetchone()
             if(stmt.rowcount == 0):
@@ -123,33 +193,49 @@ try:
             Betrag2 = 0
             if result[1] != None:
                 Betrag2 = result[1]
-            zinsen = Betrag2 - Betrag
-            if(zinsen != 0) and (Betrag2 != 0):
-                sumzinsen = sumzinsen + zinsen
+            if (modus == "1xxx"):
+                if Betrag < 0:
+                    zinsen = Betrag * -1
+                    Betrag2 = Betrag + zinsen
+            else:
+                zinsen = Betrag2 - Betrag
+            if ((modus == "1") and (zinsen != 0)) or ((modus == "6") and (zinsen == 0)) or ((modus == "5") and (zinsen != 0)) or ((modus != "6") and ((zinsen != 0) and (Betrag2 != 0))): 
                 laufzeit = 0
                 if (vorgemerkt != ''):
                     start_datum = datetime.strptime("1.1.20", '%d.%m.%y')
                     vorgemerkt_datum =  datetime.strptime(vorgemerkt, '%d.%m.%y')
                     laufzeit = abs((vorgemerkt_datum - start_datum).days / 365)
-                if ((modus == "2") and (laufzeit == 0)) or ((modus == "3") and (laufzeit > 1 and laufzeit < 5)) or  ((modus == "4") and (laufzeit > 5)) or (modus == "5"):
+                if (modus == "1") or ((modus == "2") and (laufzeit < 1)) or ((modus == "3") and (laufzeit >= 1 and laufzeit < 5)) or  ((modus == "4") and (laufzeit >= 5)) or (modus == "5") or (modus == "6") or (modus == "7"):
+                    sumzinsen = sumzinsen + zinsen
+                    sumbetrag = sumbetrag + Betrag
+                    sumbetrag2 = sumbetrag2 + Betrag2
+                    count = count + 1
                     print DkNummer + ";" + str(Betrag).replace(".",",") + ";" + str(Betrag2).replace(".",",") + ";" + str(zinsen).replace(".",",") + ";" + str(vorgemerkt) + ";" + str(Rueckzahlung)
-        print "Summe der Zinsen: " + str(sumzinsen)
+                    # F13T-2019-023|5003.13
+                    # print DkNummer + "|" + str(Betrag2)
+                    # print DkNummer + ";" , str(Betrag).replace(".",",") + ";" , str(Betrag2).replace(".",",") + ";" , str(zinsen).replace(".",",") + ";" , str(vorgemerkt) + ";" , str(Rueckzahlung)
+        print modus + ".Anzahl : " + str(count) + ";" + str(sumbetrag).replace(".",",") + ";" + str(sumbetrag2).replace(".",",") + ";" + str(sumzinsen).replace(".",",")
+        # print "Anzahl : " + str(count) + ";" , str(sumbetrag).replace(".",",") + ";" , str(sumbetrag2).replace(".",",") + ";" , str(sumzinsen).replace(".",",")
+        # print select_stmt
 
-    elif modus=="6":
+    elif False and modus=="7":
         print "Dks als Mietsicherheit 20" + Year2 + ": "
         # print "DkNummer;Vorname;Name;AnfangsBetrag;Betrag mit Zinsen;Zinssatz;vorgemerkt;Rueckzahlung"
-        print "DkNummer;AnfangsBetrag;Betrag mit Zinsen;Zinsen;Zinssatz;Rueckzahlung"
+        print "DkNummer;AnfangsBetrag;Betrag;Betrag mit Zinsen;Zinsen;Zinssatz;Rueckzahlung"
         # select_stmt = "SELECT Name, Vorname, DkNummer, AnfangsBetrag, SUM(Betrag), MAX(Betrag), vorgemerkt, Rueckzahlung, Zinssatz FROM db_vorjahr.DkBuchungen, db_vorjahr.DkPersonen "
-        select_stmt = "SELECT Name, Vorname, DkNummer, AnfangsBetrag, Betrag, vorgemerkt, Rueckzahlung, Zinssatz FROM db_vorjahr.DkBuchungen, db_vorjahr.DkPersonen "
+        select_stmt = ""
+        select_stmt += "SELECT Name, Vorname, DkNummer, SUM(AnfangsBetrag), SUM(Betrag), MAX(Betrag), vorgemerkt, Rueckzahlung, Zinssatz FROM db_vorjahr.DkBuchungen, db_vorjahr.DkPersonen "
+        # select_stmt += "SELECT Name, Vorname, DkNummer, AnfangsBetrag, Betrag, vorgemerkt, Rueckzahlung, Zinssatz FROM db_vorjahr.DkBuchungen, db_vorjahr.DkPersonen "
         select_stmt += "WHERE db_vorjahr.DkPersonen.PersonId = db_vorjahr.DkBuchungen.PersonId "
         select_stmt += " AND Zinssatz = 0.5 "
         # select_stmt += " AND NOT ( round(AnfangsBetrag/100.0, 0) = Anfangsbetrag / 100.0 ) "
         select_stmt += " AND DkNummer IN (" +  dks_als_mietsicherheit + ") "
-        # select_stmt += " GROUP BY DkNummer ORDER BY DkNummer;"
+        select_stmt += " GROUP BY DkNummer ORDER BY DkNummer;"
         # print select_stmt
         stmt.execute(select_stmt)
         buchungen = stmt.fetchall()
-        print len(buchungen)
+        sumzinsen = 0
+        count = 0
         for row in buchungen:
             Vorname = row[0]
             Name = row[1]
@@ -159,16 +245,20 @@ try:
             vorgemerkt = row[5]
             Rueckzahlung = row[6]
             Zinssatz = row[7]
-            select_stmt2 = "SELECT DkNummer, Betrag FROM db.DkBuchungen WHERE DkNummer ='" + DkNummer + "'";
+            select_stmt2 = "SELECT DkNummer, SUM(Betrag) FROM db.DkBuchungen WHERE DkNummer ='" + DkNummer + "'";
             stmt.execute(select_stmt2)
             result = stmt.fetchone()
             if(stmt.rowcount == 0):
                 print DkNummer + " nicht gefunden."
             Betrag2 = result[1]
             zinsen = Betrag2 - Betrag
+            sumzinsen = sumzinsen + zinsen
+            count = count + 1
             # zinsen = (Betrag * Zinssatz) / 100.0
             # print Vorname + ";" + Name + ";" + DkNummer + ";" + str(AnfangsBetrag) + ";" + str(Betrag).replace(".",",") + ";" + str(zinsen).replace(".",",") + ";" + str(Zinssatz).replace(".",",") + ";" + str(vorgemerkt) + ";" + str(Rueckzahlung)
-            print DkNummer + ";" + str(AnfangsBetrag) + ";" + str(Betrag).replace(".",",") + ";" + str(zinsen).replace(".",",") + ";" + str(Zinssatz).replace(".",",") + ";" + str(Rueckzahlung)
+            print DkNummer + ";" + str(AnfangsBetrag).replace(".",",") + ";" + str(Betrag).replace(".",",") + ";" + str(Betrag2).replace(".",",") + ";" + str(zinsen).replace(".",",") + ";" + str(Zinssatz).replace(".",",") + ";" + str(Rueckzahlung)
+        print "Summe der Zinsen: " + str(sumzinsen).replace(".",",")
+        print "Anzahl : " + str(count)
 
 except:
     print "Unexpected error:", sys.exc_info()[0]

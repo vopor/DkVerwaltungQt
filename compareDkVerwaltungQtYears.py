@@ -26,6 +26,7 @@ if len(sys. argv) < 5:
     print "modus = 4: Nicht Ausbezahlte Zinsen Laufzeit größer gleich 5 Jahre"
     print "modus = 5: Alle Nicht Ausbezahlte Zinsen"
     print "modus = 6: Alle ohne Zinsen"
+    print "modus = 7: Dk's als Mietsicherheit"
 
     exit(1)
 
@@ -39,6 +40,7 @@ if not os.path.isfile(DkVerwaltungQt_db3_file):
     exit(3)
 
 Year2 = sys.argv[3]
+Year4 = "20" + Year2
 modus=sys.argv[4]
 
 dks_als_mietsicherheit = "\"F13T-2015-050\""

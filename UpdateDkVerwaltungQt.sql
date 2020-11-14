@@ -5,5 +5,5 @@ ALTER TABLE DkBuchungen ADD COLUMN Anfangsdatum TEXT;
 ALTER TABLE DkBuchungen ADD COLUMN AnfangsBetrag REAL;
 UPDATE DkBuchungen SET Anfangsdatum = substr(Bemerkung,1,8) WHERE instr(Bemerkung, 'neu angelegt') <> 0;
 UPDATE DkBuchungen SET Anfangsbetrag = CAST(replace(replace(substr(Bemerkung, instr(Bemerkung, 'Betrag: ') + 8), '.', ''), ',', '.') AS FLOAT) WHERE instr(Bemerkung, 'neu angelegt') <> 0;
-
-
+DELETE FROM DkBuchungen WHERE DkNummer='Stammkapital';
+DELETE FROM DkBuchungen WHERE vorgemerkt='vorgemerkt';

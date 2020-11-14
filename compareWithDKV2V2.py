@@ -50,7 +50,8 @@ try:
     print stmt.fetchone()[0]
     # Summierte DkBuchungen und Vertraege
     print "Anzahl DKBuchungen (summiert):"
-    select_stmt = 'SELECT COUNT(DISTINCT DkNummer) FROM db_from.DKBuchungen WHERE Anfangsdatum <> "" AND DkNummer <> "Stammkapital"'
+    select_stmt = 'SELECT COUNT(DISTINCT DkNummer) FROM db_from.DKBuchungen '
+    # select_stmt += 'WHERE Anfangsdatum <> "" AND DkNummer <> "Stammkapital" '
     stmt.execute(select_stmt)
     print stmt.fetchone()[0]
     print "Anzahl Vertraege:"
@@ -60,33 +61,35 @@ try:
     
     print "Vertraege, die nicht übernommen wurden:"
     select_stmt = 'SELECT * FROM db_from.DKBuchungen '
-    select_stmt += 'WHERE NOT EXISTS'
+    select_stmt += 'WHERE Anfangsdatum <> "" AND DkNummer <> "Stammkapital" '
+    select_stmt += 'AND NOT EXISTS'
     select_stmt += '('
-    select_stmt += 'SELECT * FROM db_to.Vertraege WHERE db_from.DKBuchungen.DkNummer = db_to.Vertraege.Kennung'    
+    select_stmt += 'SELECT * FROM db_to.Vertraege WHERE db_from.DKBuchungen.DkNummer = db_to.Vertraege.Kennung '    
     select_stmt += ')'
     stmt.execute(select_stmt)
     buchungen = stmt.fetchall()
     for row in buchungen:
-        print row[4]
-   
+        print row
+    print "Anzahl: ", len(buchungen)
+
     print "Vertraege mit abweichendem aufsummierten Betrag:"
     
-    select_stmt = 'SELECT COUNT(*) FROM db_to.Vertraege WHERE db_to.Vertraege.Wert <> '
+    select_stmt = 'SELECT  * FROM db_to.Vertraege, db_to.Buchungen '
+    select_stmt += 'WHERE db_to.Vertraege.Id = db_to.Buchungen.VertragsId AND '
+    select_stmt += 'SUM(db_to.Buchungen.Betrag) <> '
     select_stmt += '('
-    select_stmt += 'SELECT SUM(Betrag) FROM db_from.DKBuchungen WHERE db_to.Vertraege.Kennung = db_from.DKBuchungen.DkNummer AND Rueckzahlung = "" GROUP BY db_from.DKBuchungen.DkNummer '
+    select_stmt += 'SELECT SUM(Betrag)*100 FROM db_from.DKBuchungen WHERE db_to.Vertraege.Kennung = db_from.DKBuchungen.DkNummer AND Rueckzahlung = "" GROUP BY db_from.DKBuchungen.DkNummer '
     select_stmt += ')'
-    stmt.execute(select_stmt)
-    print stmt.fetchone()[0]
-
-    select_stmt = 'SELECT * FROM db_to.Vertraege WHERE db_to.Vertraege.Wert <> '
-    select_stmt += '('
-    select_stmt += 'SELECT SUM(Betrag) FROM db_from.DKBuchungen WHERE db_to.Vertraege.Kennung = db_from.DKBuchungen.DkNummer AND Rueckzahlung = "" GROUP BY db_from.DKBuchungen.DkNummer '
-    select_stmt += ')'
-    stmt.execute(select_stmt)
+    select_stmt += 'GROUP BY Vertraege.Id '
+    select_stmt += 'ORDER BY Vertraege.Id '
     vertraege = stmt.fetchall()
     for row in vertraege:
         print row
+    print "Anzahl: ", len(vertraege)
+    
+    sys.exit(0)
 
+    '''
     print "Summe DkBuchungen ohne Rückzahlung:"
     select_stmt = 'SELECT COUNT(*), SUM(db_from.DKBuchungen.Betrag) FROM db_from.DKBuchungen WHERE Rueckzahlung = "" '
     select_stmt += 'AND DkNummer <> "Stammkapital" '
@@ -99,7 +102,7 @@ try:
     print SummeOhneRueckzahlung
 
     print "Summe Vertraege ohne Rückzahlung:"
-    select_stmt = 'SELECT COUNT(*), SUM(db_to.Vertraege.Wert) FROM db_to.Vertraege WHERE LetzteZinsberechnung IS NULL '
+    select_stmt = 'SELECT COUNT(*), SUM(db_to.Vertraege.Betrag) FROM db_to.Vertraege WHERE LetzteZinsberechnung IS NULL '
     stmt.execute(select_stmt)
     result = stmt.fetchone()
     print result[0]
@@ -209,7 +212,10 @@ try:
     result = stmt.fetchone()
     print result[0]
     print result[1]
+    '''
 
+except SystemExit:
+    pass
 except:
     print "Unexpected error:", sys.exc_info()[0]
     print sys.exc_info()

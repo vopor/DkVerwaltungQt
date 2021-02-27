@@ -28,11 +28,12 @@ QString getSettingsFile();
 QSettings &getSettings();
 QString getFilePathFromIni(const QString &iniEntry, const QString &filePath, const QString &fileName);
 QString getOpenOfficePath();
-QString getJahresDkBestaetigungenPath();
-QString getJahresDkZinsBescheinigungenPath();
-int getJahrFromIni();
 
-int getJahr();
+// QString getJahresDkBestaetigungenPath();
+// QString getJahresDkZinsBescheinigungenPath();
+// int getJahrFromIni();
+// int getJahr();
+
 int getAnzTageJahr();
 int getAnzTage(const QDate &dateFrom, const QDate &dateTo, bool inclLastDay); // =true
 int getAnzTageZeitraum(const QDate &dateFrom, const QDate &dateTo);

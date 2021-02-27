@@ -48,18 +48,27 @@ private slots:
     void filterBuchungen();
 
     void generateJahresDkBestaetigungen();
+    void generateJahresDkBestaetigungenTerminal();
     void generateJahresDkZinsBescheinigungen();
+    void generateJahresDkZinsBescheinigungenTerminal();
 
+    bool checkPrerequisitesExists();
 private:
 
     void createAnzeigenPersonenPanel();
     void createPersonenPanel();
     void createBuchungenPanel();
     void createSummenPanel();
+    void createBescheinigungenPanel();
 
     int getPersonId();
     int getBuchungId();
 
+    int getJahr();
+    QString getJahresDkBestaetigungenPath();
+    QString getJahresDkZinsBescheinigungenPath();
+
+private:
     QSqlTableModel *personenModel;
     QSqlRelationalTableModel *buchungenModel;
     BuchungenSortFilterProxyModel *buchungenSortModel;
@@ -82,6 +91,7 @@ private:
     QWidget *personenPanel;
     QWidget *buchungenPanel;
     QWidget *summenPanel;
+    QWidget *bescheinigungenPanel;
 
     // QLabel *personenLabel;
     QLabel *buchungenLabel;
@@ -118,8 +128,12 @@ private:
     QLabel *summeDkLabel;
     QLineEdit *summeDkEdit;
 
+    QLabel *jahrDkBescheinigungenLabel;
+    QLineEdit *jahrDkBescheinigungenEdit;
     QPushButton *generateJahresDkBestaetigungenButton;
+    QPushButton *generateJahresDkBestaetigungenTerminalButton;
     QPushButton *generateJahresDkZinsBescheinigungenButton;
+    QPushButton *generateJahresDkZinsBescheinigungenTerminalButton;
 
     QPushButton *quitButton;
     QDialogButtonBox *buttonBox;

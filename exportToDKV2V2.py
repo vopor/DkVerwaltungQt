@@ -6,7 +6,7 @@
 #
 # Das Script exportiert die Daten der Datenbank aus DkVerwaltungQt nach DKV2.
 # 
-# Aufruf: ./exportToDKV2.py <DkVerwaltungQt-db3-file> <DKV2-db3-file> <Year2>
+# Aufruf: ./exportToDKV2.py <DkVerwaltungQt-db3-file> <DKV2-db3-file>
 #
 
 import os
@@ -57,7 +57,7 @@ try:
         print "Datenübernahme direkt nach dem Jahreswechsel"
         print
 
-    # due_direkt_nach_jahresabschluss = False
+    # due_direkt_nach_jahresabschluss = False # funktioniert auch
     if due_direkt_nach_jahresabschluss:
         
         print "Kreditoren hinzufügen"

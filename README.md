@@ -5,7 +5,7 @@
 ## Ich empfehle stattdessen DKV2:  
 https://github.com/Schachigel/DKV2/  
   
-Ich benutze das Programm nur noch dafür, die Kontoauszüge am Jahresende zu generieren und als Email zu verschicken.
+Ich benutze das Programm nur dafür, die Kontoauszüge am Jahresende zu generieren und als Email zu verschicken.
 
 Und ich verwende die Skripte CreateDkVerwaltungQt.sql und UpdateDkVerwaltungQt.sql, um die Daten aus dem OO-Programm aus Tübingen in eine SQLite-Datenbank umzuwandeln, um bestimmte SQL-Abfragen generieren zu können.
 

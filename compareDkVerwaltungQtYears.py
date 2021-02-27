@@ -84,7 +84,7 @@ try:
         print "\"" + modus  + "." + "Ausbezahlte Zinsen" + " " + Year4 + "\""  + ".csv" 
         print "DkNummer    ;    Betrag;    Betrag mit Zinsen;    Zinsen;vorgemerkt    ;Kündigungsdatum    ;counter"
         
-        select_stmt = "SELECT DkNummer, SUM(Betrag), MAX(Betrag), MIN(Betrag), Count(*), vorgemerkt, Rueckzahlung FROM db_vorjahr.DkBuchungen "
+        select_stmt = "SELECT DkNummer, SUM(round(Betrag,2)), MAX(round(Betrag,2)), MIN(round(Betrag,2)), Count(*), vorgemerkt, Rueckzahlung FROM db_vorjahr.DkBuchungen "
         select_stmt += " WHERE "
         select_stmt += " ((substr(Rueckzahlung ,7,2) || substr(Rueckzahlung ,4,2)|| substr(Rueckzahlung ,1,2)) > '" + Year2 + "0101') "
         # select_stmt += "AND Zinssatz <> 0 " 
@@ -98,7 +98,9 @@ try:
         # (SELECT DkNummer, SUM(Betrag) AS ZinsBetrag, MAX(Betrag) AS BetragOhneZinsen, MIN(Betrag) AS BetragMitZinsen, Count(*), vorgemerkt, Rueckzahlung FROM DkBuchungen  
         # WHERE ((substr(Rueckzahlung ,7,2) || substr(Rueckzahlung ,4,2)|| substr(Rueckzahlung ,1,2)) > '190101')  GROUP BY DkNummer ORDER BY DkNummer);
 
+        print select_stmt
         stmt.execute(select_stmt)
+        
         buchungen = stmt.fetchall()
         sumzinsen = 0
         sumbetrag = 0

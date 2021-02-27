@@ -66,6 +66,7 @@ MainForm::MainForm(QWidget *parent) : QWidget(parent)
     createPersonenPanel();
     createBuchungenPanel();
     createSummenPanel();
+    createBescheinigungenPanel();
 
     splitter = new QSplitter(Qt::Vertical);
     splitter->setFrameStyle(QFrame::StyledPanel);
@@ -73,25 +74,17 @@ MainForm::MainForm(QWidget *parent) : QWidget(parent)
     splitter->addWidget(buchungenPanel);
     //splitter->addWidget(summenPanel);
 
-    QHBoxLayout *hlayout = new QHBoxLayout;
-    // hlayout->setSizeConstraint(QLayout::SetFixedSize);
-    generateJahresDkBestaetigungenButton = new QPushButton(tr("Jahres Dk-Bestätigungen generieren"));
-    hlayout->addWidget(generateJahresDkBestaetigungenButton);
-    connect(generateJahresDkBestaetigungenButton, SIGNAL(clicked()), this, SLOT(generateJahresDkBestaetigungen()));
-    generateJahresDkZinsBescheinigungenButton = new QPushButton(tr("Jahres Dk-ZinsBescheinigungen generieren"));
-    hlayout->addWidget(generateJahresDkZinsBescheinigungenButton);
-    connect(generateJahresDkZinsBescheinigungenButton, SIGNAL(clicked()), this, SLOT(generateJahresDkZinsBescheinigungen()));
-
     quitButton = new QPushButton(tr("Beenden"));
     buttonBox = new QDialogButtonBox;
     buttonBox->addButton(quitButton, QDialogButtonBox::ActionRole);
-    connect(quitButton, SIGNAL(clicked()), this, SLOT(close()));
+    connect(quitButton, SIGNAL(clicked()), parent, SLOT(close()));
 
     QVBoxLayout *mainLayout = new QVBoxLayout;
     mainLayout->addWidget(anzeigenPersonenPanel);
     mainLayout->addWidget(splitter);
     mainLayout->addWidget(summenPanel);
-    mainLayout->addLayout(hlayout);
+    // mainLayout->addLayout(hlayout);
+    mainLayout->addWidget(bescheinigungenPanel);
     mainLayout->addWidget(buttonBox);
     setLayout(mainLayout);
 
@@ -108,8 +101,209 @@ MainForm::MainForm(QWidget *parent) : QWidget(parent)
 
 }
 
+void MainForm::createBescheinigungenPanel()
+{
+   bescheinigungenPanel = new QWidget;
+
+   QHBoxLayout *hlayout = new QHBoxLayout;
+
+   // hlayout->setSizeConstraint(QLayout::SetFixedSize);
+   jahrDkBescheinigungenLabel = new QLabel(tr("Jahr"));;
+   // jahrDkBescheinigungenLabel->setFixedWidth(60);
+
+   jahrDkBescheinigungenLabel->setSizePolicy(QSizePolicy::Fixed, jahrDkBescheinigungenLabel->sizePolicy().verticalPolicy());
+   hlayout->addWidget(jahrDkBescheinigungenLabel);
+   jahrDkBescheinigungenEdit = new QLineEdit;
+
+   hlayout->addWidget(jahrDkBescheinigungenEdit);
+   QString strYear = QString::number(QDate::currentDate().year()-1);
+   jahrDkBescheinigungenEdit->setText(strYear);
+   jahrDkBescheinigungenEdit->setFixedWidth(60);
+   jahrDkBescheinigungenLabel->setBuddy(jahrDkBescheinigungenEdit);
+
+   generateJahresDkBestaetigungenButton = new QPushButton(tr("Jahres Dk-Bestätigungen generieren"));
+   hlayout->addWidget(generateJahresDkBestaetigungenButton);
+   connect(generateJahresDkBestaetigungenButton, SIGNAL(clicked()), this, SLOT(generateJahresDkBestaetigungen()));
+
+   generateJahresDkBestaetigungenTerminalButton = new QPushButton(tr("T"));
+   generateJahresDkBestaetigungenTerminalButton->setFixedWidth(50);
+   hlayout->addWidget(generateJahresDkBestaetigungenTerminalButton);
+   connect(generateJahresDkBestaetigungenTerminalButton, SIGNAL(clicked()), this, SLOT(generateJahresDkBestaetigungenTerminal()));
+
+   generateJahresDkZinsBescheinigungenButton = new QPushButton(tr("Jahres Dk-ZinsBescheinigungen generieren"));
+   hlayout->addWidget(generateJahresDkZinsBescheinigungenButton);
+   connect(generateJahresDkZinsBescheinigungenButton, SIGNAL(clicked()), this, SLOT(generateJahresDkZinsBescheinigungen()));
+
+   generateJahresDkZinsBescheinigungenTerminalButton = new QPushButton(tr("T"));
+   generateJahresDkZinsBescheinigungenTerminalButton->setFixedWidth(50);
+   hlayout->addWidget(generateJahresDkZinsBescheinigungenTerminalButton);
+   connect(generateJahresDkZinsBescheinigungenTerminalButton, SIGNAL(clicked()), this, SLOT(generateJahresDkZinsBescheinigungenTerminal()));
+
+   bescheinigungenPanel->setLayout(hlayout);
+}
+
+int MainForm::getJahr()
+{
+   QString jahrStr = jahrDkBescheinigungenEdit->text();
+   if(jahrStr.length() == 4)
+   {
+       jahrStr = jahrStr.right(2);
+   }
+   int jahr = jahrStr.toInt();
+   return jahr;
+}
+
+QString MainForm::getJahresDkBestaetigungenPath()
+{
+   QString JahresDkBestaetigungenPath = getStandardPath() /* + QDir::separator() */ + "JahresDkBestaetigungen" + QString::number(2000 + getJahr());
+   return JahresDkBestaetigungenPath;
+}
+
+QString MainForm::getJahresDkZinsBescheinigungenPath()
+{
+   QString JahresDkZinsBescheinigungenPath = getStandardPath() /* + QDir::separator() */ + "JahresDkZinsBescheinigungen" + QString::number(2000 + getJahr());
+   return JahresDkZinsBescheinigungenPath;
+}
+
+bool MainForm::checkPrerequisitesExists()
+{
+    bool b = false;
+    QStringList missingFiles;
+    char *p = __FILE__;
+    QString sourcePath = p;
+    sourcePath = QFileInfo(p).canonicalPath();
+    QString homePath = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+    sourcePath = homePath + "/Documents/GitHub/DkVerwaltungQt";
+    QString JahresDkBestaetigungenPath = getJahresDkBestaetigungenPath();
+    b = QDir().mkpath(JahresDkBestaetigungenPath);
+    QString JahresDkZinsBescheinigungenPath = getJahresDkZinsBescheinigungenPath();
+    b = QDir().mkpath(JahresDkZinsBescheinigungenPath);
+    QStringList dirs;
+    dirs << JahresDkBestaetigungenPath << JahresDkZinsBescheinigungenPath;
+    for (int i = 0; i < dirs.size(); ++i){
+        QStringList files;
+        files << "Jahreskontoauszug.html" << "Zinsbescheinigung.html" << "F13TurleyGmbH2.gif" << "url2pdf" << "html2pdf.sh" << "sendDKJAKtos.py" << "printCommandDescription.sh";
+        for (int j = 0; j < files.size(); ++j){
+            QString file = files.at(j);
+            QString destFile = dirs.at(i) + QDir::separator() + file;
+            QString sourceFile = sourcePath + QDir::separator() + file;
+            if(QFileInfo(sourceFile).exists())
+            {
+                if(!QFileInfo(destFile).exists())
+                {
+                   QFile::copy(sourceFile, destFile);
+                }
+                else
+                {
+                   if(QFileInfo(sourceFile).lastModified() > QFileInfo(destFile).lastModified() )
+                   {
+                        QFile::remove(destFile);
+                        QFile::copy(sourceFile, destFile);
+                   }
+                }
+            }
+
+            if(!QFileInfo(destFile).exists())
+            {
+               missingFiles << file;
+            }
+        }
+    }
+    if(missingFiles.length()){
+        QMessageBox::warning(this, tr("Fehlende Dateien"), tr("Fehlende Dateien:\n") + missingFiles.join("\n"), QMessageBox::Ok);
+        return false;
+    }
+    return true;
+}
+
+void bringAppToForeground(qint64 pid)
+{
+    QString cmd;
+    cmd = "/usr/bin/python -c ";
+    cmd += "'";
+    cmd += "import Cocoa; ";
+    cmd += "x = Cocoa.NSRunningApplication.runningApplicationWithProcessIdentifier_(" + QString::number(pid) + "); ";
+    cmd += "x.activateWithOptions_(Cocoa.NSApplicationActivateIgnoringOtherApps); ";
+    cmd += "'";
+    QProcess::startDetached(cmd, QStringList(), QString(), &pid);
+
+}
+
+void run_executeCommand(QPushButton *button, const QString &commandLine)
+{
+    if(commandLine.isEmpty())
+        return;
+    if(button) button->setEnabled(false);
+    qDebug() << commandLine;
+    QProcess *process = new QProcess;
+    QMetaObject::Connection connFinished = QObject::connect(process, static_cast<void (QProcess::*)(int exitCode, QProcess::ExitStatus exitStatus)>(&QProcess::finished), [process, button, commandLine] (int exitCode, QProcess::ExitStatus exitStatus){
+        if(process->state() == QProcess::NotRunning){
+           qDebug() << commandLine << " finished: " << process->processId();
+           if(process->exitStatus()  == QProcess::NormalExit){
+              qDebug() << commandLine << " exited normal: " << process->processId() << "exitcode: " << process->exitCode();
+              QByteArray output = process->readAllStandardOutput();
+              qDebug() << output;
+           }
+        }
+        delete process;
+        // process = nullptr;
+        if(button) button->setEnabled(true);
+
+    });
+    // QObject::connect(process, static_cast<void (QProcess::*)(QProcess::ProcessError error)>(&QProcess::errorOccurred), [process, button, commandLine] (QProcess::ProcessError error)
+    QObject::connect(process, &QProcess::errorOccurred, [process, button, commandLine] (QProcess::ProcessError error)
+    {
+        qDebug() << commandLine << " process error: " << error << " pid: " << process->processId();
+        QByteArray output = process->readAllStandardError();
+        qDebug() << output;
+        delete process;
+        if(button) button->setEnabled(true);
+        // process = nullptr;
+    });
+
+    process->start( commandLine );
+    process->waitForStarted();
+    qDebug() << commandLine << " process started: " << process->processId();
+    // bringAppToForeground(process->processId());
+#ifdef XXX
+    QObject::disconnect(connFinished);
+    process->waitForFinished(10000);
+    if(process->exitStatus()  == QProcess::NormalExit){
+       qDebug() << commandLine << " exited normal: " << process->processId() << "exitcode: " << process->exitCode();
+       QByteArray output = process->readAllStandardOutput();
+       QByteArrayList baList = output.split('\n');
+       foreach(QByteArray ba, baList){
+           qDebug() << ba;
+       }
+    }else{
+        qDebug() << commandLine << " error: " << process->error() << "exitcode: " << process->exitCode();
+        QByteArray output = process->readAllStandardError();
+        qDebug() << output;
+    }
+    button->setEnabled(true);
+#endif
+}
+
+int openTerminal(const QString &path, const QString &command=QString())
+{
+    QString scriptCmd = "tell application \"Terminal\" to do script ";
+    scriptCmd += "\"";
+    scriptCmd += "cd ";
+    scriptCmd += path;
+    if(command.length())
+    {
+       scriptCmd += " && " + command;
+    }
+    scriptCmd += "\"";
+    QProcess::startDetached("osascript",  QStringList() << "-e" << scriptCmd);
+}
+
 void MainForm::generateJahresDkBestaetigungen()
 {
+    if(!checkPrerequisitesExists()){
+        return;
+    }
+
     generateJahresDkBestaetigungenButton->setEnabled(false);
     // Unterordner JahresDkBestaetigungen in getStandardPath()
     // QString JahresDkBestaetigungenPath = getStandardPath() + QDir::separator() + "JahresDkBestaetigungen";
@@ -305,9 +499,21 @@ void MainForm::generateJahresDkBestaetigungen()
     generateJahresDkBestaetigungenButton->setEnabled(true);
 }
 
+void MainForm::generateJahresDkBestaetigungenTerminal()
+{
+    if(!checkPrerequisitesExists()){
+        return;
+    }
+    QString JahresDkBestaetigungenPath = getJahresDkBestaetigungenPath();
+    QString cmd = "./printCommandDescription.sh";
+    openTerminal(JahresDkBestaetigungenPath, cmd);
+}
+
 void MainForm::generateJahresDkZinsBescheinigungen()
 {
-   // QMessageBox::warning(this, tr("Jahres Dk-ZinsBescheinigungen generieren"), tr("Nicht implementiert!"), QMessageBox::Ok);
+    if(!checkPrerequisitesExists()){
+        return;
+    }
    generateJahresDkZinsBescheinigungenButton->setEnabled(false);
    QString JahresDkZinsBescheinigungenPath = getJahresDkZinsBescheinigungenPath();
    QDir().mkpath(JahresDkZinsBescheinigungenPath);
@@ -464,8 +670,17 @@ void MainForm::generateJahresDkZinsBescheinigungen()
         }
         // TODO: Evtl. hier  alle senden ( sendDKJAKtos.py) oder per Script
    }
-
    generateJahresDkZinsBescheinigungenButton->setEnabled(true);
+}
+
+void MainForm::generateJahresDkZinsBescheinigungenTerminal()
+{
+    if(!checkPrerequisitesExists()){
+        return;
+    }
+    QString JahresDkZinsBescheinigungenPath = getJahresDkZinsBescheinigungenPath();
+    QString cmd = "./printCommandDescription.sh";
+    openTerminal(JahresDkZinsBescheinigungenPath,cmd);
 }
 
 void MainForm::filterBuchungen()
@@ -1047,9 +1262,11 @@ void MainForm::createBuchungenPanel()
     datumBuchungenDkZinsenEdit->setText(QDate::currentDate().toString("dd.MM.yy"));
     summeBuchungenDkZinsenLabel = new QLabel("Summe Zinsen");
     summeBuchungenDkZinsenEdit = new QLineEdit;
+    summeBuchungenDkZinsenEdit->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     summeBuchungenDkZinsenEdit->setReadOnly(true);
     summeBuchungenDkLabel = new QLabel("Summe Direktkredite");
     summeBuchungenDkEdit = new QLineEdit;
+    summeBuchungenDkEdit->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     summeBuchungenDkEdit->setReadOnly(true);
 
     QHBoxLayout *hlayout = new QHBoxLayout;

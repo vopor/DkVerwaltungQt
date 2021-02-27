@@ -173,25 +173,13 @@ QString getOpenOfficePath()
     return oo;
 }
 
-QString getJahresDkBestaetigungenPath()
-{
-   QString JahresDkBestaetigungenPath = getStandardPath() + QDir::separator() + "JahresDkBestaetigungen" + QString::number(2000 + getJahr());
-   return JahresDkBestaetigungenPath;
-}
-
-QString getJahresDkZinsBescheinigungenPath()
-{
-   QString JahresDkZinsBescheinigungenPath = getStandardPath() + QDir::separator() + "JahresDkZinsBescheinigungen" + QString::number(2000 + getJahr());
-   return JahresDkZinsBescheinigungenPath;
-}
-
 int getJahrFromIni()
 {
    QString userAndHostName = getUserAndHostName();
    getSettings().beginGroup(userAndHostName);
    int jahr = getSettings().value("Jahr").toInt();
    if(jahr == 0){
-      jahr = 18;
+      jahr = 20;
       getSettings().setValue("Jahr", jahr);
    }
    getSettings().endGroup();
@@ -206,6 +194,18 @@ int getJahr()
       jahr = getJahrFromIni();
    }
    return jahr;
+}
+
+QString getJahresDkBestaetigungenPath()
+{
+   QString JahresDkBestaetigungenPath = getStandardPath() + QDir::separator() + "JahresDkBestaetigungen" + QString::number(2000 + getJahr());
+   return JahresDkBestaetigungenPath;
+}
+
+QString getJahresDkZinsBescheinigungenPath()
+{
+   QString JahresDkZinsBescheinigungenPath = getStandardPath() + QDir::separator() + "JahresDkZinsBescheinigungen" + QString::number(2000 + getJahr());
+   return JahresDkZinsBescheinigungenPath;
 }
 
 int getAnzTageJahr()
@@ -536,3 +536,4 @@ int getMaxId(const QString &tableName, const QString &fieldName)
     int intValue = getIntValue(statement);
     return intValue;
 }
+

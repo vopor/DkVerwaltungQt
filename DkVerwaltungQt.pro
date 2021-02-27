@@ -17,7 +17,8 @@ HEADERS += mainform.h \
     buchungform.h \
     dbfkts.h
 
-SOURCES += main.cpp mainform.cpp \
+SOURCES += main.cpp \
+    $$PWD/mainform.cpp \
     ansparrechner.cpp \
     mainwindow.cpp \
     personform.cpp \

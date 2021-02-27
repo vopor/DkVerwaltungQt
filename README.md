@@ -26,9 +26,7 @@ https://github.com/vopor/DkVerwaltungQt/blob/master/exportToDKV2V2.py
 ---
   
   
-## Dk-Verwaltungs-Programm  (DkVerwaltungQt  )
-  
-### Datenübernahme aus der Dk-Verwaltung von Volker aus Tübingen  
+## Datenübernahme aus der Dk-Verwaltung von Volker aus Tübingen in das "DkVerwaltungQt"-Format 
   
 Daten exportieren  
   
@@ -46,12 +44,20 @@ Es werden die Tabellen DkPersonen und DkBuchungen und eine Tabelle DkZinssaetze 
 sqlite3 DkVerwaltungQt.db3 < UpdateDkVerwaltungQt.sql  
   
   
+## Datenübernahme des "DkVerwaltungQt"-Formats nach DKV2
   
-## Tools (z.Zt. nur MacOS X)  
+  
+
+./exportToDKV2V2.py DkVerwaltungQt.db3 DKV2.db
+  
+  
+
+  
+## Tools (z.Zt. nur macOS)  
   
 
 Habe ich benötigt, um die in Html-generierten Jahreszinsbescheinigungen in Pdf-Dokumente umzuwandeln und per Mail zu verschicken.  
-Mit etwas Aufwand kann man diese Tools auch auf andere Platformen portieren.  
+Mit etwas Aufwand kann man diese Tools auch auf andere Plattformen portieren oder in Quelltext umwandeln.  
    
 ### url2pdf  
 Url2pdf generiert aus einer html-Datei ein Pdf-Dokument.  
@@ -69,10 +75,12 @@ Die Lösung basiert auf Apple-Mail und Apple-Script.
 Die Idee habe ich aus dem Internet:   
 http://nathangrigg.net/2012/04/send-emails-from-the-command-line/  
 Voraussetzung ist, dass man die Pdf-Dokumente zuvor in einem bestimmten Format generiert hat:  
-<Email-Adresse>_<Vorname>_<Nameame>.pdf  
+Email-Adresse_Vorname_Nachname.pdf  
  
 
-## Installation  bzw. Erstellung  
+## DkVerwaltungQt
+
+### Installation  bzw. Erstellung  
   
 Das Programm kann mit QtCreator und Qt 5.12.0 für Windows, Mac und Linux erstellt werden.  
 Installation der OO-Bibliothek für Anschreiben  
@@ -80,6 +88,7 @@ Die OO-BIBLIOTHEK befindet sich in der Datei script.xlb.
 Diese muss in OpenOffice unter Extras – Makros – Makros verwalten – OpenOffice Basic...  
 MyMacros bzw. Meine Makros hinzugefügt werden, damit später aus dem Programm heraus Anschreiben an die Kreditgeber vorausgefüllt werden können.  
 Es ist geplant, die Vorlage auch auf Html umzustellen, sodass man sich die Macro-Verwaltung in OO sparen kann.  
-DkVerwaltungQt.ini  
-In der Datei DkVerwaltungQt.ini im Programmverzeichnis werden für jeden Benutzer/Computer Konfigurationsdaten abgelegt wie z.B. der Pfad zur Datenbank (DkVerwaltungQt.db3), der Pfad zu OpenOffice, … Diese Daten werden zur Laufzeit abgefragt, wenn sie noch nicht hinterlegt sind.  
+#### DkVerwaltungQt.ini  
+In der Datei DkVerwaltungQt.ini im Programmverzeichnis werden für jeden Benutzer/Computer Konfigurationsdaten abgelegt wie z.B. der Pfad zur Datenbank (DkVerwaltungQt.db3), der Pfad zu OpenOffice, …  
+Diese Daten werden zur Laufzeit abgefragt, wenn sie noch nicht hinterlegt sind.  
   

@@ -127,6 +127,10 @@ private:
     QLineEdit *summeDkZinsenEdit;
     QLabel *summeDkLabel;
     QLineEdit *summeDkEdit;
+    QLabel *summeDkGeberInnenLabel;
+    QLineEdit *summeDkGeberInnenEdit;
+    QLabel *summeDkVertraegeLabel;
+    QLineEdit *summeDkVertraegeEdit;
 
     QLabel *jahrDkBescheinigungenLabel;
     QLineEdit *jahrDkBescheinigungenEdit;

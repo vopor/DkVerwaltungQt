@@ -1026,24 +1026,40 @@ void MainForm::deleteBuchung(){
 
 void MainForm::updateSummen()
 {
+
     QString statementDk = "SELECT SUM(Betrag) FROM DkBuchungen";
     // QString statementDk = "SELECT SUM(replace(Betrag,',','.')) FROM DkBuchungen";
     double summeDk = getDoubleValue(statementDk);
     QString summeDkText = QString::number(summeDk, 'f', 2);
     summeDkEdit->setText(summeDkText);
 
-    QString statementDkZinsen = "SELECT SUM( (Betrag * Zinssatz) / 100.0 ) FROM DkBuchungen";
-    // QString statementDkZinsen = "SELECT SUM( replace(Betrag,',','.') * replace(Zinssatz,',','.') / 100.0 ) FROM DkBuchungen";
+    // DKV2: vStat_aktiverVertraege_thesa
+    // CREATE VIEW vStat_aktiverVertraege_thesa AS SELECT *, ROUND(100* Jahreszins/Wert,6) as gewMittel FROM (SELECT count(*) as Anzahl, SUM(Wert) as Wert, SUM(ROUND(Zinssatz *Wert /100,2)) AS Jahreszins,ROUND(AVG(Zinssatz),4) as mittlereRate FROM vVertraege_aktiv WHERE thesa)
+    // QString statementDkZinsen = "SELECT SUM( (Betrag * Zinssatz) / 100.0 ) FROM DkBuchungen";
+    QString statementDkZinsen = "SELECT SUM( ROUND((Betrag * Zinssatz / 100.0),2) ) FROM DkBuchungen";
     double summeDkZinsen = getDoubleValue(statementDkZinsen);
     QString summeDkZinsenText = QString::number(summeDkZinsen, 'f', 2);
     summeDkZinsenEdit->setText(summeDkZinsenText);
+
+    // DKV2: vAnzahl_allerKreditoren
+    // CREATE VIEW vAnzahl_allerKreditoren AS
+    // SELECT COUNT(*) AS Anzahl FROM (SELECT DISTINCT KreditorId FROM Vertraege)
+    QString statementDkGeberInnen = "SELECT COUNT(*) FROM DkPersonen";
+    QString summeDkGeberInnenText =  getStringValue(statementDkGeberInnen);
+    summeDkGeberInnenEdit->setText(summeDkGeberInnenText);
+
+    QString statementDkVertraege = "SELECT COUNT(*) FROM (SELECT DISTINCT DkNummer FROM DkBuchungen);";
+    QString summeDkVertraegeText =  getStringValue(statementDkVertraege);
+    summeDkVertraegeEdit->setText(summeDkVertraegeText);
+
 }
 
 void MainForm::createSummenPanel()
 {
    summenPanel = new QWidget;
 
-   summenLabel = new QLabel(tr("Summen"));
+   // summenLabel = new QLabel(tr("Summen"));
+   summenLabel = nullptr;
 
    summeDkZinsenEdit = new QLineEdit;
    summeDkZinsenEdit->setReadOnly(true);
@@ -1057,13 +1073,30 @@ void MainForm::createSummenPanel()
    summeDkLabel = new QLabel(tr("Direktkredite"));
    summeDkLabel->setBuddy(summeDkEdit);
 
+   summeDkGeberInnenLabel = new QLabel(tr("Anzahl DkGeber*Innen"));
+   summeDkGeberInnenEdit = new QLineEdit;
+   summeDkGeberInnenEdit->setReadOnly(true);
+   summeDkGeberInnenEdit->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+   summeDkGeberInnenLabel->setBuddy(summeDkGeberInnenEdit);
+
+   summeDkVertraegeLabel = new QLabel(tr("Anzahl Verträge"));
+   summeDkVertraegeEdit = new QLineEdit;
+   summeDkVertraegeEdit->setReadOnly(true);
+   summeDkVertraegeEdit->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+   summeDkVertraegeLabel->setBuddy(summeDkVertraegeEdit);
+
    QHBoxLayout *hlayout = new QHBoxLayout;
    hlayout->setSizeConstraint(QLayout::SetFixedSize);
-   hlayout->addWidget(summenLabel);
+   // hlayout->addWidget(summenLabel);
    hlayout->addWidget(summeDkZinsenLabel);
    hlayout->addWidget(summeDkZinsenEdit);
    hlayout->addWidget(summeDkLabel);
    hlayout->addWidget(summeDkEdit);
+   hlayout->addWidget(summeDkGeberInnenLabel);
+   hlayout->addWidget(summeDkGeberInnenEdit);
+   hlayout->addWidget(summeDkVertraegeLabel);
+   hlayout->addWidget(summeDkVertraegeEdit);
+
 
    summenPanel->setLayout(hlayout);
 

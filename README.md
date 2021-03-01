@@ -53,13 +53,12 @@ sqlite3 DkVerwaltungQt.db3 < UpdateDkVerwaltungQt.sql
   
 
   
-## Tools (z.Zt. nur macOS)  
+## Kontoauszüge erstellen und versenden
   
-
-Habe ich benötigt, um die in Html-generierten Jahreszinsbescheinigungen in Pdf-Dokumente umzuwandeln und per Mail zu verschicken.  
-Mit etwas Aufwand kann man diese Tools auch auf andere Plattformen portieren oder in Quelltext umwandeln.  
-   
-### url2pdf  
+Dokumentation befindet sich in Dk-Kontoauszüge.odt
+https://github.com/vopor/DkVerwaltungQt/blob/master/Dk-Kontoauszüge.odt 
+  
+### 1. url2pdf (obsolet)
 Url2pdf generiert aus einer html-Datei ein Pdf-Dokument.  
 Man findet es im Internet z.B. hier:  
 https://github.com/scottgarner/URL2PDF  
@@ -67,10 +66,12 @@ Ich habe es verwendet, um die in Html generierten Jahreszinsbescheinigungen in P
 html2pdf.sh  
 Bash-Script, um alle Html-Dateien in einem Verzeichnis in Pdf-Dokumente umzuwandeln.  
 
-### sendDKJAKtos.py  
+### 2. sendDKJAKtos.py   (z.Zt. nur macOS)
   
+Mit etwas Aufwand kann man sendDKJAKtos.py auch auf andere Plattformen/Mail-Programme portieren oder in (C++ - ) Quelltext umwandeln.  
 
-Python-Script, um alle PDF-Dokumente in einem Verzeichnis zu versenden.  
+Python-Script, um alle PDF-Dokumente in einem Verzeichnis zu versenden.
+  
 Die Lösung basiert auf Apple-Mail und Apple-Script.  
 Die Idee habe ich aus dem Internet:   
 http://nathangrigg.net/2012/04/send-emails-from-the-command-line/  

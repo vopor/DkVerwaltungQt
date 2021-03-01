@@ -116,7 +116,9 @@ void MainForm::createBescheinigungenPanel()
    jahrDkBescheinigungenEdit = new QLineEdit;
 
    hlayout->addWidget(jahrDkBescheinigungenEdit);
-   QString strYear = QString::number(QDate::currentDate().year()-1);
+   // QString strYear = QString::number(QDate::currentDate().year()-1);
+   QString statementYear4 = "SELECT '20' || MAX(SUBSTR(Datum ,7,2)) FROM DkBuchungen";
+   QString strYear = getStringValue(statementYear4);
    jahrDkBescheinigungenEdit->setText(strYear);
    jahrDkBescheinigungenEdit->setFixedWidth(60);
    jahrDkBescheinigungenLabel->setBuddy(jahrDkBescheinigungenEdit);
@@ -486,10 +488,11 @@ void MainForm::generateJahresDkBestaetigungen()
             strAuflistung += "</table>\n";
             str = str.replace("&lt;Auflistung&gt;", strAuflistung);
 
-            writeToFile(personFileNameHtml, str);
-            // TODO: In PDF umwandeln oder per Script
+            writeHtmlTextToHtmlFile(personFileNameHtml, str);
+            convertHtmlFileToPdfFile(personFileNameHtml);
 
             // TODO: txt-Dateien für Anschreiben in Mail generieren oder per Script
+
             // QString personFileNameTxt = personFilePath + ".txt";
 
             // TODO: Evtl. hier einzeln senden ( sendDKJAKtos.py) oder per Script

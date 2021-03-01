@@ -8,10 +8,12 @@ DEPENDPATH += .
 INCLUDEPATH += .
 
 QT += widgets sql network
+QT += webengine webenginewidgets printsupport
 
 # Input
 HEADERS += mainform.h \
     ansparrechner.h \
+    html2pdfconverter.h \
     mainwindow.h \
     personform.h \
     buchungform.h \
@@ -20,6 +22,8 @@ HEADERS += mainform.h \
 SOURCES += main.cpp \
     $$PWD/mainform.cpp \
     ansparrechner.cpp \
+    html2pdf.cpp \
+    html2pdfconverter.cpp \
     mainwindow.cpp \
     personform.cpp \
     buchungform.cpp \

@@ -15,6 +15,10 @@ QT_END_NAMESPACE
 
 QString readFromFile(const QString &fileName);
 void writeToFile(const QString &fileName, const QString &str);
+void writeHtmlTextToHtmlFile(const QString &fileName, const QString &str);
+void writeHtmlTextToPdfFile(const QString &fileName, const QString &str);
+void convertHtmlFileToPdfFile(const QString &fileNameHtml);
+void convertHtmlFileToPdfFileSimple(const QString &fileNameHtml);
 QString escapeFileName(const QString &fileName);
 
 //--------------------------------------------------------------

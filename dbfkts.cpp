@@ -8,6 +8,12 @@
 
 #include <QHostInfo> // requires QT += network
 
+#include <QPrinter>
+
+#include <QWebEngineView>
+
+#include "html2pdfconverter.h"
+
 #include "qdebug.h"
 
 //--------------------------------------------------------------
@@ -42,6 +48,46 @@ void writeToFile(const QString &fileName, const QString &str)
     }else{
         QMessageBox::warning(0, "Fehler beim Speichern!", fileName + " konnte nicht gespeichert werden!");
     }
+}
+
+void writeHtmlTextToHtmlFile(const QString &fileName, const QString &str)
+{
+    writeToFile(fileName, str);
+}
+
+void writeHtmlTextToPdfFile(const QString &htmlText, const QString &str)
+{
+    QMessageBox::warning(0, "Fehler beim Speichern!", "writeHtmlTextToPdfFile() ist nicht implementiert!");
+}
+
+void convertHtmlFileToPdfFile(const QString &fileNameHtml)
+{
+    QString fileNamePdf = fileNameHtml;
+    fileNamePdf = fileNamePdf.replace(".html", ".pdf");
+    Html2PdfConverter converter(fileNameHtml, fileNamePdf);
+    converter.run();
+}
+
+void convertHtmlFileToPdfFileSimple(const QString &fileName)
+{
+    QFile htmlfile(fileName);
+    if(htmlfile.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        QString htmlContent;
+        QTextStream in(&htmlfile);
+        htmlContent = in.readAll();
+
+        QTextDocument *document = new QTextDocument();
+        document->setHtml(htmlContent);
+
+        QPrinter printer(QPrinter::HighResolution);
+        printer.setOutputFormat(QPrinter::PdfFormat);
+        printer.setOutputFileName(fileName + ".pdf");
+
+        document->print(&printer);
+        delete document;
+    }
+
 }
 
 QString escapeFileName(const QString &fileName)

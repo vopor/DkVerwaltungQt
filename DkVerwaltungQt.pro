@@ -22,7 +22,6 @@ HEADERS += mainform.h \
 SOURCES += main.cpp \
     $$PWD/mainform.cpp \
     ansparrechner.cpp \
-    html2pdf.cpp \
     html2pdfconverter.cpp \
     mainwindow.cpp \
     personform.cpp \

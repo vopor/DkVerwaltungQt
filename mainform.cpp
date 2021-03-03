@@ -517,7 +517,7 @@ void MainForm::generateJahresDkBestaetigungen()
             if(nurCheckBox->isChecked())
             {
                 QString nurEditText = nurEdit->text();
-                if( (nurEditText.length() == 0) || (nurEditText != personEmail) )
+                if( (nurEditText.length() == 0) || (nurEditText.compare(personEmail, Qt::CaseInsensitive) != 0) )
                 {
                     continue;
                 }
@@ -551,9 +551,7 @@ void MainForm::generateJahresDkBestaetigungen()
             // QString url = QString("mailto:%1?subject=%2&body=%3&attach=%4").arg(mailto).arg(subject).arg(body).arg(attach);
             // QDesktopServices::openUrl( QUrl(url) );
 
-            // /Applications/Thunderbird.app/Contents/MacOS/thunderbird -compose "subject='test mail',to='test@mail.com',body='testing',attachment='/Users/volker/Documents/GitHub/build-DkVerwaltungQt-Desktop_Qt_5_15_2_clang_64bit-Debug/JahresDkBestaetigungen2021/334_VPorzelt@gmx.de_Volker_Porzelt.pdf'"
-            QString thunderbirdAppMac = "/Applications/Thunderbird.app/Contents/MacOS/thunderbird";
-            QString thunderbirdApp = thunderbirdAppMac;
+            QString thunderbirdApp = getThunderbirdPath();
             QStringList thunderbirdParams; // -compose
             QString thunderbirdCompose = QString("to='%1',subject='%2',body='%3',attachment='%4'").arg(mailto).arg(subject).arg(body).arg(attach);
             QProcess::startDetached(thunderbirdApp, QStringList() << "-compose" << thunderbirdCompose);

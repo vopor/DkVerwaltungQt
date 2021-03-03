@@ -3,9 +3,10 @@
 ## Die Entwicklung des Programms ist eingestellt !!!
   
 ## Ich empfehle stattdessen DKV2:  
+https://sites.google.com/view/DKV2  
 https://github.com/Schachigel/DKV2/  
   
-Ich benutze das Programm nur dafür, die Kontoauszüge am Jahresende zu generieren und als Email zu verschicken.
+Ich benutze das Programm nur, um die Kontoauszüge am Jahresende zu generieren und als Email zu verschicken.
 
 Und ich verwende die Skripte CreateDkVerwaltungQt.sql und UpdateDkVerwaltungQt.sql, um die Daten aus dem OO-Programm aus Tübingen in eine SQLite-Datenbank umzuwandeln, um bestimmte SQL-Abfragen generieren zu können.
 
@@ -55,6 +56,9 @@ sqlite3 DkVerwaltungQt.db3 < UpdateDkVerwaltungQt.sql
   
 ## Kontoauszüge erstellen und versenden
   
+Kontoauszüge lassen sich jetzt aus DkVerwaltungQt heraus generieren und mit Thunderbird versenden.
+
+## Kontoauszüge erstellen und versenden (z.Zt. nur macOS) (obsolet)
 Dokumentation befindet sich in Dk-Kontoauszüge.odt
 https://github.com/vopor/DkVerwaltungQt/blob/master/Dk-Kontoauszüge.odt 
   
@@ -66,7 +70,7 @@ Ich habe es verwendet, um die in Html generierten Jahreszinsbescheinigungen in P
 html2pdf.sh  
 Bash-Script, um alle Html-Dateien in einem Verzeichnis in Pdf-Dokumente umzuwandeln.  
 
-### 2. sendDKJAKtos.py   (z.Zt. nur macOS)
+### 2. sendDKJAKtos.py  (obsolet) 
   
 Mit etwas Aufwand kann man sendDKJAKtos.py auch auf andere Plattformen/Mail-Programme portieren oder in (C++ - ) Quelltext umwandeln.  
 

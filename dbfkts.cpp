@@ -217,6 +217,32 @@ QString getOpenOfficePath()
     return oo;
 }
 
+QString getStringFromIni(const QString &key, const QString &defaultValue)
+{
+    QString value = defaultValue;
+    QString userAndHostName = getUserAndHostName();
+    getSettings().beginGroup(userAndHostName);
+    if(getSettings().contains(key))
+    {
+        value = getSettings().value(key).toString();
+    }
+    getSettings().endGroup();
+    return value;
+}
+
+QString getThunderbirdPath()
+{
+    QString thunderbirdPath;
+#if defined (Q_OS_MAC)
+    thunderbirdPath = getStringFromIni("ThunderbirdPath", "/Applications/Thunderbird.app/Contents/MacOS/thunderbird");
+#elif defined(Q_OS_WIN)
+
+#elif defined(Q_OS_UNIX)
+
+#endif
+    return thunderbirdPath;
+}
+
 int getJahrFromIni()
 {
    QString userAndHostName = getUserAndHostName();

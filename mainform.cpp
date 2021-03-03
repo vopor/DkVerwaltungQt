@@ -114,7 +114,6 @@ void MainForm::createBescheinigungenPanel()
    jahrDkBescheinigungenLabel->setSizePolicy(QSizePolicy::Fixed, jahrDkBescheinigungenLabel->sizePolicy().verticalPolicy());
    hlayout->addWidget(jahrDkBescheinigungenLabel);
    jahrDkBescheinigungenEdit = new QLineEdit;
-
    hlayout->addWidget(jahrDkBescheinigungenEdit);
    // QString strYear = QString::number(QDate::currentDate().year()-1);
    QString statementYear4 = "SELECT '20' || MAX(SUBSTR(Datum ,7,2)) FROM DkBuchungen";
@@ -122,6 +121,30 @@ void MainForm::createBescheinigungenPanel()
    jahrDkBescheinigungenEdit->setText(strYear);
    jahrDkBescheinigungenEdit->setFixedWidth(60);
    jahrDkBescheinigungenLabel->setBuddy(jahrDkBescheinigungenEdit);
+
+   nurCheckBox = new QCheckBox("nur für");
+   connect(nurCheckBox, &QCheckBox::clicked, [this](){
+       if(nurCheckBox->isChecked()){
+           nurEdit->setEnabled(true);
+           nurEdit->setFocus();
+       }else{
+           nurEdit->setEnabled(false);
+       }
+   });
+   nurEdit = new QLineEdit;
+   nurEdit->setMinimumWidth(200);
+   nurEdit->setEnabled(false);
+   sendenCheckBox = new QCheckBox("sofort senden");
+   continueButton = new QPushButton("weiter");
+   continueButton->setEnabled(false);
+   cancelButton = new QPushButton("abbrechen");
+   cancelButton->setEnabled(false);
+
+   hlayout->addWidget(nurCheckBox);
+   hlayout->addWidget(nurEdit);
+   hlayout->addWidget(sendenCheckBox);
+   hlayout->addWidget(continueButton);
+   hlayout->addWidget(cancelButton);
 
    generateJahresDkBestaetigungenButton = new QPushButton(tr("Jahres Dk-Bestätigungen generieren"));
    hlayout->addWidget(generateJahresDkBestaetigungenButton);
@@ -171,7 +194,7 @@ bool MainForm::checkPrerequisitesExists()
 {
     bool b = false;
     QStringList missingFiles;
-    char *p = __FILE__;
+    const char *p = __FILE__;
     QString sourcePath = p;
     sourcePath = QFileInfo(p).canonicalPath();
     QString homePath = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
@@ -184,7 +207,8 @@ bool MainForm::checkPrerequisitesExists()
     dirs << JahresDkBestaetigungenPath << JahresDkZinsBescheinigungenPath;
     for (int i = 0; i < dirs.size(); ++i){
         QStringList files;
-        files << "Jahreskontoauszug.html" << "Zinsbescheinigung.html" << "F13TurleyGmbH2.gif" << "url2pdf" << "html2pdf.sh" << "sendDKJAKtos.py" << "printCommandDescription.sh";
+        // files << "Jahreskontoauszug.html" << "Zinsbescheinigung.html" << "F13TurleyGmbH2.gif" << "url2pdf" << "html2pdf.sh" << "sendDKJAKtos.py" << "printCommandDescription.sh";
+        files << "Jahreskontoauszug.html" << "Zinsbescheinigung.html" << "F13TurleyGmbH2.gif" << "url2pdf" << "html2pdf.sh" << "sendDKJAKtos.py" << "printCommandDescription.sh" << "mail-content.txt";
         for (int j = 0; j < files.size(); ++j){
             QString file = files.at(j);
             QString destFile = dirs.at(i) + QDir::separator() + file;
@@ -488,16 +512,76 @@ void MainForm::generateJahresDkBestaetigungen()
             strAuflistung += "</table>\n";
             str = str.replace("&lt;Auflistung&gt;", strAuflistung);
 
+            QString personEmail = personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Email)).toString();
+
+            if(nurCheckBox->isChecked())
+            {
+                QString nurEditText = nurEdit->text();
+                if( (nurEditText.length() == 0) || (nurEditText != personEmail) )
+                {
+                    continue;
+                }
+            }
             writeHtmlTextToHtmlFile(personFileNameHtml, str);
-            convertHtmlFileToPdfFile(personFileNameHtml);
 
-            // TODO: txt-Dateien für Anschreiben in Mail generieren oder per Script
+            QString fileNamePdf = personFileNameHtml;
+            fileNamePdf = fileNamePdf.replace(".html", ".pdf");
+            convertHtmlFileToPdfFile(personFileNameHtml, fileNamePdf);
 
-            // QString personFileNameTxt = personFilePath + ".txt";
+            if(!sendenCheckBox->isChecked())
+            {
+                continue;
+            }
 
-            // TODO: Evtl. hier einzeln senden ( sendDKJAKtos.py) oder per Script
+            // https://forum.qt.io/topic/85050/sending-email-attachment-via-default-email-client/4
+            // QDesktopServices::openUrl(QUrl("mailto:?subject=test&body=test&attach=C:/myfolder/file.pdf") );
+            // attachment='file:///c:/test.txt'
+            // https://stackoverflow.com/questions/45588952/how-can-i-compose-and-send-email-in-thunderbird-from-commandline
+            QString mailto = personEmail;
+            QString mailfrom = "13hafreiheit@gmx.de";
+            QString subject = "Kontoauszug 2020 DK F13 Turley GmbH";
+            QString fileNameMailContent = getJahresDkBestaetigungenPath() + QDir::separator() + "mail-content.txt";
+            QString body = readFromFile(fileNameMailContent);
+            body = body.replace("&lt;Vorname&gt;", personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Vorname)).toString());
+            body = body.replace("&lt;Name&gt;", personenModel->data(personenModel->index(PersonIndex.row(), DkPersonen_Name)).toString());
+
+            QString attach = fileNamePdf;
+            // kein Attachment möglich
+            // QString attach = "file:///" + fileNamePdf;
+            // QString url = QString("mailto:%1?subject=%2&body=%3&attach=%4").arg(mailto).arg(subject).arg(body).arg(attach);
+            // QDesktopServices::openUrl( QUrl(url) );
+
+            // /Applications/Thunderbird.app/Contents/MacOS/thunderbird -compose "subject='test mail',to='test@mail.com',body='testing',attachment='/Users/volker/Documents/GitHub/build-DkVerwaltungQt-Desktop_Qt_5_15_2_clang_64bit-Debug/JahresDkBestaetigungen2021/334_VPorzelt@gmx.de_Volker_Porzelt.pdf'"
+            QString thunderbirdAppMac = "/Applications/Thunderbird.app/Contents/MacOS/thunderbird";
+            QString thunderbirdApp = thunderbirdAppMac;
+            QStringList thunderbirdParams; // -compose
+            QString thunderbirdCompose = QString("to='%1',subject='%2',body='%3',attachment='%4'").arg(mailto).arg(subject).arg(body).arg(attach);
+            QProcess::startDetached(thunderbirdApp, QStringList() << "-compose" << thunderbirdCompose);
+
+            if(nurCheckBox->isChecked())
+                continue;
+
+            QEventLoop eventLoop;
+            continueButton->setEnabled(true);
+            cancelButton->setEnabled(true);
+            QObject::connect(continueButton, &QPushButton::clicked, &eventLoop, &QEventLoop::quit);
+            QObject::connect(cancelButton, &QPushButton::clicked, &eventLoop, &QEventLoop::quit);
+            connect(continueButton, &QPushButton::clicked, [this](){
+                continueButtonClicked = 1;
+            });
+            connect(cancelButton, &QPushButton::clicked, [this](){
+                cancelButtonClicked = 1;
+            });
+            continueButtonClicked = 0;
+            cancelButtonClicked = 0;
+            eventLoop.exec();
+            continueButton->setEnabled(false);
+            cancelButton->setEnabled(false);
+            if(cancelButtonClicked)
+                break;
+            if(continueButtonClicked)
+                continue;
          }
-         // TODO: Evtl. hier  alle senden ( sendDKJAKtos.py) oder per Script
     }
     generateJahresDkBestaetigungenButton->setEnabled(true);
 }

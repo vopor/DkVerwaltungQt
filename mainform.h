@@ -134,6 +134,15 @@ private:
 
     QLabel *jahrDkBescheinigungenLabel;
     QLineEdit *jahrDkBescheinigungenEdit;
+
+    QCheckBox *nurCheckBox;
+    QLineEdit *nurEdit;
+    QCheckBox *sendenCheckBox;
+    QPushButton *continueButton;
+    QPushButton *cancelButton;
+    int continueButtonClicked = 0;
+    int cancelButtonClicked = 0;
+
     QPushButton *generateJahresDkBestaetigungenButton;
     QPushButton *generateJahresDkBestaetigungenTerminalButton;
     QPushButton *generateJahresDkZinsBescheinigungenButton;

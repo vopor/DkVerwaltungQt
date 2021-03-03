@@ -60,17 +60,15 @@ void writeHtmlTextToPdfFile(const QString &htmlText, const QString &str)
     QMessageBox::warning(0, "Fehler beim Speichern!", "writeHtmlTextToPdfFile() ist nicht implementiert!");
 }
 
-void convertHtmlFileToPdfFile(const QString &fileNameHtml)
+void convertHtmlFileToPdfFile(const QString &fileNameHtml, const QString &fileNamePdf)
 {
-    QString fileNamePdf = fileNameHtml;
-    fileNamePdf = fileNamePdf.replace(".html", ".pdf");
     Html2PdfConverter converter(fileNameHtml, fileNamePdf);
     converter.run();
 }
 
-void convertHtmlFileToPdfFileSimple(const QString &fileName)
+void convertHtmlFileToPdfFileSimple(const QString &fileNameHtml, const QString &fileNamePdf)
 {
-    QFile htmlfile(fileName);
+    QFile htmlfile(fileNameHtml);
     if(htmlfile.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         QString htmlContent;
@@ -82,7 +80,7 @@ void convertHtmlFileToPdfFileSimple(const QString &fileName)
 
         QPrinter printer(QPrinter::HighResolution);
         printer.setOutputFormat(QPrinter::PdfFormat);
-        printer.setOutputFileName(fileName + ".pdf");
+        printer.setOutputFileName(fileNamePdf);
 
         document->print(&printer);
         delete document;

@@ -238,7 +238,7 @@ QString getThunderbirdPath()
 #elif defined(Q_OS_WIN)
 
 #elif defined(Q_OS_UNIX)
-
+    thunderbirdPath = getStringFromIni("ThunderbirdPath", "/usr/lib/thunderbird/thunderbird");
 #endif
     return thunderbirdPath;
 }

@@ -199,6 +199,7 @@ bool MainForm::checkPrerequisitesExists()
     sourcePath = QFileInfo(p).canonicalPath();
     QString homePath = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
     sourcePath = homePath + "/Documents/GitHub/DkVerwaltungQt";
+    sourcePath = getStandardPath() + "/../DkVerwaltungQt";
     QString JahresDkBestaetigungenPath = getJahresDkBestaetigungenPath();
     b = QDir().mkpath(JahresDkBestaetigungenPath);
     QString JahresDkZinsBescheinigungenPath = getJahresDkZinsBescheinigungenPath();
@@ -236,8 +237,10 @@ bool MainForm::checkPrerequisitesExists()
         }
     }
     if(missingFiles.length()){
-        QMessageBox::warning(this, tr("Fehlende Dateien"), tr("Fehlende Dateien:\n") + missingFiles.join("\n"), QMessageBox::Ok);
-        return false;
+        if(QMessageBox::No == QMessageBox::warning(this, tr("Fehlende Dateien"), tr("Fehlende Dateien:\n") + missingFiles.join("Trotzdem forfahren?\n"), QMessageBox::Yes | QMessageBox::No))
+        {
+            return false;
+        }
     }
     return true;
 }

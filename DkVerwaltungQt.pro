@@ -7,6 +7,8 @@ TARGET = DkVerwaltungQt
 DEPENDPATH += .
 INCLUDEPATH += .
 
+CONFIG -= debug_and_release
+
 QT += widgets sql network
 QT += webengine webenginewidgets printsupport
 

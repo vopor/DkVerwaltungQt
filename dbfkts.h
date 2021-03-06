@@ -32,8 +32,11 @@ QString getSettingsFile();
 QSettings &getSettings();
 QString getFilePathFromIni(const QString &iniEntry, const QString &filePath, const QString &fileName);
 QString getOpenOfficePath();
-QString getStringFromIni(const QString &key, const QString &defaultValue);
+QString readStringFromIni(const QString &key, const QString &defaultValue);
+void setStringToIni(const QString &key, const QString &value);
 QString getThunderbirdPath();
+QString getTestUserEmailAdress();
+void setTestUserEmailAdress(const QString &testUserEmailAdress);
 
 // QString getJahresDkBestaetigungenPath();
 // QString getJahresDkZinsBescheinigungenPath();

@@ -124,7 +124,7 @@ QString getStandardPath()
 //        homePath = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
 //    #endif
 //    return homePath;
-    QString standardPath = QDir::toNativeSeparators(QCoreApplication::applicationDirPath());
+    QString standardPath = QDir::toNativeSeparators(QCoreApplication::applicationDirPath()) + QDir::separator();
 #ifdef Q_OS_MAC
     standardPath = standardPath.replace("DkVerwaltungQt.app/Contents/MacOS", "");
 #endif
@@ -230,17 +230,40 @@ QString getStringFromIni(const QString &key, const QString &defaultValue)
     return value;
 }
 
+void setStringToIni(const QString &key, const QString &value)
+{
+    QString userAndHostName = getUserAndHostName();
+    getSettings().beginGroup(userAndHostName);
+    // if(getSettings().contains(key))
+    {
+        getSettings().setValue(key, value);
+    }
+    getSettings().endGroup();
+}
+
 QString getThunderbirdPath()
 {
     QString thunderbirdPath;
 #if defined (Q_OS_MAC)
     thunderbirdPath = getStringFromIni("ThunderbirdPath", "/Applications/Thunderbird.app/Contents/MacOS/thunderbird");
 #elif defined(Q_OS_WIN)
-
+    thunderbirdPath = getStringFromIni("ThunderbirdPath", "C:\\Program Files\\Mozilla Thunderbird\\thunderbird.exe");
 #elif defined(Q_OS_UNIX)
     thunderbirdPath = getStringFromIni("ThunderbirdPath", "/usr/lib/thunderbird/thunderbird");
 #endif
     return thunderbirdPath;
+}
+
+QString getTestUserEmailAdress()
+{
+    QString testUserEmailAdress;
+    testUserEmailAdress = getStringFromIni("TestUserEmailAdress", "");
+    return testUserEmailAdress;
+}
+
+void setTestUserEmailAdress(const QString &testUserEmailAdress)
+{
+    setStringToIni("TestUserEmailAdress", testUserEmailAdress);
 }
 
 int getJahrFromIni()
@@ -268,13 +291,13 @@ int getJahr()
 
 QString getJahresDkBestaetigungenPath()
 {
-   QString JahresDkBestaetigungenPath = getStandardPath() + QDir::separator() + "JahresDkBestaetigungen" + QString::number(2000 + getJahr());
+   QString JahresDkBestaetigungenPath = getStandardPath() /* + QDir::separator() */ + "JahresDkBestaetigungen" + QString::number(2000 + getJahr());
    return JahresDkBestaetigungenPath;
 }
 
 QString getJahresDkZinsBescheinigungenPath()
 {
-   QString JahresDkZinsBescheinigungenPath = getStandardPath() + QDir::separator() + "JahresDkZinsBescheinigungen" + QString::number(2000 + getJahr());
+   QString JahresDkZinsBescheinigungenPath = getStandardPath() /* + QDir::separator() */  + "JahresDkZinsBescheinigungen" + QString::number(2000 + getJahr());
    return JahresDkZinsBescheinigungenPath;
 }
 

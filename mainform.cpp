@@ -124,7 +124,10 @@ void MainForm::createBescheinigungenPanel()
 
    nurCheckBox = new QCheckBox("nur für");
    connect(nurCheckBox, &QCheckBox::clicked, [this](){
-       if(nurCheckBox->isChecked()){
+       if(nurCheckBox->isChecked())
+       {
+           QString testUserEmailAdress = getTestUserEmailAdress();
+           nurEdit->setText(testUserEmailAdress);
            nurEdit->setEnabled(true);
            nurEdit->setFocus();
        }else{
@@ -199,7 +202,10 @@ bool MainForm::checkPrerequisitesExists()
     sourcePath = QFileInfo(p).canonicalPath();
     QString homePath = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
     sourcePath = homePath + "/Documents/GitHub/DkVerwaltungQt";
-    sourcePath = getStandardPath() + "/../DkVerwaltungQt";
+    if(!QFileInfo(sourcePath).exists())
+    {
+        sourcePath = getStandardPath() + /* + QDir::separator() */  + ".." + QDir::separator() + "DkVerwaltungQt";
+    }
     QString JahresDkBestaetigungenPath = getJahresDkBestaetigungenPath();
     b = QDir().mkpath(JahresDkBestaetigungenPath);
     QString JahresDkZinsBescheinigungenPath = getJahresDkZinsBescheinigungenPath();
@@ -208,8 +214,10 @@ bool MainForm::checkPrerequisitesExists()
     dirs << JahresDkBestaetigungenPath << JahresDkZinsBescheinigungenPath;
     for (int i = 0; i < dirs.size(); ++i){
         QStringList files;
-        // files << "Jahreskontoauszug.html" << "Zinsbescheinigung.html" << "F13TurleyGmbH2.gif" << "url2pdf" << "html2pdf.sh" << "sendDKJAKtos.py" << "printCommandDescription.sh";
-        files << "Jahreskontoauszug.html" << "Zinsbescheinigung.html" << "F13TurleyGmbH2.gif" << "url2pdf" << "html2pdf.sh" << "sendDKJAKtos.py" << "printCommandDescription.sh" << "mail-content.txt";
+        files << "Jahreskontoauszug.html" << "Zinsbescheinigung.html" << "F13TurleyGmbH2.gif" << "sendDKJAKtos.py" << "printCommandDescription.sh" << "mail-content.txt";
+#ifdef Q_OS_MAC
+        files << "url2pdf" << "html2pdf.sh"
+#endif
         for (int j = 0; j < files.size(); ++j){
             QString file = files.at(j);
             QString destFile = dirs.at(i) + QDir::separator() + file;
@@ -237,7 +245,7 @@ bool MainForm::checkPrerequisitesExists()
         }
     }
     if(missingFiles.length()){
-        if(QMessageBox::No == QMessageBox::warning(this, tr("Fehlende Dateien"), tr("Fehlende Dateien:\n") + missingFiles.join("Trotzdem forfahren?\n"), QMessageBox::Yes | QMessageBox::No))
+        if(QMessageBox::No == QMessageBox::warning(this, tr("Fehlende Dateien"), tr("Fehlende Dateien:\n") + missingFiles.join("\n") + tr("\nTrotzdem forfahren?\n"), QMessageBox::Yes | QMessageBox::No))
         {
             return false;
         }
@@ -324,7 +332,7 @@ int openTerminal(const QString &path, const QString &command=QString())
        scriptCmd += " && " + command;
     }
     scriptCmd += "\"";
-    QProcess::startDetached("osascript",  QStringList() << "-e" << scriptCmd);
+    return QProcess::startDetached("osascript",  QStringList() << "-e" << scriptCmd);
 }
 
 void MainForm::generateJahresDkBestaetigungen()
@@ -334,11 +342,9 @@ void MainForm::generateJahresDkBestaetigungen()
     }
 
     generateJahresDkBestaetigungenButton->setEnabled(false);
-    // Unterordner JahresDkBestaetigungen in getStandardPath()
-    // QString JahresDkBestaetigungenPath = getStandardPath() + QDir::separator() + "JahresDkBestaetigungen";
     QString JahresDkBestaetigungenPath = getJahresDkBestaetigungenPath();
     QDir().mkpath(JahresDkBestaetigungenPath);
-    QString fileName = getStandardPath() + QDir::separator() + "Jahreskontoauszug.html";
+    QString fileName = JahresDkBestaetigungenPath + QDir::separator() + "Jahreskontoauszug.html";
     QString strDatum = QDate::currentDate().toString("dd.MM.yyyy");
     QString strJahr = QString::number(getJahr());
     QString strJahr4 = QString::number(2000 + getJahr());
@@ -520,11 +526,19 @@ void MainForm::generateJahresDkBestaetigungen()
             if(nurCheckBox->isChecked())
             {
                 QString nurEditText = nurEdit->text();
+                QString testUserEmailAdress = getTestUserEmailAdress();
+                if(nurEditText.compare(testUserEmailAdress, Qt::CaseInsensitive))
+                {
+                    setTestUserEmailAdress(nurEditText);
+                }
                 if( (nurEditText.length() == 0) || (nurEditText.compare(personEmail, Qt::CaseInsensitive) != 0) )
                 {
                     continue;
                 }
             }
+
+            if(str.length() == 0)
+                continue;
             writeHtmlTextToHtmlFile(personFileNameHtml, str);
 
             QString fileNamePdf = personFileNameHtml;
@@ -605,7 +619,7 @@ void MainForm::generateJahresDkZinsBescheinigungen()
    generateJahresDkZinsBescheinigungenButton->setEnabled(false);
    QString JahresDkZinsBescheinigungenPath = getJahresDkZinsBescheinigungenPath();
    QDir().mkpath(JahresDkZinsBescheinigungenPath);
-   QString fileName = getStandardPath() + QDir::separator() + "Zinsbescheinigung.html";
+   QString fileName = JahresDkZinsBescheinigungenPath + QDir::separator() + "Zinsbescheinigung.html";
    QString strDatum = QDate::currentDate().toString("dd.MM.yyyy");
    QString strJahr = QString::number(getJahr());
    QString strJahr4 = QString::number(2000 + getJahr());

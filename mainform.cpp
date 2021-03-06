@@ -216,7 +216,7 @@ bool MainForm::checkPrerequisitesExists()
         QStringList files;
         files << "Jahreskontoauszug.html" << "Zinsbescheinigung.html" << "F13TurleyGmbH2.gif" << "sendDKJAKtos.py" << "printCommandDescription.sh" << "mail-content.txt";
 #ifdef Q_OS_MAC
-        files << "url2pdf" << "html2pdf.sh"
+        files << "url2pdf" << "html2pdf.sh";
 #endif
         for (int j = 0; j < files.size(); ++j){
             QString file = files.at(j);

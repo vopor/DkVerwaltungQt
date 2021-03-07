@@ -174,7 +174,7 @@ QString getUserAndHostName(){
         localHostName = localHostName.split('.').at(0);
         userAndHostName += "_" + localHostName;
     }
-    qDebug() << "userAndHostName" << userAndHostName;
+    // qDebug() << "userAndHostName" << userAndHostName;
     return userAndHostName;
 }
 

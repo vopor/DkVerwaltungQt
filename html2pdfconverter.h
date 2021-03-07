@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QWebEnginePage>
 #include <QEventLoop>
+#include <QPrinter>
 
 class Html2PdfConverter : public QObject
 {
@@ -21,6 +22,7 @@ private:
     QString m_outputPath;
     QScopedPointer<QWebEnginePage> m_page;
     QEventLoop m_eventLoop;
+    QPrinter m_printer;
 };
 
 #endif // HTML2PDFCONVERTER_H

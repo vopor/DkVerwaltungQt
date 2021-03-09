@@ -63,8 +63,6 @@ try:
     stmt.execute(select_stmt)
     print stmt.fetchone()[0]
 
-
-    
     print "Vertraege, die nicht übernommen wurden:"
     select_stmt = 'SELECT * FROM db_from.DKBuchungen '
     select_stmt += 'WHERE Anfangsdatum <> "" AND DkNummer <> "Stammkapital" '
@@ -78,21 +76,107 @@ try:
         print row
     print "Anzahl: ", len(buchungen)
 
+    if True:
+        print "VertragsId prüfen"
+        select_stmt = 'SELECT c.id FROM db_to.Buchungen, db_from.DKBuchungen b, db_to.Vertraege c '
+        select_stmt += 'WHERE db_to.Buchungen.id = b.BuchungId '
+        select_stmt += 'AND b.DkNummer = c.Kennung '
+        select_stmt += 'AND c.id IS NULL '
+        stmt.execute(select_stmt);
+        buchungen = stmt.fetchall()
+        if len(buchungen) > 0:
+            print "buchungen", len(buchungen)
+            for row in buchungen:
+                print row
+        print "Anzahl: ", len(buchungen)
+
     print "Vertraege mit abweichendem aufsummierten Betrag:"
     
-    select_stmt = 'SELECT  * FROM db_to.Vertraege, db_to.Buchungen '
-    select_stmt += 'WHERE db_to.Vertraege.Id = db_to.Buchungen.VertragsId AND '
-    select_stmt += 'SUM(db_to.Buchungen.Betrag) <> '
-    select_stmt += '('
-    select_stmt += 'SELECT SUM(Betrag)*100 FROM db_from.DKBuchungen WHERE db_to.Vertraege.Kennung = db_from.DKBuchungen.DkNummer AND Rueckzahlung = "" GROUP BY db_from.DKBuchungen.DkNummer '
-    select_stmt += ')'
+    select_stmt = '';
+    select_stmt += 'SELECT KennungA, SummeA '
+    select_stmt += 'FROM '
+    select_stmt += '( '
+    select_stmt += 'SELECT  db_to.Vertraege.Kennung AS KennungA, SUM(db_to.Buchungen.Betrag)/100. AS SummeA '
+    select_stmt += 'FROM db_to.Vertraege, db_to.Buchungen '
+    select_stmt += 'WHERE db_to.Vertraege.Id = db_to.Buchungen.VertragsId '
     select_stmt += 'GROUP BY Vertraege.Id '
     select_stmt += 'ORDER BY Vertraege.Id '
+    select_stmt += ') '
+    select_stmt += 'WHERE EXISTS '
+    select_stmt += '( '
+    select_stmt += 'SELECT KennungB, SummeB '
+    select_stmt += 'FROM '
+    select_stmt += '( '
+    select_stmt += 'SELECT db_from.DKBuchungen.DkNummer AS KennungB, SUM(Betrag) AS SummeB '
+    select_stmt += 'FROM db_from.DKBuchungen '
+    select_stmt += 'WHERE KennungA = KennungB '
+    select_stmt += 'GROUP BY KennungB '
+    select_stmt += 'HAVING SUM(Betrag) <> SummeA'
+    select_stmt += ') '
+    select_stmt += ') '
+    stmt.execute(select_stmt)
     vertraege = stmt.fetchall()
     for row in vertraege:
         print row
     print "Anzahl: ", len(vertraege)
     
+    if False:
+        sys.exit(0)
+    
+    print "Vertraege mit abweichenden aufsummierten Zinsen:"
+
+    # DKV2: vStat_aktiverVertraege_thesa
+
+    # CREATE VIEW vStat_aktiverVertraege_thesa AS SELECT *, ROUND(100* Jahreszins/Wert,6) as gewMittel 
+    # FROM (SELECT count(*) as Anzahl, SUM(Wert) as Wert, SUM(ROUND(Zinssatz *Wert /100,2)) AS Jahreszins,
+    # ROUND(AVG(Zinssatz),4) as mittlereRate FROM vVertraege_aktiv WHERE thesa)
+
+    # CREATE VIEW vVertraege_aktiv AS SELECT id ,Kreditorin,Vertragskennung,Zinssatz,Wert,Aktivierungsdatum,Kuendigungsfrist
+    # ,Vertragsende,thesa,KreditorId FROM vVertraege_aktiv_detail
+
+    # CREATE VIEW vVertraege_aktiv_detail AS SELECT Vertraege.id AS id, Vertraege.Kennung AS Vertragskennung
+    # , Vertraege.ZSatz /100. AS Zinssatz, SUM(Buchungen.Betrag) /100. AS Wert, MIN(Buchungen.Datum)  AS Aktivierungsdatum
+    # , Vertraege.Kfrist AS Kuendigungsfrist, Vertraege.LaufzeitEnde  AS Vertragsende, Vertraege.thesaurierend AS thesa
+    # , Kreditoren.Nachname || ', ' || Kreditoren.Vorname AS Kreditorin, Kreditoren.id AS KreditorId,Kreditoren.Nachname AS Nachname
+    # , Kreditoren.Vorname AS Vorname,Kreditoren.Strasse AS Strasse
+    # , Kreditoren.Plz AS Plz, Kreditoren.Stadt AS Stadt, Kreditoren.Email AS Email, Kreditoren.IBAN AS Iban, Kreditoren.BIC AS Bic
+    # FROM Vertraege INNER JOIN Buchungen  ON Buchungen.VertragsId = Vertraege.id 
+    # INNER JOIN Kreditoren ON Kreditoren.id = Vertraege.KreditorId GROUP BY Vertraege.id
+
+    select_stmt = ''
+    select_stmt += 'SELECT KennungA, ZinssatzA, ZinsenA '
+    select_stmt += 'FROM '
+    select_stmt += '( '
+    select_stmt += 'SELECT db_to.Vertraege.Kennung AS KennungA, '
+    select_stmt += 'Vertraege.ZSatz AS ZSatz, '
+    select_stmt += 'Vertraege.ZSatz /100. AS ZinssatzA, '
+    select_stmt += 'SUM(Buchungen.Betrag) /100. AS Wert, '
+    select_stmt += 'ROUND( (( Vertraege.ZSatz /100.) * (SUM(Buchungen.Betrag) /100.)) /100,2) AS ZinsenA '
+    # select_stmt += 'SUM((( ROUND((Vertraege.ZSatz /100.),2) * ((Buchungen.Betrag) /100. )) / 100.),2) AS ZinsenA '
+    # select_stmt += 'ROUND((( ROUND((Vertraege.ZSatz /100.),2) * (SUM(Buchungen.Betrag) /100. )) / 100.),2) AS ZinsenA '
+    # select_stmt += 'SUM((( ROUND((Vertraege.ZSatz /100.),2) * ((Buchungen.Betrag) /100. )) / 100.),2) AS ZinsenA '
+    select_stmt += 'FROM db_to.Vertraege '
+    select_stmt += 'INNER JOIN Buchungen ON Buchungen.VertragsId = Vertraege.id '
+    select_stmt += 'INNER JOIN Kreditoren ON Kreditoren.id = db_to.Vertraege.KreditorId GROUP BY Vertraege.id'
+    select_stmt += ') '
+    select_stmt += 'WHERE EXISTS '
+    select_stmt += '( '
+    select_stmt += 'SELECT KennungB, ZinssatzB, ZinsenB '
+    select_stmt += 'FROM '
+    select_stmt += '( '
+    select_stmt += 'SELECT db_from.DKBuchungen.DkNummer AS KennungB, Zinssatz AS ZinssatzB, ROUND (SUM( (Betrag * Zinssatz) / 100.0 ), 2) AS ZinsenB '
+    select_stmt += 'FROM db_from.DKBuchungen '
+    select_stmt += 'WHERE KennungA = KennungB '
+    select_stmt += 'GROUP BY KennungB '
+    select_stmt += 'HAVING (ROUND (SUM( (Betrag * Zinssatz) / 100.0 ), 2)) <> ZinsenA'
+    select_stmt += ') '
+    select_stmt += ') '
+    stmt.execute(select_stmt)
+    vertraege = stmt.fetchall()
+    for row in vertraege:
+        print row
+    print "Anzahl: ", len(vertraege)
+
     sys.exit(0)
 
 except SystemExit:

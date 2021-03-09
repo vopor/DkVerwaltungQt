@@ -9,6 +9,20 @@ INCLUDEPATH += .
 
 CONFIG -= debug_and_release
 
+# macx:ICON = $${TARGET}.icns
+# macx:QMAKE_INFO_PLIST = Info.plist
+
+CONFIG( release, debug|release ){
+   # Release verwendet kein shadow-build, deshalb muss man den macdeployqt Aufruf nicht anpassen
+   macx:QMAKE_POST_LINK += macdeployqt $${TARGET}.app -dmg
+}else{
+   # Debug verwendet shadow-build, deshalb müsste man den macdeployqt Aufruf anpassen
+   # macx:QMAKE_POST_LINK += macdeployqt $${TARGET}.app -no-strip -use-debug-libs
+}
+
+# RESOURCES += $${TARGET}.qrc
+# RC_FILE += $${TARGET}.rc
+
 QT += widgets sql network
 QT += webengine webenginewidgets printsupport
 

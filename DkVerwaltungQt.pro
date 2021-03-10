@@ -7,7 +7,12 @@ TARGET = DkVerwaltungQt
 DEPENDPATH += .
 INCLUDEPATH += .
 
-CONFIG -= debug_and_release
+win32:CONFIG -= debug_and_release
+
+APP_RESOURCES_FILES.files = ./Jahreskontoauszug.html ./Zinsbescheinigung.html ./F13TurleyGmbH2.gif ./sendDKJAKtos.py ./printCommandDescription.sh ./mail-content.txt
+APP_RESOURCES_FILES.path = Contents/Resources
+
+QMAKE_BUNDLE_DATA += APP_RESOURCES_FILES
 
 # macx:ICON = $${TARGET}.icns
 # macx:QMAKE_INFO_PLIST = Info.plist
@@ -17,7 +22,7 @@ CONFIG( release, debug|release ){
    macx:QMAKE_POST_LINK += $$[QT_INSTALL_BINS]/macdeployqt $${TARGET}.app -dmg
 }else{
    # Debug verwendet shadow-build, deshalb müsste man den macdeployqt Aufruf anpassen
-   macx:QMAKE_POST_LINK += $$[QT_INSTALL_BINS]/macdeployqt $${TARGET}.app -no-strip -use-debug-libs
+   # macx:QMAKE_POST_LINK += $$[QT_INSTALL_BINS]/macdeployqt $${TARGET}.app -no-strip # -use-debug-libs
 }
 
 # RESOURCES += $${TARGET}.qrc

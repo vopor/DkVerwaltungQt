@@ -131,9 +131,18 @@ QString getStandardPath()
     return standardPath;
 }
 
+QString getResouresPath()
+{
+    QString resourcesPath = QDir::toNativeSeparators(QCoreApplication::applicationDirPath()) + QDir::separator();
+#ifdef Q_OS_MAC
+    resourcesPath = resourcesPath.replace("DkVerwaltungQt.app/Contents/MacOS", "DkVerwaltungQt.app/Contents/Resources");
+#endif
+    return resourcesPath;
+}
+
 QString getSettingsFile(){
     QString iniPath = getStandardPath();
-    iniPath += QDir::separator() + QStringLiteral("DkVerwaltungQt.ini");
+    iniPath += /* QDir::separator() + */ QStringLiteral("DkVerwaltungQt.ini");
     return iniPath;
 }
 

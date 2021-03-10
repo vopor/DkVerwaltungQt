@@ -28,6 +28,7 @@ QString escapeFileName(const QString &fileName);
 bool createConnection(const QString &dbName);
 
 QString getStandardPath();
+QString getResouresPath();
 QString getSettingsFile();
 QSettings &getSettings();
 QString getFilePathFromIni(const QString &iniEntry, const QString &filePath, const QString &fileName);

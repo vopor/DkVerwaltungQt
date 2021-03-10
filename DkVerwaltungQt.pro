@@ -14,10 +14,10 @@ CONFIG -= debug_and_release
 
 CONFIG( release, debug|release ){
    # Release verwendet kein shadow-build, deshalb muss man den macdeployqt Aufruf nicht anpassen
-   macx:QMAKE_POST_LINK += macdeployqt $${TARGET}.app -dmg
+   macx:QMAKE_POST_LINK += $$[QT_INSTALL_BINS]/macdeployqt $${TARGET}.app -dmg
 }else{
    # Debug verwendet shadow-build, deshalb müsste man den macdeployqt Aufruf anpassen
-   # macx:QMAKE_POST_LINK += macdeployqt $${TARGET}.app -no-strip -use-debug-libs
+   macx:QMAKE_POST_LINK += $$[QT_INSTALL_BINS]/macdeployqt $${TARGET}.app -no-strip -use-debug-libs
 }
 
 # RESOURCES += $${TARGET}.qrc

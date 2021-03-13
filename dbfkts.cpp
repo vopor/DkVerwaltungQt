@@ -4,6 +4,8 @@
 #include <QSqlQuery>
 #include <QSqlError>
 
+#include <QMessageBox>
+
 #include <QtWidgets>
 
 #include <QHostInfo> // requires QT += network
@@ -115,7 +117,7 @@ bool createConnection(const QString &dbName)
     return true;
 }
 
-QString getStandardPath()
+QString getExecutablePath()
 {
 //    QString homePath;
 //    #if QT_VERSION >= 0x050000
@@ -124,7 +126,7 @@ QString getStandardPath()
 //        homePath = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
 //    #endif
 //    return homePath;
-    QString standardPath = QDir::toNativeSeparators(QCoreApplication::applicationDirPath()) + QDir::separator();
+    QString standardPath = QDir::toNativeSeparators(QCoreApplication::applicationDirPath());
 #ifdef Q_OS_MAC
     standardPath = standardPath.replace("DkVerwaltungQt.app/Contents/MacOS", "");
 #endif
@@ -133,16 +135,30 @@ QString getStandardPath()
 
 QString getResouresPath()
 {
-    QString resourcesPath = QDir::toNativeSeparators(QCoreApplication::applicationDirPath()) + QDir::separator();
+    QString resourcesPath = QDir::toNativeSeparators(QCoreApplication::applicationDirPath());
 #ifdef Q_OS_MAC
     resourcesPath = resourcesPath.replace("DkVerwaltungQt.app/Contents/MacOS", "DkVerwaltungQt.app/Contents/Resources");
 #endif
     return resourcesPath;
 }
 
+QString getStandardPath()
+{
+    QString standardPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+    standardPath = standardPath + QDir::separator() + "DkVerwaltungQt";
+    if(!QFileInfo(standardPath).exists())
+    {
+        QDir().mkpath(standardPath);
+    }
+    if(!QFileInfo(standardPath).exists())
+    {
+        QMessageBox::warning(nullptr, "Fehler", QStringLiteral("Das Verzeichnis existiert nicht bzw. konnte nicht angelegt werden:\n") + standardPath + "\n", QMessageBox::Ok);
+    }
+    return standardPath;
+}
 QString getSettingsFile(){
     QString iniPath = getStandardPath();
-    iniPath += /* QDir::separator() + */ QStringLiteral("DkVerwaltungQt.ini");
+    iniPath += QDir::separator() + QStringLiteral("DkVerwaltungQt.ini");
     return iniPath;
 }
 
@@ -300,13 +316,13 @@ int getJahr()
 
 QString getJahresDkBestaetigungenPath()
 {
-   QString JahresDkBestaetigungenPath = getStandardPath() /* + QDir::separator() */ + "JahresDkBestaetigungen" + QString::number(2000 + getJahr());
+   QString JahresDkBestaetigungenPath = getStandardPath() + QDir::separator() + "JahresDkBestaetigungen" + QString::number(2000 + getJahr());
    return JahresDkBestaetigungenPath;
 }
 
 QString getJahresDkZinsBescheinigungenPath()
 {
-   QString JahresDkZinsBescheinigungenPath = getStandardPath() /* + QDir::separator() */  + "JahresDkZinsBescheinigungen" + QString::number(2000 + getJahr());
+   QString JahresDkZinsBescheinigungenPath = getStandardPath() + QDir::separator()  + "JahresDkZinsBescheinigungen" + QString::number(2000 + getJahr());
    return JahresDkZinsBescheinigungenPath;
 }
 

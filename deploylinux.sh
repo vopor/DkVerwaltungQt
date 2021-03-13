@@ -55,6 +55,8 @@ cp "$SRC_DIR"/$APPNAME.svg "$OUT_DIR"/appdir/usr/share/icons/hicolor/scalable/ap
 # "$OUT_DIR"/appdir/usr/share/applications/$APPNAME.desktop
 $LINUX_DEPLOY_QT "$OUT_DIR"/appdir/"$APPNAME" -appimage -unsupported-allow-new-glibc
 
+# chmod -R "u+rw,g+rw,o+r" "$OUT_DIR"/appdir/
+
 pushd "$OUT_DIR"
 
 $APPIMAGETOOL "$OUT_DIR"/appdir

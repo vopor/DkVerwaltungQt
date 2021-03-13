@@ -183,13 +183,13 @@ int MainForm::getJahr()
 
 QString MainForm::getJahresDkBestaetigungenPath()
 {
-   QString JahresDkBestaetigungenPath = getStandardPath() /* + QDir::separator() */ + "JahresDkBestaetigungen" + QString::number(2000 + getJahr());
+   QString JahresDkBestaetigungenPath = getStandardPath() + QDir::separator() + "JahresDkBestaetigungen" + QString::number(2000 + getJahr());
    return JahresDkBestaetigungenPath;
 }
 
 QString MainForm::getJahresDkZinsBescheinigungenPath()
 {
-   QString JahresDkZinsBescheinigungenPath = getStandardPath() /* + QDir::separator() */ + "JahresDkZinsBescheinigungen" + QString::number(2000 + getJahr());
+   QString JahresDkZinsBescheinigungenPath = getStandardPath() + QDir::separator() + "JahresDkZinsBescheinigungen" + QString::number(2000 + getJahr());
    return JahresDkZinsBescheinigungenPath;
 }
 
@@ -205,7 +205,7 @@ bool MainForm::checkPrerequisitesExists()
     sourcePath = homePath + "/Documents/GitHub/DkVerwaltungQt";
     if(!QFileInfo(sourcePath).exists())
     {
-        sourcePath = getStandardPath() + /* + QDir::separator() */  + ".." + QDir::separator() + "DkVerwaltungQt";
+        sourcePath = getStandardPath() + QDir::separator()  + ".." + QDir::separator() + "DkVerwaltungQt";
     }
 #else
     QString sourcePath = getResouresPath();

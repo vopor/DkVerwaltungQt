@@ -197,6 +197,7 @@ bool MainForm::checkPrerequisitesExists()
 {
     bool b = false;
     QStringList missingFiles;
+#ifdef QT_DEBUG_XXX
     const char *p = __FILE__;
     QString sourcePath = p;
     sourcePath = QFileInfo(p).canonicalPath();
@@ -206,6 +207,9 @@ bool MainForm::checkPrerequisitesExists()
     {
         sourcePath = getStandardPath() + /* + QDir::separator() */  + ".." + QDir::separator() + "DkVerwaltungQt";
     }
+#else
+    QString sourcePath = getResouresPath();
+#endif
     QString JahresDkBestaetigungenPath = getJahresDkBestaetigungenPath();
     b = QDir().mkpath(JahresDkBestaetigungenPath);
     QString JahresDkZinsBescheinigungenPath = getJahresDkZinsBescheinigungenPath();
@@ -214,9 +218,9 @@ bool MainForm::checkPrerequisitesExists()
     dirs << JahresDkBestaetigungenPath << JahresDkZinsBescheinigungenPath;
     for (int i = 0; i < dirs.size(); ++i){
         QStringList files;
-        files << "Jahreskontoauszug.html" << "Zinsbescheinigung.html" << "F13TurleyGmbH2.gif" << "sendDKJAKtos.py" << "printCommandDescription.sh" << "mail-content.txt";
+        files << "Jahreskontoauszug.html" << "Zinsbescheinigung.html" << "F13TurleyGmbH2.gif" << "mail-content.txt";
 #ifdef Q_OS_MAC
-        files << "url2pdf" << "html2pdf.sh";
+        files << "url2pdf" << "html2pdf.sh"  << "sendDKJAKtos.py" << "printCommandDescription.sh";
 #endif
         for (int j = 0; j < files.size(); ++j){
             QString file = files.at(j);
@@ -245,7 +249,7 @@ bool MainForm::checkPrerequisitesExists()
         }
     }
     if(missingFiles.length()){
-        if(QMessageBox::No == QMessageBox::warning(this, tr("Fehlende Dateien"), tr("Fehlende Dateien:\n") + missingFiles.join("\n") + tr("\nTrotzdem forfahren?\n"), QMessageBox::Yes | QMessageBox::No))
+        if(QMessageBox::No == QMessageBox::warning(this, tr("Fehlende Dateien"), tr("Fehlende Dateien in:\n") + sourcePath + tr("\n") + missingFiles.join("\n") + tr("\nTrotzdem forfahren?\n"), QMessageBox::Yes | QMessageBox::No))
         {
             return false;
         }
@@ -547,6 +551,11 @@ void MainForm::generateJahresDkBestaetigungen()
 
             if(!sendenCheckBox->isChecked())
             {
+                if(nurCheckBox->isChecked())
+                {
+                    QUrl url = QStringLiteral("file://") + fileNamePdf;
+                    QDesktopServices::openUrl(url);
+                }
                 continue;
             }
 
@@ -574,7 +583,9 @@ void MainForm::generateJahresDkBestaetigungen()
             QProcess::startDetached(thunderbirdApp, QStringList() << "-compose" << thunderbirdCompose);
 
             if(nurCheckBox->isChecked())
+            {
                 continue;
+            }
 
             QEventLoop eventLoop;
             continueButton->setEnabled(true);
@@ -845,8 +856,18 @@ void MainForm::updateBuchungenSummen()
     QString zinsenText = "Summe Zinsen zum " + datumBuchungenDkZinsenEdit->text();
     summeBuchungenDkZinsenLabel->setText(zinsenText);
 
+    // DKV2: vStat_aktiverVertraege_thesa
+
+    // CREATE VIEW vStat_aktiverVertraege_thesa AS SELECT *, ROUND(100* Jahreszins/Wert,6) as gewMittel FROM (SELECT count(*) as Anzahl, SUM(Wert) as Wert, SUM(ROUND(Zinssatz *Wert /100,2)) AS Jahreszins,ROUND(AVG(Zinssatz),4) as mittlereRate FROM vVertraege_aktiv WHERE thesa)
+
+    // CREATE VIEW vVertraege_aktiv AS SELECT id ,Kreditorin,Vertragskennung,Zinssatz,Wert,Aktivierungsdatum,Kuendigungsfrist,Vertragsende,thesa,KreditorId FROM vVertraege_aktiv_detail
+
+    // CREATE VIEW vVertraege_aktiv_detail AS SELECT Vertraege.id AS id, Vertraege.Kennung AS Vertragskennung, Vertraege.ZSatz /100. AS Zinssatz, SUM(Buchungen.Betrag) /100. AS Wert, MIN(Buchungen.Datum)  AS Aktivierungsdatum, Vertraege.Kfrist AS Kuendigungsfrist, Vertraege.LaufzeitEnde  AS Vertragsende, Vertraege.thesaurierend AS thesa
+    // , Kreditoren.Nachname || ', ' || Kreditoren.Vorname AS Kreditorin, Kreditoren.id AS KreditorId,Kreditoren.Nachname AS Nachname,Kreditoren.Vorname AS Vorname,Kreditoren.Strasse AS Strasse
+    // ,Kreditoren.Plz AS Plz, Kreditoren.Stadt AS Stadt, Kreditoren.Email AS Email, Kreditoren.IBAN AS Iban, Kreditoren.BIC AS Bic
+    // FROM Vertraege INNER JOIN Buchungen  ON Buchungen.VertragsId = Vertraege.id INNER JOIN Kreditoren ON Kreditoren.id = Vertraege.KreditorId GROUP BY Vertraege.id
+
     QString statementDk = "SELECT SUM(Betrag) FROM DkBuchungen";
-    // QString statementDk = "SELECT SUM(replace(Betrag,',','.')) FROM DkBuchungen";
     int PersonId = getPersonId();
     if((PersonId != -1) && !anzeigenPersonenButton->isChecked()){
         statementDk += " WHERE PersonId=";
@@ -856,8 +877,8 @@ void MainForm::updateBuchungenSummen()
     QString summeDkText = QString::number(summeDk, 'f', 2);
     summeBuchungenDkEdit->setText(summeDkText);
 
-    QString statementDkZinsen = "SELECT SUM( (Betrag * Zinssatz) / 100.0 ) FROM DkBuchungen";
-    // QString statementDkZinsen = "SELECT SUM( replace(Betrag,',','.') * replace(Zinssatz,',','.') / 100.0 ) FROM DkBuchungen";
+    // QString statementDkZinsen = "SELECT ROUND (SUM( (Betrag * Zinssatz) / 100.0 ), 2) FROM DkBuchungen";
+    QString statementDkZinsen = "SELECT ROUND ( (Betrag * Zinssatz) / 100.0 ) FROM DkBuchungen";
     if((PersonId != -1) && !anzeigenPersonenButton->isChecked()){
         statementDkZinsen += " WHERE PersonId=";
         statementDkZinsen += QString::number(PersonId);
@@ -1137,6 +1158,11 @@ void MainForm::updateSummen()
 
     // DKV2: vStat_aktiverVertraege_thesa
     // CREATE VIEW vStat_aktiverVertraege_thesa AS SELECT *, ROUND(100* Jahreszins/Wert,6) as gewMittel FROM (SELECT count(*) as Anzahl, SUM(Wert) as Wert, SUM(ROUND(Zinssatz *Wert /100,2)) AS Jahreszins,ROUND(AVG(Zinssatz),4) as mittlereRate FROM vVertraege_aktiv WHERE thesa)
+    // CREATE VIEW vVertraege_aktiv AS SELECT id ,Kreditorin,Vertragskennung,Zinssatz,Wert,Aktivierungsdatum,Kuendigungsfrist,Vertragsende,thesa,KreditorId FROM vVertraege_aktiv_detail
+    // CREATE VIEW vVertraege_aktiv_detail AS SELECT Vertraege.id AS id, Vertraege.Kennung AS Vertragskennung, Vertraege.ZSatz /100. AS Zinssatz, SUM(Buchungen.Betrag) /100. AS Wert, MIN(Buchungen.Datum)  AS Aktivierungsdatum, Vertraege.Kfrist AS Kuendigungsfrist, Vertraege.LaufzeitEnde  AS Vertragsende, Vertraege.thesaurierend AS thesa
+    // , Kreditoren.Nachname || ', ' || Kreditoren.Vorname AS Kreditorin, Kreditoren.id AS KreditorId,Kreditoren.Nachname AS Nachname,Kreditoren.Vorname AS Vorname,Kreditoren.Strasse AS Strasse
+    // ,Kreditoren.Plz AS Plz, Kreditoren.Stadt AS Stadt, Kreditoren.Email AS Email, Kreditoren.IBAN AS Iban, Kreditoren.BIC AS Bic
+    // FROM Vertraege INNER JOIN Buchungen  ON Buchungen.VertragsId = Vertraege.id INNER JOIN Kreditoren ON Kreditoren.id = Vertraege.KreditorId GROUP BY Vertraege.id
     // QString statementDkZinsen = "SELECT SUM( (Betrag * Zinssatz) / 100.0 ) FROM DkBuchungen";
     QString statementDkZinsen = "SELECT SUM( ROUND((Betrag * Zinssatz / 100.0),2) ) FROM DkBuchungen";
     double summeDkZinsen = getDoubleValue(statementDkZinsen);

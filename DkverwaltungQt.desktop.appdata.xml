@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>DkVerwaltungQt.desktop</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MPL-2.0 and GPL-3.0+</project_license>
+  <name>DkVerwaltungQt</name>
+  <summary>DkVerwaltungQt</summary>
+  <description>
+    <p>DkVerwaltungQt</p>
+  </description>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://github.com/vopor/DkVerwaltungQt/blob/master/F13TurleyGmbH2.gif</image>
+      <caption>DkVerwaltungQt</caption>
+    </screenshot>
+  </screenshots>
+  <url type="homepage">https://github.com/vopor/DkVerwaltungQt</url>
+  <url type="bugtracker">https://github.com/vopor/DkVerwaltungQt</url>
+  <releases>
+    <release version="1.0.0" date="2021-03-13" />
+  </releases>
+</component>

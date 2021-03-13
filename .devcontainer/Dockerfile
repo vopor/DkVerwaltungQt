@@ -23,5 +23,18 @@ RUN apt-get install qt515webengine -y
 # RUN apt-get install qt515svg -y
 # RUN apt-get install qt515websockets -y
  
-RUN wget --no-check-certificate https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage -P /opt
-RUN chmod +x /opt/linuxdeploy-x86_64.AppImage
+RUN wget --no-check-certificate https://github.com/probonopd/linuxdeployqt/releases/download/7/linuxdeployqt-7-x86_64.AppImage -P /opt/linuxdeployqt-7
+RUN chmod a+x  /opt/linuxdeployqt-7/linuxdeployqt-7-x86_64.AppImage
+WORKDIR /opt/linuxdeployqt-7
+RUN /opt/linuxdeployqt-7/linuxdeployqt-7-x86_64.AppImage --appimage-extract
+
+ENV QTDIR=/opt/qt515
+ENV QT_PLUGIN_PATH="$QTDIR/plugins"
+ENV LD_LIBRARY_PATH="$"QTDIR/lib:${LD_LIBRARY_PATH}
+ENV PATH="$QTDIR/bin:${PATH}"
+ENV PATH="/opt/linuxdeployqt-7/squashfs-root/usr/bin:${PATH}"
+
+# WORKDIR /opt/appimagetool-12
+# RUN wget -c "https://github.com/AppImage/AppImageKit/releases/download/12/appimagetool-x86_64.AppImage" -P /opt/appimagetool-12
+# RUN chmod a+x  /opt/appimagetool-12/appimagetool-x86_64.AppImage
+# RUN /opt/appimagetool-12/appimagetool-x86_64.AppImage  --appimage-extract

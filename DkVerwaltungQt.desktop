@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Name=DkVerwaltungQt
+Comment=DkVerwaltungQt
+Exec=DkVerwaltungQt
+Icon=DkVerwaltungQt
+StartupNotify=true
+StartupWMClass=
+Terminal=false
+Type=Application
+Categories=Qt;Office;

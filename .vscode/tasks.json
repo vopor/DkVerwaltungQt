@@ -54,9 +54,12 @@
             "dependsOrder": "sequence"
         },
         {
-            "label": "ubuntu: Debug: Create build folder ",
+            "label": "ubuntu: Debug: Create build folder",
             "type": "shell",
-            "command": "mkdir -p ${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_GCC_64bit-Debug"
+            "command": "mkdir -p ${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_GCC_64bit-Debug",
+            "problemMatcher": [
+                "$go"
+            ]
         },
         {
             "label": "ubuntu: Debug: Run qmake",
@@ -94,10 +97,19 @@
             }
         },
         {
+            "label": "ubuntu: Debug: rm DkVerwaltungQt",
+            "type": "shell",
+            "command": "rm DkVerwaltungQt || true",
+            "options": {
+                "cwd": "${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_GCC_64bit-Debug"
+            }
+        },
+        {
             "label": "ubuntu: Debug: Build",
             "group": "build",
             "dependsOn": [
                 "ubuntu: Debug: Create build folder",
+                "ubuntu: Debug: rm DkVerwaltungQt",
                 "ubuntu: Debug: Run qmake",
                 "ubuntu: Debug: Run make"
             ],

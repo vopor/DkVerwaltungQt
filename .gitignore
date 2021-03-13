@@ -1,6 +1,7 @@
 debug/
 release/
 build-*/
+backup/
 *.db3
 #created from qmake
 .qmake.stash 

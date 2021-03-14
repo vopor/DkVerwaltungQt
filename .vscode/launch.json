@@ -10,14 +10,30 @@
       "type": "lldb",
       "request": "launch",
       "args": [],
-      // "environment": [],
-      "externalConsole": false,
+      "env": {
+        "QTDIR": "${env:HOME}/Qt/5.15.2/clang_64",
+        "DYLD_FRAMEWORK_PATH": "${env:HOME}/Qt/5.15.2/clang_64/lib",
+        "DYLD_LIBRARY_PATH": "${env:HOME}/Qt/5.15.2/clang_64/lib",
+        "QT_PLUGIN_PATH": "${env:HOME}/Qt/5.15.2/clang_64/plugins",
+        "QT_TRANSLATION_PATH": "${env:HOME}/Qt/5.15.2/clang_64/translations",
+        // QT_QPA_PLATFORM_PLUGIN_PATH
+        // "QT_DEBUG_PLUGIN": "1",
+        "PATH": "${env:HOME}/Qt/5.15.2/clang_64/bin:${env:PATH}",        
+        "DYLD_IMAGE_SUFFIX": "_debug",
+        // {"name":"QTDIR", "value":"${env:HOME}/Qt/5.15.2/clang_64"},
+        // {"name":"DYLD_FRAMEWORK_PATH", "value":"${env:HOME}/Qt/5.15.2/clang_64/lib"},
+        // {"name":"DYLD_LIBRARY_PATH", "value":"${env:HOME}/Qt/5.15.2/clang_64/lib"},
+        // {"name":"PATH", "value":"${env:HOME}/Qt/5.15.2/clang_64/bin:${env:PATH}"},        
+        // {"name":"DYLD_IMAGE_SUFFIX", "value":"_debug"},        
+      },
+      "sourceMap": { "/Users/qt/work/qt" : "${env:HOME}/Qt/5.15.2/Src" },
+      // "externalConsole": false,
       // "MIMode": "lldb",
 
       "program": "${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_clang_64bit-Debug/DkVerwaltungQt.app/Contents/MacOS/DkVerwaltungQt",
       // "program": "${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_clang_64bit-Debug/DkVerwaltungQt.app",
       "cwd": "${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_clang_64bit-Debug",
-      "stopAtEntry": false,
+      // "stopAtEntry": false,
       // "customLaunchSetupCommands": [
       //   { "text": "target-run", "description": "run target", "ignoreFailures": false }
       // ],

@@ -20,6 +20,7 @@ void writeHtmlTextToPdfFile(const QString &fileName, const QString &str);
 void convertHtmlFileToPdfFile(const QString &fileNameHtml, const QString &fileNamePdf);
 void convertHtmlFileToPdfFileSimple(const QString &fileNameHtml, const QString &fileNamePdf);
 QString escapeFileName(const QString &fileName);
+void dumpEnv(char **env);
 
 //--------------------------------------------------------------
 // DkVerwaltungQt-Funktionen

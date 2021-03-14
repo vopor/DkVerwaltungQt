@@ -8,8 +8,11 @@
 
 #include "dbfkts.h"
 
-int main(int argc, char *argv[])
+int main(int argc, char *argv[], char *env[])
 {
+#ifdef QT_DEBUG    
+    dumpEnv(env);
+#endif    
     QApplication::setApplicationName("DkVerwaltungQt");
     QApplication::setOrganizationName("MHS");
 

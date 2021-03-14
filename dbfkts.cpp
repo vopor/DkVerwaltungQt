@@ -101,6 +101,15 @@ QString escapeFileName(const QString &fileName)
     ret = ret.replace("/", "+");
     return ret;
 }
+
+void dumpEnv(char **env)
+{
+    int i;
+    for (i=0 ; env[i] ; i++)
+        qDebug() << env[i];
+    qDebug() << Qt::endl;
+}
+
 //--------------------------------------------------------------
 // DkVerwaltungQt-Funktionen
 //--------------------------------------------------------------

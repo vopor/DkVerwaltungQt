@@ -1,0 +1,88 @@
+
+FROM ghcr.io/linuxserver/baseimage-guacgui
+
+#
+# cd $HOME/Documents/GitHub/DkVerwaltungQt/guac-gui
+# docker build -t dkverwaltungqt-dev -f DockerfileDev .
+# docker run   -p 8080:8080 -p 3389:3389 -v $HOME/Documents/GitHub/DkVerwaltungQt/build-DkVerwaltungQt-Desktop_Qt_5_15_2_GCC_64bit-Debug:/opt/DkVerwaltungQt -v $HOME/Documents/DkVerwaltungQt/guac-daten:/config -d --restart unless-stopped dkverwaltungqt-dev
+# 
+
+ENV APPNAME="DkVerwaltungQt"
+
+ENV PUID=1000
+ENV PGID=1000
+ENV TZ=Europe/London
+# abc #optional
+# ENV GUAC_USER=
+# 900150983cd24fb0d6963f7d28e17f72 #optional
+# ENV GUAC_PASS=
+# optional
+ENV UMASK_SET=022
+# optional
+# ENV CLI_ARGS=
+    
+# VOLUMES /config
+
+ENV DISPLAY=:1
+
+EXPOSE 8080:8080/tcp
+EXPOSE 8081:8081/tcp
+
+# Azure
+# EXPOSE 80/tcp
+
+# ENV APPNAME="DkVerwaltungQt" UMASK_SET="022"
+
+RUN \
+ echo "**** install runtime packages ****" && \
+ apt-get update && \
+ apt-get install -y --no-install-recommends \
+	dbus \
+	fcitx-rime \
+	fonts-wqy-microhei \
+	jq \
+	libqpdf21 \
+	libxkbcommon-x11-0 \
+	libxcb-icccm4 \
+	libxcb-image0 \
+	libxcb-keysyms1 \
+	libxcb-randr0 \
+	libxcb-render-util0 \
+	libxcb-xinerama0 \
+	python3 \
+	python3-xdg \
+	ttf-wqy-zenhei \
+	wget \
+	xz-utils
+
+RUN dbus-uuidgen > /etc/machine-id
+
+# RUN mkdir -p /opt/DkVerwaltungQt/
+# COPY . /opt/DkVerwaltungQt/
+
+# Install Qt
+RUN apt-get update && \
+    apt-get install software-properties-common -y  && \
+	apt install mesa-common-dev -y  && \
+	apt install libglu1-mesa-dev -y  && \
+	add-apt-repository ppa:beineri/opt-qt-5.15.2-bionic  && \
+	apt-get update  && \
+	apt-get install qt515base -y  && \
+	apt-get install qt515tools -y  && \
+	apt-get install qt515multimedia -y  && \
+	apt-get install qt515xmlpatterns -y  && \
+	apt-get install qt515webengine -y  && \
+	apt-get install qt515svg -y  && \
+	apt-get install qt515websockets -y
+
+ARG QT_MAJOR=5
+ARG QT_MINOR=15
+ARG QT_REVISION=2
+
+ENV QTDIR=/opt/qt${QT_MAJOR}${QT_MINOR}
+ENV LD_LIBRARY_PATH="$QTDIR/lib:${LD_LIBRARY_PATH}"
+ENV QT_PLUGIN_PATH="$QTDIR/plugins"
+
+RUN echo QTDIR="${QTDIR}"
+RUN echo LD_LIBRARY_PATH="${LD_LIBRARY_PATH}"
+RUN echo QT_PLUGIN_PATH="${QT_PLUGIN_PATH}"

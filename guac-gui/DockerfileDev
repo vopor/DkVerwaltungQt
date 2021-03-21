@@ -4,7 +4,7 @@ FROM ghcr.io/linuxserver/baseimage-guacgui
 #
 # cd $HOME/Documents/GitHub/DkVerwaltungQt/guac-gui
 # docker build -t dkverwaltungqt-dev -f DockerfileDev .
-# docker run   -p 8080:8080 -p 3389:3389 -v $HOME/Documents/GitHub/DkVerwaltungQt/build-DkVerwaltungQt-Desktop_Qt_5_15_2_GCC_64bit-Debug:/opt/DkVerwaltungQt -v $HOME/Documents/DkVerwaltungQt/guac-daten:/config -d --restart unless-stopped dkverwaltungqt-dev
+# docker run   -p 8080:8080 -p 3389:3389 -e QTWEBENGINE_DISABLE_SANDBOX=1 -v $HOME/Documents/GitHub/DkVerwaltungQt/build-DkVerwaltungQt-Desktop_Qt_5_15_2_GCC_64bit-Debug:/opt/DkVerwaltungQt -v $HOME/Documents/DkVerwaltungQt:/config -d --restart unless-stopped dkverwaltungqt-dev
 # 
 
 ENV APPNAME="DkVerwaltungQt"
@@ -80,7 +80,8 @@ ARG QT_MINOR=15
 ARG QT_REVISION=2
 
 ENV QTDIR=/opt/qt${QT_MAJOR}${QT_MINOR}
-ENV LD_LIBRARY_PATH="$QTDIR/lib:${LD_LIBRARY_PATH}"
+# ENV LD_LIBRARY_PATH="$QTDIR/lib:${LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH="$QTDIR/lib"
 ENV QT_PLUGIN_PATH="$QTDIR/plugins"
 
 RUN echo QTDIR="${QTDIR}"

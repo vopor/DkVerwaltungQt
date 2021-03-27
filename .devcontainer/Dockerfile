@@ -30,7 +30,7 @@ RUN /opt/linuxdeployqt-7/linuxdeployqt-7-x86_64.AppImage --appimage-extract
 
 ENV QTDIR=/opt/qt515
 ENV QT_PLUGIN_PATH="$QTDIR/plugins"
-ENV LD_LIBRARY_PATH="$"QTDIR/lib:${LD_LIBRARY_PATH}
+ENV LD_LIBRARY_PATH="$QTDIR/lib:${LD_LIBRARY_PATH}"
 ENV PATH="$QTDIR/bin:${PATH}"
 ENV PATH="/opt/linuxdeployqt-7/squashfs-root/usr/bin:${PATH}"
 

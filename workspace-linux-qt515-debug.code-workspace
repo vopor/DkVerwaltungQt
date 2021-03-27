@@ -1,0 +1,92 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"terminal.integrated.env.linux": {
+			"PATH": "/opt/qt515/bin:${env:PATH}",
+			"QTDIR": "/opt/qt515",
+			"OUT_PWD": "${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_GCC_64bit-Debug",
+		}
+	},
+    "tasks": {
+		"version": "2.0.0",
+		"tasks": [
+		{
+			"label": "ubuntu: Debug: Create build folder",
+			"type": "shell",
+			"command": "mkdir -p ${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_GCC_64bit-Debug",
+			"problemMatcher": [
+				"$go"
+			]
+		},
+		{
+			"label": "ubuntu: Debug: Run qmake",
+			"type": "shell",
+			"command": "/opt/qt515/bin/qmake",
+			"args": [
+				"${workspaceFolder}/DkVerwaltungQt.pro",
+				"-spec",
+				"linux-g++",
+				"CONFIG+=debug",
+				"CONFIG+=x86_64",
+				"CONFIG+=qml_debug",
+				"CONFIG-=separate_debug_info"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_GCC_64bit-Debug"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "ubuntu: Debug: Run make",
+			"type": "shell",
+			"command": "make",
+			"options": {
+				"cwd": "${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_GCC_64bit-Debug"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "ubuntu: Debug: Clean build folder",
+			"type": "shell",
+			"command": "make clean",
+			"options": {
+				"cwd": "${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_GCC_64bit-Debug"
+			}
+		},
+		{
+			"label": "ubuntu: Debug: rm DkVerwaltungQt",
+			"type": "shell",
+			"command": "rm DkVerwaltungQt || true",
+			"options": {
+				"cwd": "${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_GCC_64bit-Debug"
+			}
+		},
+		{
+			"label": "ubuntu: Debug: Build",
+			"group": "build",
+			"dependsOn": [
+				"ubuntu: Debug: Create build folder",
+				"ubuntu: Debug: rm DkVerwaltungQt",
+				"ubuntu: Debug: Run qmake",
+				"ubuntu: Debug: Run make"
+			],
+			"dependsOrder": "sequence",
+			"problemMatcher": [
+				"$eslint-stylish"
+			]
+		},
+		{
+			"label": "ubuntu: Debug: deploy appdir",
+			"command": "${workspaceFolder}/deploylinux.sh",
+			"args": [
+				"${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_GCC_64bit-Debug",
+				"/opt/qt515",
+			],
+		},
+		],
+	},
+}

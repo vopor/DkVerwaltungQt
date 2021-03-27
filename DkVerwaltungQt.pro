@@ -41,35 +41,9 @@ QMAKE_POST_LINK +=  && $${COPY} $${PWD}/mail-content.txt $${OUT_PWD}/
 macx:QMAKE_POST_LINK +=  && $${COPY} $${PWD}/sendDKJAKtos.py $${OUT_PWD}/
 macx:QMAKE_POST_LINK +=  && $${COPY} $${PWD}/printCommandDescription.sh $${OUT_PWD}/
 
-if(true) {
-    unix:!macx::QMAKE_POST_LINK +=  && $${PWD}/deploylinux.sh $${OUT_PWD}
-} else {
-# LINUX_DEPLOY_QT="/opt/linuxdeploy-x86_64.AppImage --appimage-extract-and-run "
-LINUX_DEPLOY_QT="/opt/linuxdeployqt-7/squashfs-root/AppRun "
-APPIMAGETOOL="/opt/appimagetool-12/squashfs-root/AppRun "
-
-unix:!macx::QMAKE_POST_LINK +=  && mkdir -p $${OUT_PWD}/appdir/usr/bin
-unix:!macx::QMAKE_POST_LINK +=  && cp $${TARGET} $${OUT_PWD}/appdir/usr/bin/
-# install(FILES distri/${PROJECT_NAME}.desktop DESTINATION share/applications/)
-unix:!macx::QMAKE_POST_LINK +=  && mkdir -p $${OUT_PWD}/appdir/usr/share/applications
-unix:!macx::QMAKE_POST_LINK +=  && cp $${PWD}/$${TARGET}.desktop $${OUT_PWD}/appdir/usr/share/applications/
-
-# install(FILES distri/${PROJECT_NAME}.desktop.appdata.xml DESTINATION share/metainfo/)
-unix:!macx::QMAKE_POST_LINK +=  && mkdir -p $${OUT_PWD}/appdir/usr/share/metainfo
-unix:!macx::QMAKE_POST_LINK +=  && cp $${PWD}/$${TARGET}.desktopappdata.xml $${OUT_PWD}/appdir/usr/share/metainfo/
-
-# install(FILES images/logo.svg DESTINATION share/icons/hicolor/scalable/apps/ RENAME ${PROJECT_NAME}.svg)
-unix:!macx::QMAKE_POST_LINK += && mkdir -p $${OUT_PWD}/appdir/usr/share/icons/hicolor/scalable/apps
-unix:!macx::QMAKE_POST_LINK += && cp $${PWD}/$${TARGET}.svg $${OUT_PWD}/appdir/usr/share/icons/hicolor/scalable/apps/
-
-# install(FILES src/icons/${PROJECT_NAME}.png DESTINATION share/icons/hicolor/256x256/apps/)
-# unix:!macx::QMAKE_POST_LINK += && mkdir -p $${OUT_PWD}/appdir/usr/share/icons/hicolor/256x256/apps/
-# unix:!macx::QMAKE_POST_LINK += && cp $${PWD}/$${TARGET}.svg $${OUT_PWD}/appdir/usr/share/icons/hicolor/256x256/apps/
-
-unix:!macx::QMAKE_POST_LINK += && $${LINUX_DEPLOY_QT} $${OUT_PWD}/appdir/usr/share/applications/*.desktop -appimage -unsupported-allow-new-glibc
+CONFIG( release, debug|release ){
+   unix:!macx::QMAKE_POST_LINK +=  && $${PWD}/deploylinux.sh $${OUT_PWD}
 }
-
-# unix:!macx::QMAKE_POST_LINK += && mv $${OUT_PWD}/appdir/$${TARGET}.AppImage $${OUT_PWD}/
 
 QMAKE_POST_LINK += && echo finished post link steps...
 

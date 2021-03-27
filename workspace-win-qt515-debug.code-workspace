@@ -1,0 +1,69 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"terminal.integrated.env.osx": {
+			"PATH": "/Users/volker/Qt/5.15.2/clang_64/bin:${env:PATH}",
+			"QTDIR": "/Users/volker/Qt/5.15.2/clang_64",
+			"OUT_PWD": "${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_clang_64bit-Debug",
+		},
+	},
+    "tasks": {
+		"version": "2.0.0",
+		"tasks": [
+        {
+            "label": "macOS: Debug: Create build folder",
+            "type": "shell",
+            "command": "mkdir -p ${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_clang_64bit-Debug",
+        },
+        {
+            "label": "macOS: Debug: Run qmake",
+            "type": "shell",
+            "command": "/Users/volker/Qt/5.15.2/clang_64/bin/qmake",
+            "args": [
+                "${workspaceFolder}/DkVerwaltungQt.pro",
+                "-spec",
+                "macx-clang",
+                "CONFIG+=debug",
+                "CONFIG+=x86_64",
+                "CONFIG+=qml_debug",
+                "CONFIG-=separate_debug_info"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_clang_64bit-Debug"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "macOS: Debug: Run make",
+            "type": "shell",
+            "command": "make",
+            "options": {
+                "cwd": "${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_clang_64bit-Debug"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "macOS: Debug: Clean build folder",
+            "type": "shell",
+            "command": "make clean",
+            "options": {
+                "cwd": "${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_clang_64bit-Debug"
+            }
+        },
+        {
+            "label": "macOS: Debug: Build",
+            "group": "build",
+            "dependsOn": [
+                "macOS: Debug: Create build folder",
+                "macOS: Debug: Run qmake",
+                "macOS: Debug: Run make"
+            ],
+            "dependsOrder": "sequence"
+        },
+	],
+	},
+}

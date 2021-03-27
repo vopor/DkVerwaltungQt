@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"terminal.integrated.env.osx": {
+			"PATH": "/Users/volker/Qt/5.15.2/clang_64/bin:${env:PATH}",
+			"QTDIR": "/Users/volker/Qt/5.15.2/clang_64",
+			"OUT_PWD": "${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_clang_64bit-Debug",
+		}
+	}
+}

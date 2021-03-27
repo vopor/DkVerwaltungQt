@@ -31,7 +31,7 @@ class PersonForm : public QDialog
     Q_OBJECT
 
 public:
-    PersonForm(QWidget *parent, QSqlTableModel *perosnenModel, int PersonId);
+    PersonForm(QWidget *parent, QSqlTableModel *personenModel, int PersonId);
 
     void done(int result);
 

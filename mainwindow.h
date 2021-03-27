@@ -17,6 +17,8 @@ public:
 signals:
 
 private slots:
+    void openDatabase();
+    void anonymizeDatabase();
     void showAnsparrechner();
 
 };

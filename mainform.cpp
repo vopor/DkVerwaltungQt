@@ -896,6 +896,12 @@ void MainForm::updateBuchungenSummen()
     summeBuchungenDkZinsenEdit->setText(summeDkZinsenText);
 }
 
+void MainForm::updateViews()
+{
+    updatePersonenView();
+    updateSummen();
+}
+
 void MainForm::updatePersonenView()
 {
     QModelIndex index = personenView->currentIndex();

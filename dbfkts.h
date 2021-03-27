@@ -27,6 +27,10 @@ void dumpEnv(char **env);
 //--------------------------------------------------------------
 
 bool createConnection(const QString &dbName);
+bool openConnection(const QString &dbName);
+bool closeConnection(const QString &dbName);
+void anonymizeDatabase();
+void displayLastSqlError();
 
 QString getExecutablePath();
 QString getResouresPath();
@@ -35,7 +39,7 @@ QString getSettingsFile();
 QSettings &getSettings();
 QString getFilePathFromIni(const QString &iniEntry, const QString &filePath, const QString &fileName);
 QString getOpenOfficePath();
-QString readStringFromIni(const QString &key, const QString &defaultValue);
+QString getStringFromIni(const QString &key, const QString &defaultValue);
 void setStringToIni(const QString &key, const QString &value);
 QString getThunderbirdPath();
 QString getTestUserEmailAdress();

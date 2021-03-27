@@ -24,6 +24,9 @@ class MainForm : public QWidget
 public:
     MainForm(QWidget *parent);
 
+public slots:
+    void updateViews();
+
 private slots:
 
     void updatePersonenView();

@@ -22,19 +22,35 @@ int main(int argc, char *argv[], char *env[])
     QApplication app(argc, argv);
 
     qDebug() << "settings: " << getSettings().fileName();
-    QString dbPath = getFilePathFromIni("DBPath", getStandardPath(), "DkVerwaltungQt.db3");
-    qDebug() << "dbPath: " << dbPath;
-    if(!dbPath.length())
-        return 1;
-    bool existingData = QFile::exists(dbPath);
-    if (!existingData){
-        QMessageBox::warning(0, QStringLiteral("Datenbank Fehler"),
-                         dbPath + QStringLiteral(" existiert nicht!"));
-        return 2;
-    }
+    QString dbPath = getStandardPath() + QDir::separator() + "DkVerwaltungQt.db3";
+    dbPath = getStringFromIni("DBPath", dbPath);
+    qDebug() << "dbPath from ini: " << dbPath;
     if (!createConnection(dbPath))
-        return 1;
+    {
+        bool existingData = QFile::exists(dbPath);
+        if (!existingData)
+        {
+            int mbr = QMessageBox::warning(0, QStringLiteral("Datenbank Fehler"),
+                             dbPath + QStringLiteral(" existiert nicht! Soll die Datenbank angelegt werden?"), QMessageBox::Yes | QMessageBox::No);
+            if(mbr != QMessageBox::Yes)
+            {
+                return 1;
 
+            }
+            dbPath = getFilePathFromIni("DBPath", getStandardPath(), "DkVerwaltungQt.db3");
+            if (!QFile::exists(dbPath))
+            {
+                QMessageBox::warning(0, QStringLiteral("Datenbank Fehler"),
+                                     dbPath + QStringLiteral(" existiert nicht!l"), QMessageBox::Ok);
+                return 2;
+            }
+            if (!createConnection(dbPath))
+            {
+                return 3;
+            }
+        }
+    }
+    qDebug() << "connection: " << dbPath;
     MainWindow mw;
     mw.show();
     return app.exec();

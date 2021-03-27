@@ -117,12 +117,61 @@ void dumpEnv(char **env)
 bool createConnection(const QString &dbName)
 {
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+    bool dbExisted = QFileInfo(dbName).exists();
+    bool ret = openConnection(dbName);
+    if(ret)
+    {
+        if(!dbExisted)
+        {
+            db.exec("CREATE TABLE DKPersonen (PersonId INTEGER PRIMARY KEY AUTOINCREMENT, Vorname TEXT, Name TEXT, Anrede TEXT, Straße TEXT, PLZ TEXT, Ort TEXT, Email TEXT);");
+            displayLastSqlError();
+            db.exec("CREATE TABLE DKBuchungen (BuchungId INTEGER PRIMARY KEY AUTOINCREMENT, PersonId INTEGER, Datum TEXT, DKNr TEXT, DKNummer TEXT, Rueckzahlung TEXT, vorgemerkt TEXT, Betrag REAL, Zinssatz REAL, Bemerkung TEXT, Anfangsdatum TEXT, AnfangsBetrag REAL, FOREIGN KEY(PersonId) REFERENCES DKPerson(PersonId));");
+            displayLastSqlError();
+            db.exec("CREATE TABLE DKZinssaetze (Zinssatz REAL PRIMARY KEY, Beschreibung TEXT);");
+            displayLastSqlError();
+        }
+    }
+    return ret;
+}
+
+void anonymizeDatabase()
+{
+    QSqlDatabase db = QSqlDatabase::database();
+    QString anonymizeDkPersonen = "UPDATE DkPersonen SET Vorname='Vorname_' || PersonId, Name='Name_' || PersonId, Anrede='Anrede_' || PersonId, Straße='Straße_' || PersonId, PLZ='PLZ_' || PersonId, Ort='Ort_' || PersonId, Email='Email_' || PersonId";
+    db.exec(anonymizeDkPersonen);
+    displayLastSqlError();
+    QString anonymizeDkBuchungen = "UPDATE DkBuchungen SET Bemerkung='Bemerkung_' || BuchungId";
+    db.exec(anonymizeDkBuchungen);
+    displayLastSqlError();
+}
+
+void displayLastSqlError()
+{
+    QSqlDatabase db = QSqlDatabase::database();
+    QSqlError sqlError = db.lastError();
+    QString text = sqlError.text();
+    if(text.length())
+    {
+        QMessageBox::warning(0, QObject::tr("Database Error"), db.lastError().text());
+    }
+}
+
+bool openConnection(const QString &dbName)
+{
+    QSqlDatabase db = QSqlDatabase::database();
     db.setDatabaseName(dbName);
     if (!db.open()) {
         QMessageBox::warning(0, QObject::tr("Database Error"),
                              db.lastError().text());
         return false;
     }
+    return true;
+}
+
+bool closeConnection(const QString &dbName)
+{
+    QSqlDatabase db = QSqlDatabase::database();
+    db.close();
     return true;
 }
 

@@ -52,6 +52,7 @@ int main(int argc, char *argv[], char *env[])
     }
     qDebug() << "connection: " << dbPath;
     MainWindow mw;
+    mw.setWindowTitle("DkVerwaltungQt - [" + dbPath + "]");
     mw.show();
     return app.exec();
 }

@@ -62,6 +62,8 @@ bool BuchungenSortFilterProxyModel::lessThan(const QModelIndex & source_left, co
 
 MainForm::MainForm(QWidget *parent) : QWidget(parent)
 {
+    setWindowTitle("DkVerwaltungQt");
+
     createAnzeigenPersonenPanel();
     createPersonenPanel();
     createBuchungenPanel();

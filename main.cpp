@@ -8,8 +8,76 @@
 
 #include "dbfkts.h"
 
+#ifndef Q_OS_WIN
+
+#include <unistd.h>
+#include <sys/time.h>
+
+QString getCurrentTimeString()
+{
+    char buf[64] = "";
+    char fmt[64];
+    struct timeval tv;
+    struct tm *tm;
+
+    gettimeofday (&tv, NULL);
+    tm = localtime (&tv.tv_sec);
+    strftime (fmt, sizeof (fmt), "%H:%M:%S:%%06u", tm);
+    snprintf (buf, sizeof (buf), fmt, tv.tv_usec);
+    return buf;
+}
+
+#else
+
+QString getCurrentTimeString()
+{
+    return QString();
+}
+
+#endif
+
+static QtMessageHandler oldMessageHandler = nullptr;
+void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    oldMessageHandler(type, context, msg);
+
+    QString timestring = getCurrentTimeString();
+    QString msg_timestring = timestring + " " + msg;
+
+    QString outputFilename = getStandardPath() + QDir::separator() + "DkVerwaltungQt.log" ;
+    QFile outputFile( outputFilename );
+    outputFile.open( QIODevice::WriteOnly | QIODevice::Append);
+    QTextStream outputStream( &outputFile );
+    outputStream << msg_timestring << Qt::endl;
+    outputFile.close();
+
+    return;
+
+    QByteArray localMsg = msg.toLocal8Bit();
+    const char *file = context.file ? context.file : "";
+    const char *function = context.function ? context.function : "";
+    switch (type) {
+    case QtDebugMsg:
+        fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), file, context.line, function);
+        break;
+    case QtInfoMsg:
+        fprintf(stderr, "Info: %s (%s:%u, %s)\n", localMsg.constData(), file, context.line, function);
+        break;
+    case QtWarningMsg:
+        fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), file, context.line, function);
+        break;
+    case QtCriticalMsg:
+        fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), file, context.line, function);
+        break;
+    case QtFatalMsg:
+        fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), file, context.line, function);
+        break;
+    }
+}
+
 int main(int argc, char *argv[], char *env[])
 {
+    oldMessageHandler = qInstallMessageHandler(myMessageOutput);
 #ifdef QT_DEBUG    
     dumpEnv(env);
 #endif    

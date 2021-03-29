@@ -12,32 +12,7 @@
 import os
 import sys
 import csv
-# from faker import Faker
 from collections import defaultdict
-
-def anonymize_rows_xxx(rows):
-    """
-    Rows is an iterable of dictionaries that contain name and
-    email fields that need to be anonymized.
-    """
-    # Load the faker and its providers
-    faker  = Faker()
-    # Create mappings of names & emails to faked names & emails.
-    names  = defaultdict(faker.name)
-    emails = defaultdict(faker.email)
-    # Iterate over the rows and yield anonymized rows.
-    for row in rows:
-        # Replace the name and email fields with faked fields.
-        row['name']  = names[row['name']]
-        row['email'] = emails[row['email']]
-        # Yield the row back to the caller
-        yield row
-
-    # with open(DkVerwaltung_csv_file, 'r') as f: # , newline=''
-    #     reader = csv.DictReader(f)
-    #     print reader.fieldnames
-    #     # for row in reader:
-    #     #     print row
 
 def anonymize_rows(rows):
     """

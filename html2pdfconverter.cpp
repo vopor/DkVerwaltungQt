@@ -1,5 +1,7 @@
 #include "html2pdfconverter.h"
 
+#include <QDebug>
+
 using namespace std;
 
 Html2PdfConverter::Html2PdfConverter(QString inputPath, QString outputPath)
@@ -28,7 +30,7 @@ int Html2PdfConverter::run()
 void Html2PdfConverter::loadFinished(bool ok)
 {
     if (!ok) {
-        QTextStream(stderr)
+        qDebug() // QTextStream(stderr)
             << tr("failed to load URL '%1'").arg(m_inputPath) << "\n";
         m_eventLoop.exit(1);
         return;
@@ -48,7 +50,7 @@ void Html2PdfConverter::loadFinished(bool ok)
 void Html2PdfConverter::pdfPrintingFinished(const QString &filePath, bool success)
 {
     if (!success) {
-        QTextStream(stderr)
+        qDebug() // QTextStream(stderr)
             << tr("failed to print to output file '%1'").arg(filePath) << "\n";
         m_eventLoop.exit(1);
     } else {

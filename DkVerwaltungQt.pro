@@ -60,7 +60,8 @@ HEADERS += mainform.h \
     mainwindow.h \
     personform.h \
     buchungform.h \
-    dbfkts.h
+    dbfkts.h \
+    webenginepdfviewer.h
 
 SOURCES += main.cpp \
     $$PWD/mainform.cpp \
@@ -69,4 +70,5 @@ SOURCES += main.cpp \
     mainwindow.cpp \
     personform.cpp \
     buchungform.cpp \
-    dbfkts.cpp
+    dbfkts.cpp \
+    webenginepdfviewer.cpp

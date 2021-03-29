@@ -16,6 +16,8 @@
 
 #include "html2pdfconverter.h"
 
+#include "webenginepdfviewer.h"
+
 #include "qdebug.h"
 
 //--------------------------------------------------------------
@@ -88,6 +90,17 @@ void convertHtmlFileToPdfFileSimple(const QString &fileNameHtml, const QString &
         delete document;
     }
 
+}
+
+void showPdfFile(const QString &fileNamePdf)
+{
+    PdfViewer &w = *(new PdfViewer(fileNamePdf));
+    w.setAttribute(Qt::WA_DeleteOnClose);
+    w.resize(640, 480);
+    w.show();
+    // QEventLoop eventLoop;
+    // QObject::connect(&w, SIGNAL(finished()), &eventLoop, SLOT(quit()));
+    // eventLoop.exec();
 }
 
 QString escapeFileName(const QString &fileName)
@@ -423,7 +436,11 @@ qDebug() << QString("%1 years, %2 months and %3 days").arg(years).arg(months).ar
 
 int getAnzTage(const QDate &dateFrom, const QDate &dateTo, bool inclLastDay)
 {
-   Q_ASSERT(dateFrom.year() == dateTo.year());
+   // Q_ASSERT(dateFrom.year() == dateTo.year());
+   if(dateFrom.year() != dateTo.year())
+   {
+       qDebug() << "getAnzTage: " << dateFrom << " " << dateTo;
+   }
    int anzTage = getAnzTageJahr();
    if(dateFrom.isValid() && dateTo.isValid())
    {
@@ -438,7 +455,11 @@ int getAnzTage(const QDate &dateFrom, const QDate &dateTo, bool inclLastDay)
 
 int getAnzTageNew(const QDate &dateFrom, const QDate &dateTo, bool inclLastDay)
 {
-   Q_ASSERT(dateFrom.year() == dateTo.year());
+   // Q_ASSERT(dateFrom.year() == dateTo.year());
+   if(dateFrom.year() != dateTo.year())
+   {
+       qDebug() << "getAnzTage: " << dateFrom << " " << dateTo;
+   }
    int anzTage = getAnzTageJahr();
    if(dateFrom.isValid() && dateTo.isValid())
    {

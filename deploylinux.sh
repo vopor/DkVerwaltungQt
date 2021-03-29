@@ -61,6 +61,8 @@ cp "$SRC_DIR"/Zinsbescheinigung.html "$OUT_DIR"/appdir/ # usr/bin/
 cp "$SRC_DIR"/F13TurleyGmbH2.gif "$OUT_DIR"/appdir/ # usr/bin/ 
 cp "$SRC_DIR"/mail-content.txt "$OUT_DIR"/appdir/ # usr/bin/ 
 
+cp -r "$SRC_DIR"/guac-gui/root "$OUT_DIR"/appdir/
+
 # mkdir -p "$OUT_DIR"/appdir/usr/share/applications
 # cp "$SRC_DIR"/$APPNAME.desktop "$OUT_DIR"/appdir/usr/share/applications/ 
 

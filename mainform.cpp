@@ -549,14 +549,26 @@ void MainForm::generateJahresDkBestaetigungen()
 
             QString fileNamePdf = personFileNameHtml;
             fileNamePdf = fileNamePdf.replace(".html", ".pdf");
+            qDebug() << "convertHtmlFileToPdfFile " << personFileNameHtml << " => " << fileNamePdf;
             convertHtmlFileToPdfFile(personFileNameHtml, fileNamePdf);
-
             if(!sendenCheckBox->isChecked())
             {
                 if(nurCheckBox->isChecked())
                 {
-                    QUrl url = QStringLiteral("file://") + fileNamePdf;
-                    QDesktopServices::openUrl(url);
+                    if(!QFileInfo(fileNamePdf).exists())
+                    {
+                        QMessageBox::critical(this, tr("Fehler"), fileNamePdf + tr(" konnte nicht erzeugt werden."), QMessageBox::Ok);
+                    }
+                    else
+                    {
+                        int mbr = QMessageBox::question(this, "Pdf-Datei anzeigen?", fileNamePdf, QMessageBox::Yes | QMessageBox::No);
+                        if (mbr == QMessageBox::Yes)
+                        {
+                            // QUrl url = QStringLiteral("file://") + fileNamePdf;
+                            // QDesktopServices::openUrl(url);
+                            showPdfFile(fileNamePdf);
+                        }
+                    }
                 }
                 continue;
             }
@@ -983,11 +995,11 @@ void MainForm::deletePerson()
     if (query.next())
         anzBuchungen = query.value(0).toInt();
     if (anzBuchungen > 0) {
-        int r = QMessageBox::warning(this, tr("Person löschen"),
+        int mbr = QMessageBox::warning(this, tr("Person löschen"),
                     tr("%1 und alle Buchunngen löschen?")
                     .arg(record.value(DkPersonen_Name).toString()),
                     QMessageBox::Yes | QMessageBox::No);
-        if (r == QMessageBox::No) {
+        if (mbr == QMessageBox::No) {
             QSqlDatabase::database().rollback();
             return;
         }

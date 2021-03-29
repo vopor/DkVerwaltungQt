@@ -26,11 +26,11 @@ RUN \
 RUN dbus-uuidgen > /etc/machine-id
 
 #
-# appdir
+# cd $HOME/Documents/GitHub/DkVerwaltungQt/build-DkVerwaltungQt-Desktop_Qt_5_15_2_GCC_64bit-Debug/appdir 
+# cp -r $HOME/Documents/GitHub/DkVerwaltungQt/guac-gui/root ./
+# docker build -t dkverwaltungqtaz -f $HOME/Documents/GitHub/DkVerwaltungQt/guac-gui/Dockerfile .
 #
-# docker build -t dkverwaltungqt-dev -f Dockerfile .
-#
-# docker run   -p 8080:8080 -p 3389:3389 -v $HOME/Documents/DkVerwaltungQt/guac-daten:/config -d --restart unless-stopped dkverwaltungqt
+# docker run --name dkverwaltungqt_container  -p 8080:8080 -p 3389:3389 -v $HOME/Documents/DkVerwaltungQt/guac-daten:/config -d --restart unless-stopped dkverwaltungqt
 #
 
 ENV APPNAME="DkVerwaltungQt"
@@ -51,11 +51,10 @@ ENV UMASK_SET=022
 
 ENV DISPLAY=:1
 
-# EXPOSE 8080:8080/tcp
-EXPOSE 8081:8081/tcp
-
 # Azure
-EXPOSE 80:8080/tcp
+# EXPOSE 80:8080/tcp
+EXPOSE 8080:8080/tcp
+EXPOSE 8081:8081/tcp
 
 # ENV APPNAME="DkVerwaltungQt" UMASK_SET="022"
 
@@ -66,16 +65,20 @@ EXPOSE 80:8080/tcp
 # 	/var/lib/apt/lists/* \
 # 	/var/tmp/*
 
+ENV QTWEBENGINE_DISABLE_SANDBOX 1
+
 # add local files
-# COPY root/ /
+COPY root/ /
 
 RUN mkdir -p /opt/DkVerwaltungQt/
 
 COPY . /opt/DkVerwaltungQt/
 
 RUN mkdir -p /opt/DkVerwaltungQt/runtime_dir
-
 ENV XDG_RUNTIME_DIR=/opt/DkVerwaltungQt/runtime_dir
+
+RUN ln -s /opt/DkVerwaltungQt/DkVerwaltungQt /usr/bin/DkVerwaltungQt
+RUN chmod ugo+x /usr/bin/DkVerwaltungQt
 
 # WORKDIR /opt/DkVerwaltungQt/
 

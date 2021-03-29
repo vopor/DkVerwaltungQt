@@ -127,11 +127,6 @@ try:
     stmt.execute("UPDATE DkBuchungen SET Anfangsbetrag = CAST(replace(replace(substr(Bemerkung, instr(Bemerkung, 'Betrag: ') + 8), '.', ''), ',', '.') AS FLOAT) WHERE instr(Bemerkung, 'neu angelegt') <> 0;")
     print "Anzahl DkBuchungen Anfangsbetrag gesetzt: ", stmt.rowcount
     conn.commit()
-    # with open(DkVerwaltung_csv_file, 'r') as f: # , newline=''
-    #     reader = csv.DictReader(f)
-    #     print reader.fieldnames
-    #     # for row in reader:
-    #     #     print row
 
 except SystemExit:
     pass

@@ -439,7 +439,8 @@ int getAnzTage(const QDate &dateFrom, const QDate &dateTo, bool inclLastDay)
    // Q_ASSERT(dateFrom.year() == dateTo.year());
    if(dateFrom.year() != dateTo.year())
    {
-       qDebug() << "getAnzTage: " << dateFrom << " " << dateTo;
+       qDebug() << "getAnzTage: (dateFrom.year() != dateTo.year()):";
+       qDebug() << dateFrom << " " << dateTo;
    }
    int anzTage = getAnzTageJahr();
    if(dateFrom.isValid() && dateTo.isValid())
@@ -458,7 +459,8 @@ int getAnzTageNew(const QDate &dateFrom, const QDate &dateTo, bool inclLastDay)
    // Q_ASSERT(dateFrom.year() == dateTo.year());
    if(dateFrom.year() != dateTo.year())
    {
-       qDebug() << "getAnzTage: " << dateFrom << " " << dateTo;
+       qDebug() << "getAnzTageNew: (dateFrom.year() != dateTo.year()):";
+       qDebug() << dateFrom << " " << dateTo;
    }
    int anzTage = getAnzTageJahr();
    if(dateFrom.isValid() && dateTo.isValid())

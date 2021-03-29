@@ -20,6 +20,7 @@ private slots:
     void openDatabase();
     void anonymizeDatabase();
     void showAnsparrechner();
+    void showPdfFile();
 
 };
 

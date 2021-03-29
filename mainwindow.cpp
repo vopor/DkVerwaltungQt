@@ -27,6 +27,7 @@ void MainWindow::createMenu()
     dateiMenu->addAction("Datenbank öffnen...", this, &MainWindow::openDatabase);
     dateiMenu->addAction("Datenbank anonymisieren", this, &MainWindow::anonymizeDatabase);
     dateiMenu->addAction("Ansparrechner", this, &MainWindow::showAnsparrechner);
+    dateiMenu->addAction("Pdf-Datei anzeigen...", this, &MainWindow::showPdfFile);
     dateiMenu->addSeparator();
     dateiMenu->addAction("Beenden", this, &MainWindow::close);
     menuBar()->addMenu(dateiMenu);
@@ -76,4 +77,12 @@ void MainWindow::showAnsparrechner()
 {
    Ansparrechner *ansparrechner = new Ansparrechner(this);
    ansparrechner->exec();
+}
+
+void MainWindow::showPdfFile()
+{
+    QString fileName = QFileDialog::getOpenFileName(nullptr, QObject::tr("Open Image"), QDir::homePath(), QObject::tr("PDF Files (*.pdf *.*)"));
+    if(fileName.isEmpty())
+        return;
+    ::showPdfFile(fileName);
 }

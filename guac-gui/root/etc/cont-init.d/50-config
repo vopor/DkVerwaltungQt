@@ -4,8 +4,8 @@
 mkdir -p /config/.config/DkVerwaltungQt
 
 # set webserver port on first install
-[[ ! -f /config/.config/DkVerwaltungQt/server-config.txt ]] && \
-  echo "port 8081" > /config/.config/DkVerwaltungQt/server-config.txt
+# [[ ! -f /config/.config/DkVerwaltungQt/server-config.txt ]] && \
+#  echo "port 8081" > /config/.config/DkVerwaltungQt/server-config.txt
 
 # permissions
 chown -R abc:abc \

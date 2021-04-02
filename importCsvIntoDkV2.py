@@ -4,13 +4,14 @@
 # -*- coding: utf-8 -*-
 
 #
-# Das Script exportiert die Daten der Datenbank aus DkVerwaltungQt nach DKV2.
+# Das Script importiert die Daten der Datenbank aus DkVerwaltungQt nach DKV2.
 # 
-# Aufruf: ./importCsvIntoDkVerwaltungQt.py <DkVerwaltung_csv_file> <DkVerwaltungQt-db3-file>
+# Aufruf: ./importCsvIntoDkVerwaltungQt.py <DkVerwaltung_csv_file> <DKV2-db3-file>
 #
 
 import os
 import sys
+import shutil
 import traceback
 # import csv
 # from collections import defaultdict
@@ -34,42 +35,43 @@ print "argv=" + str(sys.argv)
 print "argc=" + str(len(sys. argv))
 
 if len(sys. argv) < 3:
-    print "Aufruf: ./" + os.path.basename(__file__) + " <DkVerwaltung_csv_file> <DkVerwaltungQt-db3-file>"
+    print "Aufruf: ./" + os.path.basename(__file__) + " <DkVerwaltung_csv_file> <DKV2-db3-file>"
     sys.exit(1)
 
 DkVerwaltung_csv_file=sys.argv[1]
-DkVerwaltungQt_db3_file=sys.argv[2]
+DKV2_db3_file=sys.argv[2]
 
 if not os.path.isfile(DkVerwaltung_csv_file):
     print DkVerwaltung_csv_file + " existiert nicht."
     sys.exit(2)
 
-# if os.path.isfile(DkVerwaltungQt_db3_file):
-#     os.remove(DkVerwaltungQt_db3_file)
-if os.path.isfile(DkVerwaltungQt_db3_file):
-    print DkVerwaltungQt_db3_file + " existiert."
+if os.path.isfile(DKV2_db3_file):
+    os.remove(DKV2_db3_file)
+if os.path.isfile(DKV2_db3_file):
+    print DKV2_db3_file + " existiert."
     msg = 'Soll sie neu erzeugt werden?'
     str = raw_input("%s (J/n) " % msg).lower()
     if not ((str == 'j') or (str == '')):
         sys.exit(3)
-    os.remove(DkVerwaltungQt_db3_file)
+    os.remove(DKV2_db3_file)
 
 try:
-    
+
+    Empty_DKV2_db3_file = os.path.dirname(os.path.realpath(__file__)) + os.sep + "Empty-DKV2-Datenbank.dkdb"
+    print Empty_DKV2_db3_file + " => " + DKV2_db3_file
+    shutil.copyfile(Empty_DKV2_db3_file, DKV2_db3_file)
+
     #
     # sqlite3 DkVerwaltungQt.db3 < CreateDkVerwaltungQt.sql
     #
 
     # https://stackoverflow.com/questions/2887878/importing-a-csv-file-into-a-sqlite3-database-table-using-python
-    # from pathlib import Path
-    # db_name = Path('my.db').resolve()
-    # csv_file = Path('file.csv').resolve()
-    params = ['sqlite3',  DkVerwaltungQt_db3_file.replace('\\','\\\\'),
+    params = ['sqlite3',  DKV2_db3_file.replace('\\','\\\\'),
                          '-cmd',
                          '.mode csv',
                          '.import ' + "'" + DkVerwaltung_csv_file.replace('\\','\\\\')  + "'"  + ' DKVerwaltungOrg']
     # print params
-    # cmdstr = 'sqlite3 ' + DkVerwaltungQt_db3_file + ' -cmd ' + ' .mode csv ' + ' .import ' + DkVerwaltung_csv_file.replace('\\','\\\\')  + ' DKVerwaltungOrg'
+    # cmdstr = 'sqlite3 ' + DKV2_db3_file + ' -cmd ' + ' .mode csv ' + ' .import ' + DkVerwaltung_csv_file.replace('\\','\\\\')  + ' DKVerwaltungOrg'
     # print cmdstr                         
     p = subprocess.Popen(params)
     (output, err) = p.communicate() 
@@ -79,11 +81,11 @@ try:
         print "err=" + err
         print "p_status=" + p_status
 
-    conn = sqlite3.connect(DkVerwaltungQt_db3_file)
+    conn = sqlite3.connect(DKV2_db3_file)
     stmt = conn.cursor()
-    # stmt.execute('ATTACH DATABASE "{0}" AS db'.format(DkVerwaltungQt_db3_file))
-    stmt.execute('ALTER TABLE DKVerwaltungOrg RENAME COLUMN "Dk-Nr." to "DKNr";')
-    stmt.execute('ALTER TABLE DKVerwaltungOrg RENAME COLUMN "Dk Nummer" to "DKNummer";')
+    # stmt.execute('ATTACH DATABASE "{0}" AS db'.format(DKV2_db3_file))
+    stmt.execute('ALTER TABLE DKVerwaltungOrg RENAME COLUMN "DK-Nr." to "DKNr";')
+    stmt.execute('ALTER TABLE DKVerwaltungOrg RENAME COLUMN "DK Nummer" to "DKNummer";')
     stmt.execute('ALTER TABLE DKVerwaltungOrg RENAME COLUMN "Rückzahlung" to "Rueckzahlung";')
     stmt.execute('CREATE TABLE DKVerwaltung (Datum TEXT, DKNr TEXT, Vorname TEXT, Name TEXT, Anrede TEXT, DKNummer TEXT, Straße TEXT, PLZ TEXT, Ort TEXT, Email TEXT, Rueckzahlung TEXT, vorgemerkt TEXT, Betrag TEXT, Zinssatz TEXT, Bemerkung TEXT);')
 

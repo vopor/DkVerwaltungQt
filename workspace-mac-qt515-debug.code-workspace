@@ -8,13 +8,13 @@
         // "environment" : [],
         "terminal.integrated.shell.osx": "/bin/bash",
 		"terminal.integrated.env.osx": {
-			"PATH": "/Users/volker/Qt/5.15.2/clang_64/bin:${env:PATH}",
-			"QTDIR": "/Users/volker/Qt/5.15.2/clang_64",
+			"PATH": "${env:HOME}/Qt/5.15.2/clang_64/bin:${env:PATH}",
+			"QTDIR": "${env:HOME}/Qt/5.15.2/clang_64",
 			"BUILDDIR": "${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_clang_64bit-Debug",
 		},
     "C_Cpp.default.includePath": [
       "${workspaceFolder}/**",
-      "${env:HOME}/Qt/5.12.10/include",
+      "${env:HOME}/Qt/5.15.2/include",
       // "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include",
       "/usr/local/include",
       "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include",      

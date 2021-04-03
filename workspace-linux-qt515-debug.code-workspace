@@ -89,4 +89,70 @@
 		},
 		],
 	},
+	"launch": {
+			  // Use IntelliSense to learn about possible attributes.
+			  // Hover to view descriptions of existing attributes.
+			  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+			  "version": "0.2.0",
+			  "configurations": [
+				{
+					"name": "(gdb) cppdbg linux qt515 launch",
+					"type": "cppdbg",
+					"request": "launch",
+					"program": "${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_GCC_64bit-Debug/DkVerwaltungQt",
+					"args": [],
+					"stopAtEntry": false,
+					"cwd": "${workspaceFolder}",
+					// "environment": [],
+					"environment": [
+						{ "name": "QTDIR", "value": "/opt/qt515" },
+						{ "name": "DYLD_LIBRARY_PATH", "value": "${DYLD_LIBRARY_PATH}:/opt/qt515/lib" },
+						{ "name": "QT_PLUGIN_PATH", "value": "/opt/qt515/plugins" },
+						{ "name": "QT_TRANSLATION_PATH", "value": "/opt/qt515/translations" },
+						// QT_QPA_PLATFORM_PLUGIN_PATH
+						// "QT_DEBUG_PLUGIN": "1",
+						{ "name": "PATH", "value": "/opt/qt515/bin:${env:PATH}" },
+					],
+					"sourceFileMap": { "/home/qt/work/qt": "/opt/qt515" },   
+					"externalConsole": false,
+					"MIMode": "gdb",
+					"setupCommands": [
+						{
+							"description": "Enable pretty-printing for gdb",
+							"text": "-enable-pretty-printing",
+							"ignoreFailures": true
+						}
+					]
+				},
+				{
+					"name": "(gdb) cppdbg linux qt515 attach",
+					"type": "cppdbg",
+					"request": "attach",
+					"program": "${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_GCC_64bit-Debug/DkVerwaltungQt",
+					"args": [],
+					"stopAtEntry": false,
+					"cwd": "${workspaceFolder}",
+					// "environment": [],
+					"environment": [
+						{ "name": "QTDIR", "value": "/opt/qt515" },
+						{ "name": "DYLD_LIBRARY_PATH", "value": "${DYLD_LIBRARY_PATH}:/opt/qt515/lib" },
+						{ "name": "QT_PLUGIN_PATH", "value": "/opt/qt515/plugins" },
+						{ "name": "QT_TRANSLATION_PATH", "value": "/opt/qt515/translations" },
+						// QT_QPA_PLATFORM_PLUGIN_PATH
+						// "QT_DEBUG_PLUGIN": "1",
+						{ "name": "PATH", "value": "/opt/qt515/bin:${env:PATH}" },
+					],
+					"sourceFileMap": { "/home/qt/work/qt": "/opt/qt515" },   
+					"externalConsole": false,
+					"MIMode": "gdb",
+					"setupCommands": [
+						{
+							"description": "Enable pretty-printing for gdb",
+							"text": "-enable-pretty-printing",
+							"ignoreFailures": true
+						}
+					]
+				},
+			  ]    
+	  },
 }

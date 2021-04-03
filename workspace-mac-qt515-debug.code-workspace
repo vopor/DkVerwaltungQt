@@ -22,7 +22,7 @@
     "C_Cpp.intelliSenseEngine": "Tag Parser",
     "workbench.colorTheme": "Visual Studio Dark",
 	},
-    "tasks": {
+  "tasks": {
         "version": "2.0.0",
         "tasks": [
         {
@@ -76,8 +76,8 @@
             "dependsOrder": "sequence"
         },
 	],
-    },
-    "launch": {
+  },
+  "launch": {
             // Use IntelliSense to learn about possible attributes.
             // Hover to view descriptions of existing attributes.
             // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387

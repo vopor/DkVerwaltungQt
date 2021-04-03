@@ -38,3 +38,22 @@ ENV PATH="/opt/linuxdeployqt-7/squashfs-root/usr/bin:${PATH}"
 # RUN wget -c "https://github.com/AppImage/AppImageKit/releases/download/12/appimagetool-x86_64.AppImage" -P /opt/appimagetool-12
 # RUN chmod a+x  /opt/appimagetool-12/appimagetool-x86_64.AppImage
 # RUN /opt/appimagetool-12/appimagetool-x86_64.AppImage  --appimage-extract
+
+# X11
+RUN apt-get update
+RUN apt-get install x11-apps -y 
+
+# Qt
+RUN apt-get install libglu1-mesa -y
+RUN apt-get install libharfbuzz0b -y
+RUN apt-get install libasound2 -y
+
+RUN mkdir -p $HOME/Documents/DkVerwaltungQt
+ENV XDG_RUNTIME_DIR $HOME/Documents/DkVerwaltungQt
+
+# QtWebEngine
+ENV QT_OPENGL software
+ENV QT_QUICK_BACKEND software
+ENV QTWEBENGINE_DISABLE_SANDBOX 1
+
+ENV DISPLAY docker.for.mac.host.internal:0

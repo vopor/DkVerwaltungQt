@@ -18,6 +18,8 @@ import sqlite3
 import subprocess
 # import pandas
 
+dropUnusedCsvTables = False
+
 # https://stackoverflow.com/questions/7831371/is-there-a-way-to-get-a-list-of-column-names-in-sqlite
 def get_col_names(cursor, tablename):
     """Get column names of a table, given its name and a cursor
@@ -54,7 +56,7 @@ if os.path.isfile(DkVerwaltungQt_db3_file):
 try:
     
     #
-    #  sqlite3 DkVerwaltungQt.db3 < CreateDkVerwaltungQt.sql
+    # sqlite3 DkVerwaltungQt.db3 < CreateDkVerwaltungQt.sql
     #
 
     # https://stackoverflow.com/questions/2887878/importing-a-csv-file-into-a-sqlite3-database-table-using-python
@@ -101,12 +103,12 @@ try:
     print insert_int_statement
     stmt.execute(insert_int_statement)
     print "Anzahl: ", stmt.rowcount
-    stmt.execute('DROP TABLE DKVerwaltungORG;')
+    if dropUnusedCsvTables: stmt.execute('DROP TABLE DKVerwaltungORG;')
     stmt.execute('CREATE TABLE DKPersonen (PersonId INTEGER PRIMARY KEY AUTOINCREMENT, Vorname TEXT, Name TEXT, Anrede TEXT, Straße TEXT, PLZ TEXT, Ort TEXT, Email TEXT);')
     stmt.execute('INSERT INTO DKPersonen (Vorname, Name, Anrede, Straße, PLZ, Ort, Email) SELECT Vorname, Name, Anrede, Straße, PLZ, Ort, Email FROM DKVerwaltung WHERE CAST(DkNr AS INTEGER) <> 0;')
     stmt.execute('CREATE TABLE DKBuchungen (BuchungId INTEGER PRIMARY KEY AUTOINCREMENT, PersonId INTEGER, Datum TEXT, DKNr TEXT, DKNummer TEXT, Rueckzahlung TEXT, vorgemerkt TEXT, Betrag REAL, Zinssatz REAL, Bemerkung TEXT, Anfangsdatum TEXT, AnfangsBetrag REAL, FOREIGN KEY(PersonId) REFERENCES DKPerson(PersonId));')
     stmt.execute('INSERT INTO DKBuchungen (PersonId, Datum, DKNr, DKNummer, Rueckzahlung, vorgemerkt, Betrag, Zinssatz, Bemerkung) SELECT ROWID, Datum, DKNr, DKNummer, Rueckzahlung, vorgemerkt, Betrag, Zinssatz, Bemerkung FROM DKVerwaltung WHERE CAST(DkNr AS INTEGER) <> 0;')
-    stmt.execute('DROP TABLE DKVerwaltung;')
+    if dropUnusedCsvTables: stmt.execute('DROP TABLE DKVerwaltung;')
     stmt.execute("UPDATE DkBuchungen SET Betrag = replace(replace(replace(Betrag, ' €', ''), '.', ''), ',', '.');")
     stmt.execute("UPDATE DkBuchungen SET Zinssatz = replace(replace(Zinssatz, '%', ''), ',', '.');")
     stmt.execute('CREATE TABLE DKZinssaetze (Zinssatz REAL PRIMARY KEY, Beschreibung TEXT);')
@@ -114,9 +116,29 @@ try:
     conn.commit()
 
     #
-    #  sqlite3 DkVerwaltungQt.db3 < UpdateDkVerwaltungQt.sql
+    # sqlite3 DkVerwaltungQt.db3 < UpdateDkVerwaltungQt.sql
     #
-    stmt.execute('UPDATE DkBuchungen SET PersonId = (select mpid from (Select t.PersonId AS pid, xx.MaxPersonId as mpid, t.Vorname , t.Name from DkPersonen t inner join ( Select max(PersonId) AS MaxPersonId, Vorname, Name from DkPersonen group by Vorname, Name) xx on t.Vorname = xx.Vorname AND t.Name = xx.Name ORDER BY PersonID) where DkBuchungen.PersonId = pid);')
+
+    #
+    # Bei Personen mit gleichem Vornamen und Namen nur den zuletzt erfassten Personen-Datensatz weiterverwenden
+    #
+    update_statement = ''
+    update_statement += 'UPDATE DkBuchungen '
+    update_statement += 'SET PersonId = '
+    update_statement += '('
+    update_statement += 'SELECT mpid FROM '    
+    update_statement += '('
+    update_statement += 'SELECT t.PersonId AS pid, xx.MaxPersonId AS mpid, t.Vorname , t.Name '
+    update_statement += 'FROM DkPersonen t INNER JOIN '
+    update_statement += '('
+    update_statement += 'SELECT MAX(PersonId) AS MaxPersonId, Vorname, Name '
+    update_statement += 'FROM DkPersonen GROUP BY Vorname, Name) xx '
+    update_statement += 'ON t.Vorname = xx.Vorname AND t.Name = xx.Name ORDER BY PersonID'
+    update_statement += ') '
+    update_statement += 'WHERE DkBuchungen.PersonId = pid'
+    update_statement += ');'
+    stmt.execute(update_statement)
+    # stmt.execute('UPDATE DkBuchungen SET PersonId = (select mpid from (Select t.PersonId AS pid, xx.MaxPersonId as mpid, t.Vorname , t.Name from DkPersonen t inner join ( Select max(PersonId) AS MaxPersonId, Vorname, Name from DkPersonen group by Vorname, Name) xx on t.Vorname = xx.Vorname AND t.Name = xx.Name ORDER BY PersonID) where DkBuchungen.PersonId = pid);')
     print "Anzahl DkBuchungen DkPersonen zugordnet: ", stmt.rowcount
     stmt.execute('DELETE FROM DkPersonen WHERE NOT EXISTS (SELECT * FROM DkBuchungen WHERE DkBuchungen.PersonId = DkPersonen.PersonId);')
     print "Anzahl DkPersonen gelöscht: ", stmt.rowcount

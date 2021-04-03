@@ -54,21 +54,39 @@ if not os.path.isfile(DkVerwaltung_csv_file):
     print DkVerwaltung_csv_file + " existiert nicht."
     sys.exit(2)
 
-if os.path.isfile(DKV2_db3_file):
-    os.remove(DKV2_db3_file)
+# if os.path.isfile(DKV2_db3_file):
+#     os.remove(DKV2_db3_file)
 if os.path.isfile(DKV2_db3_file):
     print DKV2_db3_file + " existiert."
-    msg = 'Soll sie neu erzeugt werden?'
-    str = raw_input("%s (J/n) " % msg).lower()
-    if not ((str == 'j') or (str == '')):
-        sys.exit(3)
-    os.remove(DKV2_db3_file)
-
-try:
-
+    msg = 'Soll sie neu erzeugt werden (Ja/nein/abbrechen)?'
+    str = raw_input("%s (J/n/a) " % msg).lower()
+    if ((str == 'j') or (str == '')):
+        os.remove(DKV2_db3_file)
+    elif (str == 'n'):
+        pass
+    else:
+        sys.exit(3)            
+if not os.path.isfile(DKV2_db3_file):
     Empty_DKV2_db3_file = os.path.dirname(os.path.realpath(__file__)) + os.sep + "Empty-DKV2-Datenbank.dkdb"    
     print Empty_DKV2_db3_file + " => " + DKV2_db3_file
     shutil.copyfile(Empty_DKV2_db3_file, DKV2_db3_file)
+
+try:
+
+    conn = sqlite3.connect(DKV2_db3_file)
+    stmt = conn.cursor()
+
+    stmt.execute('DROP TABLE IF EXISTS DKVerwaltungORG;')
+    stmt.execute('DROP TABLE IF EXISTS DKVerwaltung;')
+
+    stmt.execute('DROP TABLE IF EXISTS DkPersonen;')
+    stmt.execute('DROP TABLE IF EXISTS DkBuchungen;')
+    stmt.execute('DROP TABLE IF EXISTS DKZinssaetze;')
+
+    stmt.execute("DELETE FROM Buchungen");
+    stmt.execute("DELETE FROM Vertraege");
+    stmt.execute("DELETE FROM Kreditoren");
+    conn.commit()
 
     print "csv => DKV2"
     #
@@ -92,8 +110,8 @@ try:
         print "err=" + err
         print "p_status=" + p_status
 
-    conn = sqlite3.connect(DKV2_db3_file)
-    stmt = conn.cursor()
+    # conn = sqlite3.connect(DKV2_db3_file)
+    # stmt = conn.cursor()
     stmt.execute('ALTER TABLE DKVerwaltungOrg RENAME COLUMN "DK-Nr." to "DKNr";')
     stmt.execute('ALTER TABLE DKVerwaltungOrg RENAME COLUMN "DK Nummer" to "DKNummer";')
     stmt.execute('ALTER TABLE DKVerwaltungOrg RENAME COLUMN "Rückzahlung" to "Rueckzahlung";')
@@ -171,6 +189,7 @@ try:
     print "DkVerwaltungQt -> DKV2"
     due_direkt_nach_jahresabschluss = False
     if not due_direkt_nach_jahresabschluss:
+
         print "Kreditoren hinzufügen"
         insert_stmt = 'INSERT INTO Kreditoren (id, Vorname, Nachname, Strasse, Plz, Stadt, EMail, Anmerkung, IBAN, Bic) '
         insert_stmt += 'SELECT Personid, Vorname, Name, Straße, PLZ, Ort, Email, "", "", "" FROM DKPersonen'

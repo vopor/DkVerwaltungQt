@@ -48,6 +48,13 @@ RUN dbus-uuidgen > /etc/machine-id
 #   -v $HOME/Documents/DkVerwaltungQt/guac-daten:/config \
 #   --restart unless-stopped \
 #   dkverwaltungqt(az)
+#
+# deploy to azure
+# https://code.visualstudio.com/docs/containers/app-service
+# docker tag dkverwaltungqtaz voposcontainerregisry.azurecr.io/dkverwaltungqtaz
+# docker push voposcontainerregisry.azurecr.io/dkverwaltungqtaz
+# Deploy image to Azure App Service
+# 
 
 ENV APPNAME="DkVerwaltungQt"
 

@@ -53,7 +53,7 @@ RUN dbus-uuidgen > /etc/machine-id
 # https://code.visualstudio.com/docs/containers/app-service
 # docker tag dkverwaltungqtaz voposcontainerregisry.azurecr.io/dkverwaltungqtaz
 # docker push voposcontainerregisry.azurecr.io/dkverwaltungqtaz
-# Deploy image to Azure App Service
+# Docker: Deploy image to Azure Container Instance...
 # 
 
 ENV APPNAME="DkVerwaltungQt"

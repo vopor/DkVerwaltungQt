@@ -11,6 +11,7 @@
 			"OUT_PWD": "${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_GCC_64bit-Debug",
 		}
 	},
+	// https://code.visualstudio.com/docs/cpp/customize-default-settings-cpp
     "tasks": {
 		"version": "2.0.0",
 		"tasks": [
@@ -113,7 +114,8 @@
 						// "QT_DEBUG_PLUGIN": "1",
 						{ "name": "PATH", "value": "/opt/qt515/bin:${env:PATH}" },
 					],
-					"sourceFileMap": { "/home/qt/work/qt": "/opt/qt515" },   
+					"sourceFileMap": { "/home/qt/work/qt": "/opt/qt515/src" },
+					// "symbolSearchPath": "otherSearchPath;C:/Qt/5.12.4/msvc2017_64/bin",
 					"externalConsole": false,
 					"MIMode": "gdb",
 					"setupCommands": [
@@ -153,6 +155,6 @@
 						}
 					]
 				},
-			  ]    
+			  ]
 	  },
 }

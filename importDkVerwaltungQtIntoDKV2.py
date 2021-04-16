@@ -6,7 +6,7 @@
 #
 # Das Script exportiert die Daten der Datenbank aus DkVerwaltungQt nach DKV2.
 # 
-# Aufruf: ./exportToDKV2V2.py <DkVerwaltungQt-db3-file> <DKV2-db3-file>
+# Aufruf: ./importDKV2IntoDkVerwaltungQt.py <DkVerwaltungQt-db3-file> <DKV2-db3-file>
 #
 
 import os
@@ -17,7 +17,7 @@ import sqlite3
 # print sys.argv
 #print len(sys. argv)
 if len(sys. argv) < 3:
-    print "Aufruf: ./exportToDKV2V2.py <DkVerwaltungQt-db3-file> <DKV2-db3-file> "
+    print "Aufruf: ./" +  + os.path.basename(__file__) + " <DkVerwaltungQt-db3-file> <DKV2-db3-file> "
     sys.exit(1)
 
 DkVerwaltungQt_db3_file=sys.argv[1]

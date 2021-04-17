@@ -280,6 +280,12 @@ try:
         insert_stmt += 'GROUP BY DkNummer '
         stmt.execute(insert_stmt);
         print "Anzahl: ", stmt.rowcount
+
+        print "Vertraege zinslos setzen"
+        update_stmt = 'UPDATE Vertraege SET thesaurierend = 3 WHERE ZSatz = 0;'
+        stmt.execute(update_stmt);
+        print "Anzahl: ", stmt.rowcount
+
         conn.commit()
 
         print "Buchungen hinzufügen"

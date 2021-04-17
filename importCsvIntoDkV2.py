@@ -13,11 +13,12 @@ import os
 import sys
 import shutil
 import traceback
-# import csv
-# from collections import defaultdict
+import csv
+from collections import defaultdict
 import sqlite3
 import subprocess
 # import pandas
+import copy
 
 dropUnusedCsvTables = False
 dropUnusedDkVerwaltungQtTables = False
@@ -101,25 +102,57 @@ try:
     #
     print "csv -> DkVerwaltungQt"
     print "csv importieren"
-    # https://stackoverflow.com/questions/2887878/importing-a-csv-file-into-a-sqlite3-database-table-using-python
-    params = ['sqlite3',  DKV2_db3_file.replace('\\','\\\\'),
+    if False:
+        # https://stackoverflow.com/questions/2887878/importing-a-csv-file-into-a-sqlite3-database-table-using-python
+        params = ['sqlite3',  DKV2_db3_file.replace('\\','\\\\'),
                          '-cmd',
                          '.mode csv',
                          '.import ' + "'" + DkVerwaltung_csv_file.replace('\\','\\\\')  + "'"  + ' DKVerwaltungOrg']
-    # print params
-    # cmdstr = 'sqlite3 ' + DKV2_db3_file + ' -cmd ' + ' .mode csv ' + ' .import ' + DkVerwaltung_csv_file.replace('\\','\\\\')  + ' DKVerwaltungOrg'
-    # print cmdstr                         
-    p = subprocess.Popen(params)
-    (output, err) = p.communicate() 
-    p_status = p.wait()
-    if p_status != 0:
-        print "output=" + output
-        print "err=" + err
-        print "p_status=" + p_status
+        # print params
+        # cmdstr = 'sqlite3 ' + DKV2_db3_file + ' -cmd ' + ' .mode csv ' + ' .import ' + DkVerwaltung_csv_file.replace('\\','\\\\')  + ' DKVerwaltungOrg'
+        # print cmdstr                         
+        p = subprocess.Popen(params)
+        (output, err) = p.communicate() 
+        p_status = p.wait()
+        if p_status != 0:
+            print "output=" + output
+            print "err=" + err
+            print "p_status=" + p_status
 
-    # conn = sqlite3.connect(DKV2_db3_file)
-    # stmt = conn.cursor()
-    stmt.execute('ALTER TABLE DKVerwaltungOrg RENAME COLUMN "DK-Nr." to "DKNr";')
+        stmt.execute('ALTER TABLE DKVerwaltungOrg RENAME COLUMN "DK-Nr." to "DKNr";')
+        stmt.execute('ALTER TABLE DKVerwaltungOrg RENAME COLUMN "Rückzahlung" to "Rueckzahlung";')
+    else:
+        with open(DkVerwaltung_csv_file, 'r') as f:
+            reader = csv.DictReader(f, delimiter=",", quotechar="\"")
+            create_table_statement = "CREATE TABLE DKVerwaltungOrg (" 
+            ifieldnames = ["DkNr" if fieldname == "DK-Nr." else fieldname for fieldname in reader.fieldnames]
+            ifieldnames = ["Rueckzahlung" if fieldname == "Rückzahlung" else fieldname for fieldname in ifieldnames]
+            ifieldnames = ["'" + fieldname + "'" for fieldname in ifieldnames]
+            create_table_statement += ','.join(ifieldnames) 
+            create_table_statement += ");"
+            print create_table_statement
+            stmt.execute(create_table_statement)
+            first_row = True
+            for row in reader:
+                if first_row: # header
+                    first_row = False
+                    continue
+                insert_statement = "INSERT INTO DKVerwaltungOrg ("  + ','.join(ifieldnames) + ") "
+                insert_statement += "VALUES "
+                insert_statement += "("
+
+                for index, fieldname in enumerate(reader.fieldnames):
+                    insert_statement += "'" + row[fieldname] + "'"
+                    if index < len(row)-1:
+                        insert_statement += ","
+
+                insert_statement += ");"
+                # print insert_statement
+                stmt.execute(insert_statement)
+                conn.commit()
+        conn.commit()
+
+    print_anzahl_in_table(stmt, "DKVerwaltungOrg")
 
     select_exists_statement = "SELECT EXISTS (SELECT * FROM sqlite_master WHERE tbl_name = 'DKVerwaltungOrg' AND sql LIKE '%DK Nummer%');"
     stmt.execute(select_exists_statement)
@@ -129,8 +162,7 @@ try:
         stmt.execute('ALTER TABLE DKVerwaltungOrg RENAME COLUMN "DK Nummer" to "DKNummer";')
     else:
         stmt.execute('ALTER TABLE DKVerwaltungOrg ADD COLUMN "DKNummer";')
-    stmt.execute('ALTER TABLE DKVerwaltungOrg RENAME COLUMN "Rückzahlung" to "Rueckzahlung";')
-
+    
     select_exists_statement = "SELECT COUNT(*) FROM DKVerwaltungOrg WHERE CAST(DkNr AS INTEGER) = 0;"
     stmt.execute(select_exists_statement)
     count_dknr_alnum = stmt.fetchone()[0]

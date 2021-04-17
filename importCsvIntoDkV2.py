@@ -33,6 +33,12 @@ def get_col_names(cursor, tablename):
     reader=cursor.execute("SELECT * FROM {}".format(tablename))
     return [x[0] for x in reader.description] 
 
+def print_anzahl_in_table(stmt, tableName):
+    select_stmt = "SELECT COUNT(*) FROM " + tableName
+    stmt.execute(select_stmt)
+    anzahl = stmt.fetchone()[0]
+    print "Anzahl " + tableName + ": ", anzahl
+
 # print "sqlite3.version=" + sqlite3.version
 # print "sqlite3.sqlite_version=" + sqlite3.sqlite_version
 # print "argv=" + str(sys.argv)
@@ -58,14 +64,15 @@ if not os.path.isfile(DkVerwaltung_csv_file):
 #     os.remove(DKV2_db3_file)
 if os.path.isfile(DKV2_db3_file):
     print DKV2_db3_file + " existiert."
-    msg = 'Soll sie neu erzeugt werden (ja/nein/abbrechen)?'
-    str = raw_input("%s (j/n/a) " % msg).lower()
-    if ((str == 'j') or (str == '')):
+    msg = 'Soll sie neu erzeugt werden (ja=neu erzeugen/nein=neu füllen/abbrechen)?'
+    str = raw_input("%s (j/n*/a) " % msg).lower()
+    if ((str == 'j')):
         os.remove(DKV2_db3_file)
-    elif (str == 'n'):
+    elif (str == 'n') or (str == ''):
         pass
     else:
-        sys.exit(3)            
+        sys.exit(3)
+
 if not os.path.isfile(DKV2_db3_file):
     Empty_DKV2_db3_file = os.path.dirname(os.path.realpath(__file__)) + os.sep + "Empty-DKV2-Datenbank.dkdb"    
     print Empty_DKV2_db3_file + " => " + DKV2_db3_file
@@ -113,8 +120,38 @@ try:
     # conn = sqlite3.connect(DKV2_db3_file)
     # stmt = conn.cursor()
     stmt.execute('ALTER TABLE DKVerwaltungOrg RENAME COLUMN "DK-Nr." to "DKNr";')
-    stmt.execute('ALTER TABLE DKVerwaltungOrg RENAME COLUMN "DK Nummer" to "DKNummer";')
+
+    select_exists_statement = "SELECT EXISTS (SELECT * FROM sqlite_master WHERE tbl_name = 'DKVerwaltungOrg' AND sql LIKE '%DK Nummer%');"
+    stmt.execute(select_exists_statement)
+    column_dk_nummer_exists = stmt.fetchone()[0]
+    print "column_dk_nummer_exists: ", column_dk_nummer_exists
+    if column_dk_nummer_exists:
+        stmt.execute('ALTER TABLE DKVerwaltungOrg RENAME COLUMN "DK Nummer" to "DKNummer";')
+    else:
+        stmt.execute('ALTER TABLE DKVerwaltungOrg ADD COLUMN "DKNummer";')
     stmt.execute('ALTER TABLE DKVerwaltungOrg RENAME COLUMN "Rückzahlung" to "Rueckzahlung";')
+
+    select_exists_statement = "SELECT COUNT(*) FROM DKVerwaltungOrg WHERE CAST(DkNr AS INTEGER) = 0;"
+    stmt.execute(select_exists_statement)
+    count_dknr_alnum = stmt.fetchone()[0]
+    print "count_dknr_alnum: ", count_dknr_alnum
+
+    if count_dknr_alnum > 0: # DkNr alphanumerisch
+        print "DkNummer setzen: "
+        stmt.execute('UPDATE DKVerwaltungOrg SET DkNummer = DkNr;')
+        print "Anzahl: ", stmt.rowcount
+        print "DkNr setzen: "
+        stmt.execute('UPDATE DKVerwaltungOrg SET DkNr = ROWID;')
+        print "Anzahl: ", stmt.rowcount
+        conn.commit();
+
+    print "Datensätze ohne DkNummer löschen: "
+    stmt.execute('DELETE FROM DKVerwaltungOrg WHERE DkNummer = "";')
+    print "Anzahl: ", stmt.rowcount
+    conn.commit();
+
+    print_anzahl_in_table(stmt, "DKVerwaltungOrg")
+
     stmt.execute('CREATE TABLE DKVerwaltung (Datum TEXT, DKNr TEXT, Vorname TEXT, Name TEXT, Anrede TEXT, DKNummer TEXT, Straße TEXT, PLZ TEXT, Ort TEXT, Email TEXT, Rueckzahlung TEXT, vorgemerkt TEXT, Betrag TEXT, Zinssatz TEXT, Bemerkung TEXT);')
 
     colnamesFrom = get_col_names(stmt, "DKVerwaltungOrg")
@@ -130,17 +167,22 @@ try:
             colnames.append('DkNr')
     colnamesstring = ','.join(colnames)
     # print colnamesstring
-    insert_int_statement = 'INSERT INTO DKVerwaltung SELECT ' + colnamesstring + ' FROM DKVerwaltungOrg WHERE CAST(DkNr AS INTEGER) <> 0 ORDER BY CAST(DkNr AS INTEGER);'
+
+    if True: # DkNr numerisch
+        insert_int_statement = 'INSERT INTO DKVerwaltung SELECT ' + colnamesstring + ' FROM DKVerwaltungOrg WHERE CAST(DkNr AS INTEGER) <> 0 ORDER BY CAST(DkNr AS INTEGER);'
+    else: # DkNr alphanumerisch
+        insert_int_statement = 'INSERT INTO DKVerwaltung SELECT ' + colnamesstring + ' FROM DKVerwaltungOrg WHERE DkNr <> "" ORDER BY DkNr;'
+
     # print insert_int_statement
     stmt.execute(insert_int_statement)
     print "Anzahl: ", stmt.rowcount
     print "Personen hinzufügen"
     stmt.execute('CREATE TABLE DKPersonen (PersonId INTEGER PRIMARY KEY AUTOINCREMENT, Vorname TEXT, Name TEXT, Anrede TEXT, Straße TEXT, PLZ TEXT, Ort TEXT, Email TEXT);')
-    stmt.execute('INSERT INTO DKPersonen (Vorname, Name, Anrede, Straße, PLZ, Ort, Email) SELECT Vorname, Name, Anrede, Straße, PLZ, Ort, Email FROM DKVerwaltung WHERE CAST(DkNr AS INTEGER) <> 0;')
+    stmt.execute('INSERT INTO DKPersonen (Vorname, Name, Anrede, Straße, PLZ, Ort, Email) SELECT Vorname, Name, Anrede, Straße, PLZ, Ort, Email FROM DKVerwaltung;') #  WHERE CAST(DkNr AS INTEGER) <> 0
     print "Anzahl: ", stmt.rowcount
     print "Buchungen hinzufügen"
     stmt.execute('CREATE TABLE DKBuchungen (BuchungId INTEGER PRIMARY KEY AUTOINCREMENT, PersonId INTEGER, Datum TEXT, DKNr TEXT, DKNummer TEXT, Rueckzahlung TEXT, vorgemerkt TEXT, Betrag REAL, Zinssatz REAL, Bemerkung TEXT, Anfangsdatum TEXT, AnfangsBetrag REAL, FOREIGN KEY(PersonId) REFERENCES DKPerson(PersonId));')
-    stmt.execute('INSERT INTO DKBuchungen (PersonId, Datum, DKNr, DKNummer, Rueckzahlung, vorgemerkt, Betrag, Zinssatz, Bemerkung) SELECT ROWID, Datum, DKNr, DKNummer, Rueckzahlung, vorgemerkt, Betrag, Zinssatz, Bemerkung FROM DKVerwaltung WHERE CAST(DkNr AS INTEGER) <> 0;')
+    stmt.execute('INSERT INTO DKBuchungen (PersonId, Datum, DKNr, DKNummer, Rueckzahlung, vorgemerkt, Betrag, Zinssatz, Bemerkung) SELECT ROWID, Datum, DKNr, DKNummer, Rueckzahlung, vorgemerkt, Betrag, Zinssatz, Bemerkung FROM DKVerwaltung;') # WHERE CAST(DkNr AS INTEGER) <> 0
     print "Anzahl: ", stmt.rowcount
     stmt.execute("UPDATE DkBuchungen SET Betrag = replace(replace(replace(Betrag, ' €', ''), '.', ''), ',', '.');")
     stmt.execute("UPDATE DkBuchungen SET Zinssatz = replace(replace(Zinssatz, '%', ''), ',', '.');")
@@ -178,6 +220,10 @@ try:
     print "Anzahl DkBuchungen Anfangsdatum gesetzt: ", stmt.rowcount
     stmt.execute("UPDATE DkBuchungen SET Anfangsbetrag = CAST(replace(replace(substr(Bemerkung, instr(Bemerkung, 'Betrag: ') + 8), '.', ''), ',', '.') AS FLOAT) WHERE instr(Bemerkung, 'neu angelegt') <> 0;")
     print "Anzahl DkBuchungen Anfangsbetrag gesetzt: ", stmt.rowcount
+    # Wenn Anfangsdatum und Anfangsbetrag nicht den Bemerkungen entnommen werden konnten
+    stmt.execute("UPDATE DkBuchungen SET Anfangsdatum = Datum, Anfangsbetrag = Betrag WHERE Anfangsdatum IS NULL OR Anfangsbetrag  IS NULL;")
+    print "Anzahl DkBuchungen Anfangsdatum auf Datum und Anfangsbetrag auf Betrag gesetzt: ", stmt.rowcount
+
     conn.commit()
 
     #

@@ -130,17 +130,13 @@ try:
             ifieldnames = ["'" + fieldname + "'" for fieldname in ifieldnames]
             create_table_statement += ','.join(ifieldnames) 
             create_table_statement += ");"
-            print create_table_statement
+            # print create_table_statement
             stmt.execute(create_table_statement)
             first_row = True
             for row in reader:
-                if first_row: # header
-                    first_row = False
-                    continue
                 insert_statement = "INSERT INTO DKVerwaltungOrg ("  + ','.join(ifieldnames) + ") "
                 insert_statement += "VALUES "
                 insert_statement += "("
-
                 for index, fieldname in enumerate(reader.fieldnames):
                     insert_statement += "'" + row[fieldname] + "'"
                     if index < len(row)-1:
@@ -381,7 +377,7 @@ try:
     select_stmt += 'SELECT KennungA, SummeA '
     select_stmt += 'FROM '
     select_stmt += '( '
-    select_stmt += 'SELECT  Vertraege.Kennung AS KennungA, SUM(Buchungen.Betrag)/100. AS SummeA '
+    select_stmt += 'SELECT  Vertraege.Kennung AS KennungA, ROUND(SUM(Buchungen.Betrag)/100.,2) AS SummeA '
     select_stmt += 'FROM Vertraege, Buchungen '
     select_stmt += 'WHERE Vertraege.Id = Buchungen.VertragsId '
     select_stmt += 'GROUP BY Vertraege.Id '
@@ -392,7 +388,7 @@ try:
     select_stmt += 'SELECT KennungB, SummeB '
     select_stmt += 'FROM '
     select_stmt += '( '
-    select_stmt += 'SELECT DKBuchungen.DkNummer AS KennungB, SUM(Betrag) AS SummeB '
+    select_stmt += 'SELECT DKBuchungen.DkNummer AS KennungB, ROUND(SUM(Betrag),2) AS SummeB '
     select_stmt += 'FROM DKBuchungen '
     select_stmt += 'WHERE KennungA = KennungB '
     select_stmt += 'GROUP BY KennungB '
@@ -433,7 +429,7 @@ try:
     # select_stmt += 'Vertraege.ZSatz AS ZSatz, '
     select_stmt += 'Vertraege.ZSatz /100. AS ZinssatzA, '
     select_stmt += '(SUM(Buchungen.Betrag) /100.) AS WertA, '
-    select_stmt += 'ROUND( (( Vertraege.ZSatz /100.) * (SUM(Buchungen.Betrag) /100.)) /100,2) AS ZinsenA '
+    select_stmt += 'ROUND( ((( Vertraege.ZSatz /100.) * (SUM(Buchungen.Betrag) /100.)) /100), 2) AS ZinsenA '
     # select_stmt += 'SUM((( ROUND((Vertraege.ZSatz /100.),2) * ((Buchungen.Betrag) /100. )) / 100.),2) AS ZinsenA '
     # select_stmt += 'ROUND((( ROUND((Vertraege.ZSatz /100.),2) * (SUM(Buchungen.Betrag) /100. )) / 100.),2) AS ZinsenA '
     # select_stmt += 'SUM((( ROUND((Vertraege.ZSatz /100.),2) * ((Buchungen.Betrag) /100. )) / 100.),2) AS ZinsenA '
@@ -446,7 +442,7 @@ try:
     select_stmt += 'SELECT KennungB, WertB, ZinssatzB, ZinsenB '
     select_stmt += 'FROM '
     select_stmt += '( '
-    select_stmt += 'SELECT DKBuchungen.DkNummer AS KennungB, Zinssatz AS ZinssatzB, SUM(Betrag) AS WertB, ROUND (SUM( (Betrag * Zinssatz) / 100.0 ), 2) AS ZinsenB '
+    select_stmt += 'SELECT DKBuchungen.DkNummer AS KennungB, Zinssatz AS ZinssatzB, SUM(Betrag) AS WertB, ROUND(SUM( (Betrag * Zinssatz) / 100.0 ), 2) AS ZinsenB '
     select_stmt += 'FROM DKBuchungen '
     select_stmt += 'WHERE KennungA = KennungB '
     select_stmt += 'GROUP BY KennungB '

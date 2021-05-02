@@ -17,21 +17,12 @@ QMAKE_BUNDLE_DATA += APP_RESOURCES_FILES
 # macx:ICON = $${TARGET}.icns
 # macx:QMAKE_INFO_PLIST = Info.plist
 
-CONFIG( release, debug|release ){
-   # Release verwendet kein shadow-build, deshalb muss man den macdeployqt Aufruf nicht anpassen
-   macx:QMAKE_POST_LINK += $$[QT_INSTALL_BINS]/macdeployqt $${TARGET}.app -dmg
-}else{
-   # Debug verwendet shadow-build, deshalb müsste man den macdeployqt Aufruf anpassen
-   # macx:QMAKE_POST_LINK += $$[QT_INSTALL_BINS]/macdeployqt $${TARGET}.app -no-strip # -use-debug-libs
-}
-
-
 QMAKE_POST_LINK = echo starting post link steps...
 
 QMAKE_POST_LINK +=  && set -x
 QMAKE_POST_LINK +=  && rm -fr $${OUT_PWD}/appdir
 
-COPY=cp
+unix:COPY=cp
 win32:COPY=copy
 QMAKE_POST_LINK +=  && $${COPY} $${PWD}/Jahreskontoauszug.html $${OUT_PWD}/
 QMAKE_POST_LINK +=  && $${COPY} $${PWD}/Zinsbescheinigung.html $${OUT_PWD}/
@@ -41,8 +32,10 @@ QMAKE_POST_LINK +=  && $${COPY} $${PWD}/mail-content.txt $${OUT_PWD}/
 macx:QMAKE_POST_LINK +=  && $${COPY} $${PWD}/sendDKJAKtos.py $${OUT_PWD}/
 macx:QMAKE_POST_LINK +=  && $${COPY} $${PWD}/printCommandDescription.sh $${OUT_PWD}/
 
-CONFIG( release, debug|release ){
-   unix:!macx::QMAKE_POST_LINK +=  && $${PWD}/deploylinux.sh $${OUT_PWD}
+CONFIG(release,debug|release) {
+   unix:!macx:QMAKE_POST_LINK +=  && $${PWD}/deploylinux.sh $${OUT_PWD} $$(QTDIR)
+   # Release verwendet kein shadow-build, deshalb muss man den macdeployqt Aufruf nicht anpassen
+   macx:QMAKE_POST_LINK += && $$[QT_INSTALL_BINS]/macdeployqt $${TARGET}.app -dmg
 }
 
 QMAKE_POST_LINK += && echo finished post link steps...

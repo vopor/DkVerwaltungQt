@@ -30,6 +30,7 @@ void dumpEnv(char **env);
 bool createConnection(const QString &dbName);
 bool openConnection(const QString &dbName);
 bool closeConnection(const QString &dbName);
+bool isDKV2Database();
 void anonymizeDatabase();
 void displayLastSqlError();
 

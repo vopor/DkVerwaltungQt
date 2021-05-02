@@ -21,6 +21,7 @@
     ],
     "C_Cpp.intelliSenseEngine": "Tag Parser",
     "workbench.colorTheme": "Default Light+",
+    // "lldb.library": "/Library/Developer/CommandLineTools/Library/PrivateFrameworks/LLDB.framework/Versions/A/LLDB",
 	},
   "tasks": {
         "version": "2.0.0",

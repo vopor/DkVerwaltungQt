@@ -130,7 +130,7 @@ try:
             ifieldnames = ["'" + fieldname + "'" for fieldname in ifieldnames]
             create_table_statement += ','.join(ifieldnames) 
             create_table_statement += ");"
-            # print create_table_statement
+            print create_table_statement
             stmt.execute(create_table_statement)
             first_row = True
             for row in reader:
@@ -143,7 +143,7 @@ try:
                         insert_statement += ","
 
                 insert_statement += ");"
-                # print insert_statement
+                print insert_statement
                 stmt.execute(insert_statement)
                 conn.commit()
         conn.commit()
@@ -252,6 +252,10 @@ try:
     stmt.execute("UPDATE DkBuchungen SET Anfangsdatum = Datum, Anfangsbetrag = Betrag WHERE Anfangsdatum IS NULL OR Anfangsbetrag  IS NULL;")
     print "Anzahl DkBuchungen Anfangsdatum auf Datum und Anfangsbetrag auf Betrag gesetzt: ", stmt.rowcount
 
+    print "Buchungen vor dem aktuellen Jahr löschen: "
+    stmt.execute('DELETE FROM DkBuchungen WHERE substr(Datum,7,2) < (SELECT MAX(substr(Datum,7,2)) FROM DkBuchungen);')
+    print "Anzahl: ", stmt.rowcount
+
     conn.commit()
 
     #
@@ -299,6 +303,7 @@ try:
         conn.commit()
 
         print "DKV2 aktualisieren..."
+
         print "VertragsId setzen"
         update_stmt = 'UPDATE Buchungen SET VertragsId = '
         update_stmt += '('

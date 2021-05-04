@@ -1,6 +1,6 @@
 debug/
 release/
-build-*/
+build*/
 backup/
 *.db3
 #created from qmake

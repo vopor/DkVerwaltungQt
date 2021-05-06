@@ -43,6 +43,8 @@ CONFIG(release,debug|release) {
    # Release verwendet kein shadow-build, deshalb muss man den macdeployqt Aufruf nicht anpassen
    macx:QMAKE_POST_LINK += && $$[QT_INSTALL_BINS]/macdeployqt $${TARGET}.app -dmg
 }
+# win32:QMAKE_POST_LINK += && echo $$[QT_INSTALL_BINS]/windeployqt $${OUT_PWD}/debug/DkVerwaltungQt.exe
+# win32:QMAKE_POST_LINK += && $$[QT_INSTALL_BINS]/windeployqt $${OUT_PWD}/debug/DkVerwaltungQt.exe
 
 QMAKE_POST_LINK += && echo \"finished post link steps...\"
 

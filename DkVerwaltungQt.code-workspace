@@ -24,6 +24,23 @@
     "builddir_linux"  :  "build-DkVerwaltungQt-Desktop_Qt_5_15_2_GCC_64bit",
     "qmake_spec_linux"  :  "-spec linux-g++",
 
+    // windows
+    "qtdir_windows" :  "C:\\Qt\\5.15.2\\msvc2019",
+    "builddir_windows"  :  "build-DkVerwaltungQt-Desktop_Qt_5_15_2_MSVC2019_32bit",
+    "qmake_spec_windows"  :  "-spec win32-msvc",
+    "qmake_config_arch_windows" : "",
+    "vc_vars_bat" : "\"C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars32.bat\"",
+    "vc_vars_bat_arg" : "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars32.bat",
+    // "qtdir_windows" :  "C:\\Qt\\5.15.2\\msvc2019_64",
+    // "builddir_windows"  :  "build-DkVerwaltungQt-Desktop_Qt_5_15_2_MSVC2019_64bit",
+    // "qmake_spec_windows"  :  "-spec win32-msvc",
+    // "qmake_config_arch_windows" : "CONFIG+=x86_64",
+    // "vc_vars_bat" : "\"C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat\"",
+
+    // für MSBuild Debug
+    "qtdir_win32" :  "C:\\Qt\\5.15.2\\msvc2019",
+    // "vc_vars_bat" : "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\Common7\\Tools\\VsDevCmd.bat",
+
     // "environment" : [],
     "terminal.integrated.shell.osx": "/bin/bash",
     "terminal.integrated.env.osx": {
@@ -41,6 +58,41 @@
       "QT_TRANSLATIONS_PATH": "${config:qtdir_linux}/translations",
       "DISPLAY" : "host.docker.internal:0",
   	},
+    "terminal.integrated.profiles.windows": {
+      // "PowerShell": {
+      //   "source": "PowerShell",
+      //   "icon": "terminal-powershell"
+      // },
+      "Command Prompt": {
+        "path": [
+          // "${env:windir}\\Sysnative\\cmd.exe",
+          "${env:windir}\\System32\\cmd.exe"
+        ],
+        "args": [
+          "/K", 
+          "${config:vc_vars_bat_arg}"
+        ],
+        "env": {
+          "QTDIR": "${config:qtdir_windows}",
+          "PATH": "${config:qtdir_windows}\\bin;${config:qtdir_windows}\\lib;${env:PATH}",
+          "QT_PLUGIN_PATH" : "${config:qtdir_windows}\\plugins",
+          "QT_TRANSLATIONS_PATH": "${config:qtdir_windows}\\translations",
+        },
+        "icon": "terminal-cmd"
+      },
+    },
+    
+    // "terminal.integrated.shell.windows": "C:\\WINDOWS\\System32\\cmd.exe",
+    // "terminal.integrated.shellArgs.windows": ["/K", "${config:vc_vars_bat}"],
+    // "terminal.integrated.automationShell.windows": "C:\\WINDOWS\\System32\\cmd.exe /K ${config:vc_vars_bat}",
+    "terminal.integrated.automationShell.windows": "C:\\WINDOWS\\System32\\cmd.exe",
+    "terminal.integrated.env.windows": {
+		  "QTDIR": "${config:qtdir_windows}",
+			"PATH": "${config:qtdir_windows}\\bin;${config:qtdir_windows}\\lib;${env:PATH}",
+      "QT_PLUGIN_PATH" : "${config:qtdir_windows}\\plugins",
+      "QT_TRANSLATIONS_PATH": "${config:qtdir_windows}\\translations",
+  	},
+    /*
     "C_Cpp.default.includePath": [
       "${default}",
       "${workspaceFolder}/**",
@@ -50,87 +102,125 @@
       "${env:HOME}/Qt/5.15.2/include",
       "/opt/qt515/include",
     ],
+    */
     "C_Cpp.intelliSenseEngine": "Tag Parser",
     "workbench.colorTheme": "Default Light+",
     // "lldb.library": "/Library/Developer/CommandLineTools/Library/PrivateFrameworks/LLDB.framework/Versions/A/LLDB",
+    // "cmake.cmakePath" : "/Applications/CMake.app/Contents/bin/cmake",
+    // "cmake.cmakePath": "C:\\Qt\\Tools\\CMake_64\\bin\\cmake.exe",
 	},
   "tasks": {
     "version": "2.0.0",
     "tasks": [
       {
-       "label": "DkVerwaltungQt: test environment ",
+        "label": "DkVerwaltungQt: test environment ",
         "type": "shell",
-        // "command": "cd $BUILDDIR && echo && pwd && echo ${config:C_Cpp.intelliSenseEngine}",
-        // "command": "echo ${config:C_Cpp.default.includePath}",
-        "osx":{
-          "command": "echo ${config:qtdir_osx} && echo $QTDIR  && echo $BUILDDIR",
+        "presentation": {
+          "echo": true,
+          "focus": false,
+          "panel": "dedicated",
+          "clear": false
         },
-        "linux":{
-          "command": "echo linux ${config:qtdir_linux} && echo $QTDIR  && echo $LD_LIBRARY_PATH",
+        "osx": {
+          "command": "echo ${config:qtdir_osx} && echo $QTDIR  && echo $BUILDDIR"
         },
-        // "args": [
-        //   "$BUILDDIR"
-        // ],
-        // "options": {
-        // 	"cwd": "${env:BUILDDIR}",
-        // }
-        },          
-        {
-            "label": "DkVerwaltungQt: create build folder",
-            "type": "shell",
-            "osx":{
-              "command": "mkdir -p ${workspaceFolder}/${config:builddir_osx}-${config:debug_or_release}"
-            },
-            "linux":{
-              "command": "mkdir -p ${workspaceFolder}/${config:builddir_linux}-${config:debug_or_release}"
-            },
+        "linux": {
+          "command": "echo linux ${config:qtdir_linux} && echo $QTDIR  && echo $LD_LIBRARY_PATH"
         },
-        {
-            "label": "DkVerwaltungQt: run qmake",
-            "type": "shell",
-            "osx":{
-              "command": "cd ${config:builddir_osx}-${config:debug_or_release} && ${QTDIR}/bin/qmake ${workspaceFolder}/DkVerwaltungQt.pro CONFIG+=x86_64 ${config:qmake_spec_osx} ${config:qmake_config_debug}",
-            },
-            "linux":{
-              "command": "cd ${config:builddir_linux}-${config:debug_or_release} && ${QTDIR}/bin/qmake ${workspaceFolder}/DkVerwaltungQt.pro CONFIG+=x86_64 ${config:qmake_spec_linux} ${config:qmake_config_debug}",
-            },
-            "problemMatcher": []
+        "windows": {
+          // "command": "\"${config:vc_vars_bat}\" && echo windows ${config:qtdir_windows} && set PATH && set INCLUDE ",
+            "command": "${config:vc_vars_bat} && echo windows ${config:qtdir_windows} && set QTDIR && set PATH && set INCLUDE ",
         },
-        {
-            "label": "DkVerwaltungQt: run make",
-            "type": "shell",
-            "osx":{
-              "command": "cd ${config:builddir_osx}-${config:debug_or_release} && make",
-            },
-            "linux":{
-              "command": "cd ${config:builddir_linux}-${config:debug_or_release} && make",
-            },
-            "problemMatcher": []
+        "problemMatcher": [
+          "$go"
+        ]
+      },
+      {
+        "label": "DkVerwaltungQt: create build folder",
+        "type": "shell",
+        "osx": {
+          "command": "mkdir -p ${workspaceFolder}/${config:builddir_osx}-${config:debug_or_release}"
         },
-        {
-            "label": "DkVerwaltungQt: clean build folder",
-            "type": "shell",
-            "osx":{
-              "command": "cd ${config:builddir_osx}-${config:debug_or_release} && make clean",
-            },
-            "linux":{
-              "command": "cd ${config:builddir_linux}-${config:debug_or_release} && make clean",
-            },
+        "linux": {
+          "command": "mkdir -p ${workspaceFolder}/${config:builddir_linux}-${config:debug_or_release}"
         },
-        {
-            "label": "DkVerwaltungQt: Build",
-    				"group": {
-              "kind": "build",
-              "isDefault": true
-            },
-            "dependsOn": [
-                "DkVerwaltungQt: create build folder",
-                "DkVerwaltungQt: run qmake",
-                "DkVerwaltungQt: run make"
-            ],
-            "dependsOrder": "sequence"
+        "windows": {
+          "command": "if not exist ${workspaceFolder}\\${config:builddir_windows}-${config:debug_or_release} mkdir ${workspaceFolder}\\${config:builddir_windows}-${config:debug_or_release}"
+          // "command": "New-Item -ItemType Directory -Force -Path ${workspaceFolder}\\${config:builddir_windows}-${config:debug_or_release}",
+        }
+      },
+      {
+        "label": "DkVerwaltungQt: run qmake",
+        "type": "shell",
+        "osx": {
+          "command": "cd ${config:builddir_osx}-${config:debug_or_release} && ${QTDIR}/bin/qmake ${workspaceFolder}/DkVerwaltungQt.pro CONFIG+=x86_64 CONFIG+=c++17 ${config:qmake_spec_osx} ${config:qmake_config_debug}"
         },
-	],
+        "linux": {
+          "command": "cd ${config:builddir_linux}-${config:debug_or_release} && ${QTDIR}/bin/qmake ${workspaceFolder}/DkVerwaltungQt.pro CONFIG+=x86_64 CONFIG+=c++17 ${config:qmake_spec_linux} ${config:qmake_config_debug}"
+        },
+        "windows": {
+          "command": "${config:vc_vars_bat} && cd ${workspaceFolder}\\${config:builddir_windows}-${config:debug_or_release} && ${config:qtdir_windows}\\bin\\qmake ${workspaceFolder}\\DkVerwaltungQt.pro CONFIG+=c++17 ${config:qmake_spec_windows} ${config:qmake_config_arch_windows} ${config:qmake_config_debug}",
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "DkVerwaltungQt: run make",
+        "type": "shell",
+        "osx": {
+          "command": "cd ${config:builddir_osx}-${config:debug_or_release} && make"
+        },
+        "linux": {
+          "command": "cd ${config:builddir_linux}-${config:debug_or_release} && make"
+        },
+        "windows": {
+          // "command": "cd ${workspaceFolder}\\${config:builddir_windows}-${config:debug_or_release} ; Invoke-BatchFile '${config:vc_vars_bat}' ; set INCLUDE ; nmake -f Makefile "
+          "command": "cd ${workspaceFolder}\\${config:builddir_windows}-${config:debug_or_release} && ${config:vc_vars_bat} &&  nmake -f Makefile "
+            
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "DkVerwaltungQt: clean build folder",
+        "type": "shell",
+        "osx": {
+          "command": "cd ${config:builddir_osx}-${config:debug_or_release} && make clean"
+        },
+        "linux": {
+          "command": "cd ${config:builddir_linux}-${config:debug_or_release} && make clean"
+        },
+        "windows": {
+          "command": "cd ${workspaceFolder}\\${config:builddir_windows}-${config:debug_or_release} && ${config:vc_vars_bat} && nmake -f Makefile clean"
+        }
+      },
+      {
+        "label": "DkVerwaltungQt: Build",
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "dependsOn": [
+          "DkVerwaltungQt: create build folder",
+          "DkVerwaltungQt: run qmake",
+          "DkVerwaltungQt: run make"
+        ],
+        "dependsOrder": "sequence"
+      },
+      {
+        "label": "DkVerwaltungQt: MSBuild",
+        "type": "shell",
+        "command": "\"C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\MSBuild\\Current\\bin\\msbuild.exe\" /p:Configuration=${config:debug_or_release} /t:build ${workspaceFolder}\\DkVerwaltungQt.sln",
+        "group": "build",
+        "presentation": {},
+        "problemMatcher": "$msCompile"
+      },
+      {
+        "label": "DkVerwaltungQt: MSBuild clean",
+        "type": "shell",
+        "command": "\"C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\MSBuild\\Current\\bin\\msbuild.exe\" /p:Configuration=${config:debug_or_release} /t:clean ${workspaceFolder}\\DkVerwaltungQt.sln",
+        "group": "build",
+        "problemMatcher": "$msCompile"
+      }
+    ],
   },
   "launch": {
             // Use IntelliSense to learn about possible attributes.
@@ -138,13 +228,62 @@
             // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
             "version": "0.2.0",
             "configurations": [
-              /*
+
               {
                 "name": "(Windows) DkVerwaltungQt",
                 "type": "cppvsdbg",
                 "request": "launch",
+                "program": "${workspaceFolder}/${config:builddir_windows}-${config:debug_or_release}/${config:debug_or_release}/DkVerwaltungQt",
+                "cwd": "${workspaceFolder}/${config:builddir_windows}-${config:debug_or_release}/${config:debug_or_release}",
+                "environment": [
+                  // { "name": "QT_PLUGIN_PATH", "value": "${env:QTDIR}\\plugins" },
+                  // { "name": "QT_TRANSLATIONS_PATH", "value": "${env:QTDIR}\\translations" },
+                  // { "name": "PATH", "value": "${env:QTDIR}\\bin;${env:QTDIR}\\lib;${env:PATH}" },
+                  { "name": "QT_PLUGIN_PATH", "value": "${config:qtdir_windows}\\plugins" },
+                  { "name": "QT_TRANSLATIONS_PATH", "value": "${config:qtdir_windows}\\translations" },
+                  { "name": "PATH", "value": "${config:qtdir_windows}\\bin;${config:qtdir_windows}\\lib;${env:PATH}" },
+                ],
+                // "symbolSearchPath": "C:\\Symbols;C:\\SymbolDir2",
+                "console": "integratedTerminal", // "internalConsole"
+                "logging": {
+                  "moduleLoad": true,
+                  "trace": true,
+                  // "engineLogging": true,
+                  "exceptions": true,
+                  "programOutput": true,
+                  "processExit": true,
+                  "threadExit": true,
+                },
+                //  "visualizerFile": "${workspaceFolder}/my.natvis",
+                "sourceFileMap": {
+                  "C:\\Users\\Qt\\work\\qt": "${config:qtdir_windows}\\..\\Src",
+                },
+                // "showDisplayString": true
               },
-              */
+              {
+                "name": "(Windows) MSBuild DkVerwaltungQt",
+                "type": "cppvsdbg",
+                "request": "launch",
+                "program": "${workspaceFolder}/${config:debug_or_release}/DkVerwaltungQt.exe",
+                "cwd": "${workspaceFolder}/${config:debug_or_release}",
+                "environment": [
+                  // { "name": "QT_PLUGIN_PATH", "value": "${env:QTDIR}\\plugins" },
+                  // { "name": "QT_TRANSLATIONS_PATH", "value": "${env:QTDIR}\\translations" },
+                  // { "name": "PATH", "value": "${env:QTDIR}\\bin:${env:QTDIR}\\lib:${env:PATH}" },
+                  { "name": "QTDIR", "value": "${config:qtdir_win32}" },
+                  { "name": "QT_PLUGIN_PATH", "value": "${config:qtdir_win32}\\plugins" },
+                  { "name": "QT_TRANSLATIONS_PATH", "value": "${config:qtdir_win32}\\translations" },
+                  { "name": "PATH", "value": "${config:qtdir_win32}\\bin;${config:qtdir_win32}\\lib;${env:PATH}" },
+                ],
+                // "symbolSearchPath": "C:\\Symbols;C:\\SymbolDir2",
+                // "console": "integratedTerminal",
+                "logging": {
+                  "moduleLoad": true,
+                  "trace": true
+                },
+                //  "visualizerFile": "${workspaceFolder}/my.natvis",
+                "showDisplayString": true,
+              },
               {
                 "name": "(macOS) DkVerwaltungQt",
                 "type": "lldb",

@@ -75,11 +75,20 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
     }
 }
 
-int main(int argc, char *argv[], char *env[])
+void dumpEnv(){
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    QString env_variable;
+    QStringList paths_list = env.toStringList();
+    foreach( env_variable, paths_list ){
+        qDebug() << env_variable;
+    }
+}
+
+int main(int argc, char *argv[])
 {
     oldMessageHandler = qInstallMessageHandler(myMessageOutput);
 #ifdef QT_DEBUG    
-    dumpEnv(env);
+    dumpEnv();
 #endif    
     QApplication::setApplicationName("DkVerwaltungQt");
     QApplication::setOrganizationName("MHS");

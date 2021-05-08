@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.10)
 
 project(DkVerwaltungQt LANGUAGES CXX)
 
@@ -9,12 +9,19 @@ set(CMAKE_AUTOMOC ON)
 # to always look for includes there:
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-find_package(Qt5Network REQUIRED)
-find_package(Qt5Widgets REQUIRED)
-find_package(Qt5Sql REQUIRED)
-find_package(Qt5PrintSupport REQUIRED)
-find_package(Qt5WebEngine REQUIRED)
-find_package(Qt5WebEngineWidgets REQUIRED)
+if (WIN32)
+set(CMAKE_PREFIX_PATH C:\\Qt\\5.15.2\\msvc2019\\lib\\cmake)
+endif (WIN32)
+
+if (UNIX)
+set(CMAKE_PREFIX_PATH  /opt/qt515/lib/cmake)
+endif (UNIX)
+
+if (APPLE)
+set(CMAKE_PREFIX_PATH  $ENV{HOME}/Qt/5.15.2/clang_64/lib/cmake)
+endif (APPLE)
+
+find_package(Qt5 COMPONENTS Core Gui Widgets Network Sql PrintSupport WebEngine WebEngineWidgets REQUIRED)
 
 file(GLOB SOURCE_FILES
     ansparrechner.cpp ansparrechner.h
@@ -28,7 +35,6 @@ file(GLOB SOURCE_FILES
     main.cpp
 )
 
-# "${SOURCE_ROOT}/"
 file(GLOB RESOURCE_FILES
     Jahreskontoauszug.html
     Zinsbescheinigung.html
@@ -40,15 +46,8 @@ file(GLOB RESOURCE_FILES
 
 add_executable(${PROJECT_NAME} MACOSX_BUNDLE ${SOURCE_FILES} ${RESOURCE_FILES})
 
-# add_custom_target("deploy")
-# add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-#                    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-#                        ${CMAKE_CURRENT_SOURCE_DIR}/Jahreskontoauszug.html $<TARGET_FILE_DIR:${PROJECT_NAME}>
-# )
-
 foreach(RESOURCE_FILE ${RESOURCE_FILES})
-  #Set it's location inside the app package (under Resources)
   set_property(SOURCE ${RESOURCE_FILE} PROPERTY MACOSX_PACKAGE_LOCATION "Resources/${RES_PATH}")
 endforeach(RESOURCE_FILE)
 
-qt5_use_modules(DkVerwaltungQt Network Widgets Sql PrintSupport WebEngine WebEngineWidgets)
+target_link_libraries(${PROJECT_NAME} PUBLIC Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Sql Qt5::PrintSupport Qt5::WebEngine Qt5::WebEngineWidgets)

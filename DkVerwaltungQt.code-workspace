@@ -285,7 +285,7 @@
                   "processExit": true,
                   "threadExit": true,
                 },
-                //  "visualizerFile": "${workspaceFolder}/my.natvis",
+                "visualizerFile": "${env:USERPROFILE}\\Documents\\Visual Studio 2019\\Visualizers\\qt5.natvis",
                 "sourceFileMap": {
                   "C:\\Users\\Qt\\work\\qt": "${config:qtdir_windows}\\..\\Src",
                 },
@@ -312,7 +312,7 @@
                   "moduleLoad": true,
                   "trace": true
                 },
-                //  "visualizerFile": "${workspaceFolder}/my.natvis",
+                "visualizerFile": "${env:USERPROFILE}\\Documents\\Visual Studio 2019\\Visualizers\\qt5.natvis",
                 // "showDisplayString": true,
               },
               {
@@ -338,7 +338,7 @@
                   "processExit": true,
                   "threadExit": true,
                 },
-                //  "visualizerFile": "${workspaceFolder}/my.natvis",
+                "visualizerFile": "${env:USERPROFILE}\\Documents\\Visual Studio 2019\\Visualizers\\qt5.natvis",
                 "sourceFileMap": {
                   "C:\\Users\\Qt\\work\\qt": "${config:qtdir_windows}\\..\\Src",
                 },

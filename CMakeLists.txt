@@ -10,15 +10,18 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 if (WIN32)
-set(CMAKE_PREFIX_PATH C:\\Qt\\5.15.2\\msvc2019\\lib\\cmake)
+# set(CMAKE_PREFIX_PATH C:\\Qt\\5.15.2\\msvc2019\\lib\\cmake)
+list(APPEND CMAKE_PREFIX_PATH C:\\Qt\\5.15.2\\msvc2019\\lib\\cmake)
 endif (WIN32)
 
 if (UNIX)
-set(CMAKE_PREFIX_PATH  /opt/qt515/lib/cmake)
+# set(CMAKE_PREFIX_PATH  /opt/qt515/lib/cmake)
+list(APPEND CMAKE_PREFIX_PATH  /opt/qt515/lib/cmake)
 endif (UNIX)
 
 if (APPLE)
-set(CMAKE_PREFIX_PATH  $ENV{HOME}/Qt/5.15.2/clang_64/lib/cmake)
+# set(CMAKE_PREFIX_PATH  $ENV{HOME}/Qt/5.15.2/clang_64/lib/cmake)
+list(APPEND CMAKE_PREFIX_PATH  $ENV{HOME}/Qt/5.15.2/clang_64/lib/cmake)
 endif (APPLE)
 
 find_package(Qt5 COMPONENTS Core Gui Widgets Network Sql PrintSupport WebEngine WebEngineWidgets REQUIRED)
@@ -42,6 +45,7 @@ file(GLOB RESOURCE_FILES
     sendDKJAKtos.py
     printCommandDescription.sh
     mail-content.txt
+    importCsvIntoDkVerwaltungQt.py
 )
 
 add_executable(${PROJECT_NAME} MACOSX_BUNDLE ${SOURCE_FILES} ${RESOURCE_FILES})

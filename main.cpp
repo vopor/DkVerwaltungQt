@@ -75,15 +75,6 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
     }
 }
 
-void dumpEnv(){
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    QString env_variable;
-    QStringList paths_list = env.toStringList();
-    foreach( env_variable, paths_list ){
-        qDebug() << env_variable;
-    }
-}
-
 int main(int argc, char *argv[])
 {
     oldMessageHandler = qInstallMessageHandler(myMessageOutput);

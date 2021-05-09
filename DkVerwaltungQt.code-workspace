@@ -44,6 +44,10 @@
     // "vc_vars_bat" : "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\Common7\\Tools\\VsDevCmd.bat",
 
     // "environment" : [],
+    // "terminal.integrated.environmentChangesIndicator": "on",
+    // "terminal.integrated.environmentChangesRelaunch": true,
+    // "terminal.integrated.inheritEnv": true,
+
     // "terminal.integrated.shell.osx": "/bin/bash",
     // "terminal.integrated.shellArgs.osx": [],
     // "terminal.integrated.automationShell.osx": "/bin/bash",
@@ -61,6 +65,35 @@
       "QT_TRANSLATIONS_PATH": "${config:qtdir_linux}/translations",
       "DISPLAY" : "host.docker.internal:0",
   	},
+    // "terminal.integrated.profiles.osx": {
+    //   "bash": {
+    //     "path": "bash",
+    //     "icon": "terminal-bash",
+    //     "env": {
+    //       "PATH": "${env:HOME}/Qt/${config:qtdir_osx}/bin:${env:PATH}",
+    //       "QTDIR": "${env:HOME}/Qt/${config:qtdir_osx}",
+    //     },
+    //     // "args": [
+    //     //   "-c",
+    //     //   "echo SHELL=$SHELL",
+    //     // ],
+    //   },
+    //   "zsh": {
+    //     "path": "zsh"
+    //   },
+    //   "fish": {
+    //     "path": "fish"
+    //   },
+    //   "tmux": {
+    //     "path": "tmux",
+    //     "icon": "terminal-tmux"
+    //   },
+    //   "pwsh": {
+    //     "path": "pwsh",
+    //     "icon": "terminal-powershell"
+    //   }
+    // },
+    "terminal.integrated.defaultProfile.osx": "bash",
     // "terminal.integrated.profiles.windows": {
     //   // "PowerShell": {
     //   // "source": "PowerShell",
@@ -147,7 +180,7 @@
           "clear": false
         },
         "osx": {
-          "command": "echo ${config:qtdir_osx} && env && echo QTDIR=$QTDIR",
+          "command": "echo ${config:qtdir_osx} && env && echo QTDIR=$QTDIR && echo SHELL=$SHELL",
           // "options": {
           //   "shell": {
           //     "env":{

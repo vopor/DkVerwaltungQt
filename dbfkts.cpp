@@ -115,12 +115,72 @@ QString escapeFileName(const QString &fileName)
     return ret;
 }
 
-void dumpEnv(char **env)
+void dumpEnv()
 {
-    int i;
-    for (i=0 ; env[i] ; i++)
-        qDebug() << env[i];
-    qDebug() << Qt::endl;
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    QString env_variable;
+    QStringList paths_list = env.toStringList();
+    foreach( env_variable, paths_list ){
+        qDebug() << env_variable;
+    }
+}
+
+void run_executeCommand(QWidget *button, const QString &commandLine)
+{
+    if(commandLine.isEmpty())
+        return;
+    if(button) button->setEnabled(false);
+    qDebug() << commandLine;
+    QProcess *process = new QProcess;
+    QMetaObject::Connection connFinished = QObject::connect(process, static_cast<void (QProcess::*)(int exitCode, QProcess::ExitStatus exitStatus)>(&QProcess::finished), [process, button, commandLine] (int exitCode, QProcess::ExitStatus exitStatus){
+        if(process->state() == QProcess::NotRunning){
+            qDebug() << commandLine << " finished: " << process->processId();
+            if(process->exitStatus()  == QProcess::NormalExit){
+                qDebug() << commandLine << " exited normal: " << process->processId() << "exitcode: " << process->exitCode();
+                QByteArray output = process->readAllStandardOutput();
+                qDebug() << output;
+            }
+        }
+        delete process;
+        // process = nullptr;
+        if(button) button->setEnabled(true);
+
+    });
+    // QObject::connect(process, static_cast<void (QProcess::*)(QProcess::ProcessError error)>(&QProcess::errorOccurred), [process, button, commandLine] (QProcess::ProcessError error)
+    QObject::connect(process, &QProcess::errorOccurred, [process, button, commandLine] (QProcess::ProcessError error)
+                     {
+                         qDebug() << commandLine << " process error: " << error << " pid: " << process->processId();
+                         QByteArray output = process->readAllStandardError();
+                         qDebug() << output;
+                         delete process;
+                         if(button) button->setEnabled(true);
+                         // process = nullptr;
+                     });
+
+    process->start( commandLine );
+    process->waitForStarted();
+    qDebug() << commandLine << " process started: " << process->processId();
+    process->waitForFinished();
+    // qDebug() << commandLine << " process finished: " << process->processId();
+    qDebug() << commandLine << " process finished";
+    // bringAppToForeground(process->processId());
+#ifdef XXX
+    QObject::disconnect(connFinished);
+    process->waitForFinished(10000);
+    if(process->exitStatus()  == QProcess::NormalExit){
+        qDebug() << commandLine << " exited normal: " << process->processId() << "exitcode: " << process->exitCode();
+        QByteArray output = process->readAllStandardOutput();
+        QByteArrayList baList = output.split('\n');
+        foreach(QByteArray ba, baList){
+            qDebug() << ba;
+        }
+    }else{
+        qDebug() << commandLine << " error: " << process->error() << "exitcode: " << process->exitCode();
+        QByteArray output = process->readAllStandardError();
+        qDebug() << output;
+    }
+    button->setEnabled(true);
+#endif
 }
 
 //--------------------------------------------------------------

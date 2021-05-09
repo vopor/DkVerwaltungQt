@@ -21,7 +21,8 @@ void convertHtmlFileToPdfFile(const QString &fileNameHtml, const QString &fileNa
 void convertHtmlFileToPdfFileSimple(const QString &fileNameHtml, const QString &fileNamePdf);
 void showPdfFile(const QString &fileNamePdf);
 QString escapeFileName(const QString &fileName);
-void dumpEnv(char **env);
+void dumpEnv();
+void run_executeCommand(QWidget *button, const QString &commandLine);
 
 //--------------------------------------------------------------
 // DkVerwaltungQt-Funktionen

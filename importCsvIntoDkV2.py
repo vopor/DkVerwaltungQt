@@ -93,6 +93,8 @@ try:
 
     stmt.execute("DELETE FROM Buchungen");
     stmt.execute("DELETE FROM Vertraege");
+    stmt.execute("DELETE FROM ExBuchungen");
+    stmt.execute("DELETE FROM ExVertraege");
     stmt.execute("DELETE FROM Kreditoren");
     conn.commit()
 
@@ -143,7 +145,7 @@ try:
                         insert_statement += ","
 
                 insert_statement += ");"
-                print insert_statement
+                # print insert_statement
                 stmt.execute(insert_statement)
                 conn.commit()
         conn.commit()
@@ -256,6 +258,10 @@ try:
     stmt.execute('DELETE FROM DkBuchungen WHERE substr(Datum,7,2) < (SELECT MAX(substr(Datum,7,2)) FROM DkBuchungen);')
     print "Anzahl: ", stmt.rowcount
 
+    print "Stammkapital löschen: "
+    stmt.execute('DELETE FROM DkBuchungen WHERE DkNummer = "Stammkapital";')
+    print "Anzahl: ", stmt.rowcount
+
     conn.commit()
 
     #
@@ -321,7 +327,6 @@ try:
         # for row in vertraege:
         #     print row
         conn.commit()
-
     
     print "Vergleiche DkVerwaltungQt <-> DKV2"
 
@@ -360,7 +365,9 @@ try:
     select_stmt += 'WHERE Anfangsdatum <> "" AND DkNummer <> "Stammkapital" '
     select_stmt += 'AND NOT EXISTS'
     select_stmt += '('
-    select_stmt += 'SELECT * FROM Vertraege WHERE DKBuchungen.DkNummer = Vertraege.Kennung '    
+    select_stmt += 'SELECT * FROM Vertraege WHERE DKBuchungen.DkNummer = Vertraege.Kennung '
+    # select_stmt += 'UNION '
+    # select_stmt += 'SELECT * FROM ExVertraege WHERE DKBuchungen.DkNummer = ExVertraege.Kennung '
     select_stmt += ')'
     stmt.execute(select_stmt)
     buchungen = stmt.fetchall()
@@ -466,6 +473,64 @@ try:
         print row
     print "Anzahl: ", len(vertraege)
 
+    if True:
+
+        print "abgelaufene Vertraege inkl. Buchungen in VertraegeEx bzw. BuchungenEx"
+
+        insert_stmt = 'INSERT INTO ExVertraege SELECT Vertraege.* '
+        insert_stmt += 'FROM Vertraege, DkBuchungen '
+        insert_stmt += 'WHERE Vertraege.Id = DkBuchungen.Buchungid '
+        insert_stmt += 'AND Rueckzahlung <> ""'
+        stmt.execute(insert_stmt);
+        print "Anzahl ExVertraege: ", stmt.rowcount
+        conn.commit()
+
+        update_stmt = 'UPDATE ExVertraege SET LaufzeitEnde = '
+        update_stmt += '('
+        update_stmt += 'SELECT ("20" || substr(Rueckzahlung,7,2) || "-" || substr(Rueckzahlung,4,2) || "-" || substr(Rueckzahlung,1,2)) '
+        update_stmt += 'FROM DKBuchungen b, ExVertraege c '
+        update_stmt += 'WHERE b.DkNummer = c.Kennung '
+        update_stmt += ')'
+        # print update_stmt
+        stmt.execute(update_stmt);
+        print "Anzahl ExVertraege aktualisiert: ", stmt.rowcount
+        conn.commit()
+
+        insert_stmt = 'INSERT INTO ExBuchungen SELECT Buchungen.* '
+        insert_stmt += 'FROM ExVertraege, Buchungen '
+        insert_stmt += 'WHERE ExVertraege.Id = Buchungen.Vertragsid '
+        stmt.execute(insert_stmt);
+        print "Anzahl ExBuchungen: ", stmt.rowcount
+        conn.commit()
+
+        # DELETE FROM Buchungen
+        stmt.execute('DELETE FROM Buchungen WHERE EXISTS (SELECT * FROM ExBuchungen WHERE Buchungen.Id = ExBuchungen.Id);')
+        print "Anzahl Buchungen gelöscht: ", stmt.rowcount
+        conn.commit()
+        stmt.execute('DELETE FROM Vertraege WHERE EXISTS (SELECT * FROM ExVertraege WHERE ExVertraege.Id = Vertraege.Id);')
+        print "Anzahl Vertraege gelöscht: ", stmt.rowcount
+        conn.commit()
+        
+        print "TODO: Update TimeStamps\n"
+
+        print "Vergleiche DkVerwaltungQt <-> DKV2"
+
+        print "Anzahl Vertraege:"
+        select_stmt = 'SELECT COUNT(*) FROM Vertraege'
+        stmt.execute(select_stmt)
+        print stmt.fetchone()[0]
+        print "Anzahl ExVertraege:"
+        select_stmt = 'SELECT COUNT(*) FROM ExVertraege'
+        stmt.execute(select_stmt)
+        print stmt.fetchone()[0]
+        print "Anzahl Buchungen:"
+        select_stmt = 'SELECT COUNT(*) FROM Buchungen'
+        stmt.execute(select_stmt)
+        print stmt.fetchone()[0]
+        print "Anzahl ExBuchungen:"
+        select_stmt = 'SELECT COUNT(*) FROM ExBuchungen'
+        stmt.execute(select_stmt)
+        print stmt.fetchone()[0]
 
     if dropUnusedCsvTables:
         stmt.execute('DROP TABLE DKVerwaltungORG;')

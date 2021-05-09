@@ -9,7 +9,7 @@ INCLUDEPATH += .
 
 # win32:CONFIG -= debug_and_release
 
-APP_RESOURCES_FILES.files = ./Jahreskontoauszug.html ./Zinsbescheinigung.html ./F13TurleyGmbH2.gif ./sendDKJAKtos.py ./printCommandDescription.sh ./mail-content.txt
+APP_RESOURCES_FILES.files = ./Jahreskontoauszug.html ./Zinsbescheinigung.html ./F13TurleyGmbH2.gif ./sendDKJAKtos.py ./printCommandDescription.sh ./mail-content.txt ./importCsvIntoDkVerwaltungQt.py
 APP_RESOURCES_FILES.path = Contents/Resources
 
 QMAKE_BUNDLE_DATA += APP_RESOURCES_FILES
@@ -30,14 +30,14 @@ TARGETDIR = $$shell_path($${OUT_PWD})
 # C:\Qt\5.15.2\msvc2019\bin\qmake.exe CONFIG+=debug_and_release -tp vc
 # TARGETDIR = \"$(TargetDir)\"
 
-QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/Jahreskontoauszug.html) $${TARGETDIR}
-QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/Zinsbescheinigung.html) $${TARGETDIR}
-QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/F13TurleyGmbH2.gif) $${TARGETDIR}
-QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/mail-content.txt) $${TARGETDIR}
-QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/importCsvIntoDkVerwaltungQt.py) $${TARGETDIR}
+!macx:QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/Jahreskontoauszug.html) $${TARGETDIR}
+!macx:QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/Zinsbescheinigung.html) $${TARGETDIR}
+!macx:QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/F13TurleyGmbH2.gif) $${TARGETDIR}
+!macx:QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/mail-content.txt) $${TARGETDIR}
+!macx:QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/importCsvIntoDkVerwaltungQt.py) $${TARGETDIR}
 
-macx:QMAKE_POST_LINK +=  && $${COPY} $${PWD}/sendDKJAKtos.py $${OUT_PWD}/
-macx:QMAKE_POST_LINK +=  && $${COPY} $${PWD}/printCommandDescription.sh $${OUT_PWD}/
+# macx:QMAKE_POST_LINK +=  && $${COPY} $${PWD}/sendDKJAKtos.py $${OUT_PWD}/
+# macx:QMAKE_POST_LINK +=  && $${COPY} $${PWD}/printCommandDescription.sh $${OUT_PWD}/
 
 CONFIG(release,debug|release) {
    unix:!macx:QMAKE_POST_LINK +=  && $${PWD}/deploylinux.sh $${OUT_PWD} $$(QTDIR)

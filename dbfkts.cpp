@@ -131,7 +131,7 @@ void run_executeCommand(QWidget *button, const QString &commandLine)
         return;
     if(button) button->setEnabled(false);
     qDebug() << commandLine;
-    QProcess *process = new QProcess;
+    QPointer<QProcess> process = new QProcess;
     QMetaObject::Connection connFinished = QObject::connect(process, static_cast<void (QProcess::*)(int exitCode, QProcess::ExitStatus exitStatus)>(&QProcess::finished), [process, button, commandLine] (int exitCode, QProcess::ExitStatus exitStatus){
         if(process->state() == QProcess::NotRunning){
             qDebug() << commandLine << " finished: " << process->processId();
@@ -158,11 +158,11 @@ void run_executeCommand(QWidget *button, const QString &commandLine)
                      });
 
     process->start( commandLine );
-    process->waitForStarted();
-    qDebug() << commandLine << " process started: " << process->processId();
-    process->waitForFinished();
-    // qDebug() << commandLine << " process finished: " << process->processId();
-    qDebug() << commandLine << " process finished";
+    if(process) process->waitForStarted();
+    if(process) qDebug() << commandLine << " process started: " << process->processId();
+    if(process) process->waitForFinished();
+    if(process) qDebug() << commandLine << " process finished: " << process->processId();
+    // qDebug() << commandLine << " process finished";
     // bringAppToForeground(process->processId());
 #ifdef XXX
     QObject::disconnect(connFinished);

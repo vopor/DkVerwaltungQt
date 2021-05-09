@@ -42,7 +42,7 @@ void MainWindow::openDatabase()
 {
     QString dbPath = getStandardPath() + QDir::separator() + "DkVerwaltungQt.db3";
     QString oldDbPath = getStringFromIni("DBPath", dbPath);
-    dbPath = QFileDialog::getOpenFileName(this, QStringLiteral("Datenbank öffnen"), oldDbPath);
+    dbPath = QFileDialog::getOpenFileName(this, QStringLiteral("Datenbank öffnen"), oldDbPath, "sqlite3 (*.db3 *.dkdb)");
     if(!dbPath.isEmpty())
     {
         closeConnection(dbPath);
@@ -92,26 +92,24 @@ void MainWindow::importCsv()
         {
             return;
         }
+        closeConnection(dbPath);
         QFile::remove(dbPath);
-        // /Users/volker/Documents/GitHub/DkVerwaltungQt/importCsvIntoDkVerwaltungQt.py "/Users/volker/Documents/13ha/finanzen/DK-Abfrage/2021/2016-DK-Verwaltung-Test-OO/2016 DK-Verwaltung V0-23.csv" "/Users/volker/Documents/13ha/finanzen/DK-Abfrage/2021/2016-DK-Verwaltung-Test-OO/2016 DK-Verwaltung V0-23.db3"
         QString sourcePath = getResouresPath();
         QString commandLine = sourcePath + QDir::separator() + "importCsvIntoDkVerwaltungQt.py" + " " + csvFilename + " " + dbPath;
+        qDebug() << commandLine;
         run_executeCommand(nullptr, commandLine);
+        if (openConnection(dbPath))
+        {
+            MainForm *oldMainForm = mainForm;
+            oldMainForm->hide();
+            mainForm = new MainForm(this);
+            setCentralWidget(mainForm);
+            oldMainForm->deleteLater();
+            oldMainForm = nullptr;
+        }else{
+            QMessageBox::warning(0, QStringLiteral("Fehler"), QStringLiteral("Die Datenbank ") + dbPath + " kann nicht geöffnet werden!");
+        }
     }
-    closeConnection(dbPath);
-    if (openConnection(dbPath))
-    {
-        MainForm *oldMainForm = mainForm;
-        oldMainForm->hide();
-        mainForm = new MainForm(this);
-        setCentralWidget(mainForm);
-        oldMainForm->deleteLater();
-        oldMainForm = nullptr;
-    }else{
-        QMessageBox::warning(0, QStringLiteral("Fehler"), QStringLiteral("Die Datenbank ") + dbPath + " kann nicht geöffnet werden!");
-    }
-
-
 }
 
 void MainWindow::showAnsparrechner()
@@ -126,7 +124,9 @@ void MainWindow::showStatistik()
     QString strYear = getStringValue(statementYear2);
 
     QString statement;
-    double SummeDkEnde = getDoubleValue("SELECT ROUND(SUM(Betrag),2) FROM DkBuchungen WHERE DkNummer <> 'Stammkapital';");
+    statement = "SELECT ROUND(SUM(Betrag),2) FROM DkBuchungen WHERE DkNummer <> 'Stammkapital' ";
+    statement += "AND (Rueckzahlung = '' OR Rueckzahlung IS  NULL);";
+    double SummeDkEnde = getDoubleValue(statement);
     statement = "SELECT (ROUND(SUM(Betrag),2) * -1) FROM DkBuchungen WHERE DkNummer <> 'Stammkapital' AND NOT (Rueckzahlung = '' OR Rueckzahlung IS  NULL)  AND Betrag < 0 ";
     statement += "AND SUBSTR(Datum ,7,2) = '" + strYear + "';";
     double SummeDkAbgaenge = getDoubleValue(statement);

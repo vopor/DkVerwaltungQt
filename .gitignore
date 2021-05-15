@@ -1,18 +1,23 @@
+.vs/
+# .vscode/
 debug/
 release/
-build-*/
+build*/
 backup/
 *.db3
+*.user
+moc_*
+*.vcxproj.filters
+# DKVerwaltungQt.pro.user
+# CMakeLists.txt.user
 #created from qmake
 .qmake.stash 
 .qmake.cash
+.DS_Store
 Makefile 
 Makefile.debug
 Makefile.release
-# .vscode/
 uic_wrapper.bat
 uic_wrapper.sh
 DK-Verwaltung_F13_Turley_GmbH.csv
 DKVerwaltungQt.tmp
-DKVerwaltungQt.pro.user
-.DS_Store

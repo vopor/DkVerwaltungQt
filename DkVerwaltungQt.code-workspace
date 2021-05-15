@@ -1,0 +1,496 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+    "programm_name" : "DkVerwaltungQt",
+    // debug_or_release
+    // Debug
+    "debug_or_release"  :  "Debug",
+    "qmake_config_debug" : "CONFIG+=debug CONFIG+=qml_debug CONFIG-=separate_debug_info",
+    // Release
+    // "debug_or_release"  :  "Release",
+    // "qmake_config_debug" : "",
+
+    // osx
+    "qtdir_osx" :  "5.15.2/clang_64",
+    "builddir_osx"  :  "build-DkVerwaltungQt-Desktop_Qt_5_15_2_clang_64bit",
+    "qmake_spec_osx"  :  "-spec macx-clang",
+
+    // linux
+    "qtdir_linux" :  "/opt/qt515",
+    "builddir_linux"  :  "build-DkVerwaltungQt-Desktop_Qt_5_15_2_GCC_64bit",
+    "qmake_spec_linux"  :  "-spec linux-g++",
+
+    // windows
+    // x86
+    "qtdir_windows" :  "C:\\Qt\\5.15.2\\msvc2019",
+    "builddir_windows"  :  "build-DkVerwaltungQt-Desktop_Qt_5_15_2_MSVC2019_32bit",
+    "qmake_spec_windows"  :  "-spec win32-msvc",
+    "qmake_config_arch_windows" : "",
+    "vc_vars_bat" : "\"C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars32.bat\"",
+    "vc_vars_bat_arg" : "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars32.bat",
+    // x64
+    // "qtdir_windows" :  "C:\\Qt\\5.15.2\\msvc2019_64",
+    // "builddir_windows"  :  "build-DkVerwaltungQt-Desktop_Qt_5_15_2_MSVC2019_64bit",
+    // "qmake_spec_windows"  :  "-spec win32-msvc",
+    // "qmake_config_arch_windows" : "CONFIG+=x86_64",
+    // "vc_vars_bat" : "\"C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat\"",
+    // "vc_vars_bat_arg" : "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat",
+    // für MSBuild Debug
+    "qtdir_win32" :  "C:\\Qt\\5.15.2\\msvc2019",
+    // "vc_vars_bat" : "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\Common7\\Tools\\VsDevCmd.bat",
+
+    // "environment" : [],
+    // "terminal.integrated.environmentChangesIndicator": "on",
+    // "terminal.integrated.environmentChangesRelaunch": true,
+    // "terminal.integrated.inheritEnv": true,
+
+    // "terminal.integrated.shell.osx": "/bin/bash",
+    // "terminal.integrated.shellArgs.osx": [],
+    // "terminal.integrated.automationShell.osx": "/bin/bash",
+    "terminal.integrated.env.osx": {
+		  "PATH": "${env:HOME}/Qt/${config:qtdir_osx}/bin:${env:PATH}",
+      "QTDIR": "${env:HOME}/Qt/${config:qtdir_osx}",
+		},
+    "terminal.integrated.env.linux": {
+			"QTDIR": "${config:qtdir_linux}",
+			"PATH": "${config:qtdir_linux}/bin:${env:PATH}",
+			// "LD_LIBRARY_PATH":  "${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_GCC_64bit-Debug/lib:/opt/qt515/lib:${env:LD_LIBRARY_PATH}",
+			// "LD_LIBRARY_PATH":  "${env:BUILDDIR}/lib:${env:QTDIR}/lib:${env:LD_LIBRARY_PATH}",
+      "LD_LIBRARY_PATH":  "${workspaceFolder}/${workspaceFolder}/${config:builddir_linux}-${config:debug_or_release}/lib:/opt/qt515/lib:${env:LD_LIBRARY_PATH}",
+      "QT_PLUGIN_PATH" : "${config:qtdir_linux}/plugins",
+      "QT_TRANSLATIONS_PATH": "${config:qtdir_linux}/translations",
+      "DISPLAY" : "host.docker.internal:0",
+  	},
+    // "terminal.integrated.profiles.osx": {
+    //   "bash": {
+    //     "path": "bash",
+    //     "icon": "terminal-bash",
+    //     "env": {
+    //       "PATH": "${env:HOME}/Qt/${config:qtdir_osx}/bin:${env:PATH}",
+    //       "QTDIR": "${env:HOME}/Qt/${config:qtdir_osx}",
+    //     },
+    //     // "args": [
+    //     //   "-c",
+    //     //   "echo SHELL=$SHELL",
+    //     // ],
+    //   },
+    //   "zsh": {
+    //     "path": "zsh"
+    //   },
+    //   "fish": {
+    //     "path": "fish"
+    //   },
+    //   "tmux": {
+    //     "path": "tmux",
+    //     "icon": "terminal-tmux"
+    //   },
+    //   "pwsh": {
+    //     "path": "pwsh",
+    //     "icon": "terminal-powershell"
+    //   }
+    // },
+    "terminal.integrated.defaultProfile.osx": "bash",
+    // "terminal.integrated.profiles.windows": {
+    //   // "PowerShell": {
+    //   // "source": "PowerShell",
+    //   // "icon": "terminal-powershell"
+    //   // },
+    //   "Command Prompt": {
+    //     "path": [
+    //       // "${env:windir}\\Sysnative\\cmd.exe",
+    //       "${env:windir}\\System32\\cmd.exe"
+    //     ],
+    //     "args": [
+    //       "/K", 
+    //       "${config:vc_vars_bat_arg}"
+    //     ],
+    //     "env": {
+    //       "QTDIR": "${config:qtdir_windows}",
+    //       "PATH": "${config:qtdir_windows}\\bin;${config:qtdir_windows}\\lib;${env:PATH}",
+    //       "QT_PLUGIN_PATH" : "${config:qtdir_windows}\\plugins",
+    //       "QT_TRANSLATIONS_PATH": "${config:qtdir_windows}\\translations",
+    //     },
+    //     "icon": "terminal-cmd"
+    //   },
+    // },
+    
+    // "terminal.integrated.shell.windows": "C:\\WINDOWS\\System32\\cmd.exe",
+    // "terminal.integrated.shellArgs.windows": ["/K", "${config:vc_vars_bat}"],
+    // "terminal.integrated.automationShell.windows": "C:\\WINDOWS\\System32\\cmd.exe /K ${config:vc_vars_bat}",
+    "terminal.integrated.automationShell.windows": "C:\\WINDOWS\\System32\\cmd.exe",
+    "terminal.integrated.env.windows": {
+		  "QTDIR": "${config:qtdir_windows}",
+			"PATH": "${config:qtdir_windows}\\bin;${config:qtdir_windows}\\lib;${env:PATH}",
+      "QT_PLUGIN_PATH" : "${config:qtdir_windows}\\plugins",
+      "QT_TRANSLATIONS_PATH": "${config:qtdir_windows}\\translations",
+  	},
+    /*
+    "C_Cpp.default.includePath": [
+      "${default}",
+      "${workspaceFolder}/**",
+      "/usr/local/include",
+      // "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include",      
+      "${env:HOME}/Qt/5.15.2/include",
+      "/opt/qt515/include",
+    ],
+    */
+    "C_Cpp.intelliSenseEngine": "Tag Parser",
+    "workbench.colorTheme": "Default Light+",
+    "cmake.debugConfig": {
+      // "miDebuggerPath": "/usr/bin/lldb",
+      // "MIMode": "lldb",
+      "environment.osx": [
+        { "name": "QTDIR", "value": "${config:qtdir_osx}/translations" },
+        { "name": "DYLD_LIBRARY_PATH", "value": "${env:DYLD_LIBRARY_PATH}:${config:qtdir_osx}/lib" },
+        { "name": "DYLD_FRAMEWORK_PATH", "value": "${env:DYLD_LIBRARY_PATH}:${config:qtdir_osx}/lib" },
+        { "name": "QT_PLUGIN_PATH", "value": "${config:qtdir_osx}/plugins" },
+        { "name": "QT_TRANSLATIONS_PATH", "value": "${config:qtdir_osx}/translations" },
+        { "name": "QT_DEBUG_PLUGIN", "value": "1" },
+      ],
+      "environment.linux": [
+        { "name": "LD_LIBRARY_PATH", "value": "${env:LD_LIBRARY_PATH}:${env:QTDIR}/lib:${workspaceFolder}/${config:builddir_linux}-${config:debug_or_release}/lib" },
+        { "name": "QT_PLUGIN_PATH", "value": "${env:QTDIR}/plugins" },
+        { "name": "QT_TRANSLATIONS_PATH", "value": "${env:QTDIR}/translations" },
+        // QT_QPA_PLATFORM_PLUGIN_PATH
+        { "name": "QT_DEBUG_PLUGIN" , "value": "1" },
+        // { "name": "PATH", "value": "${env:QTDIR}/bin:${env:PATH}" },
+        { "name": "DISPLAY", "value": "host.docker.internal:0" },
+      ],
+    },
+    // "lldb.library": "/Library/Developer/CommandLineTools/Library/PrivateFrameworks/LLDB.framework/Versions/A/LLDB",
+    // "cmake.cmakePath" : "/Applications/CMake.app/Contents/bin/cmake",
+    // "cmake.cmakePath": "C:\\Qt\\Tools\\CMake_64\\bin\\cmake.exe",
+    // "cmake.osx.cmakePath" :  "/Applications/CMake.app/Contents/bin/cmake",
+	},
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "DkVerwaltungQt: test environment ",
+        "type": "shell",
+        "presentation": {
+          "echo": true,
+          "focus": false,
+          "panel": "dedicated",
+          "clear": false
+        },
+        "osx": {
+          "command": "echo ${config:qtdir_osx} && env && echo QTDIR=$QTDIR && echo SHELL=$SHELL",
+          // "options": {
+          //   "shell": {
+          //     "env":{
+          //     "PATH": "${env:HOME}/Qt/${config:qtdir_osx}/bin:${env:PATH}",
+          //     "QTDIR": "${env:HOME}/Qt/${config:qtdir_osx}",
+          //     } 
+          //   }
+          // }
+        },
+        "linux": {
+          "command": "echo linux ${config:qtdir_linux} && echo env"
+        },
+        "windows": {
+            "command": "${config:vc_vars_bat} && echo windows ${config:qtdir_windows} && set ",
+        },
+        "problemMatcher": [
+          "$go"
+        ]
+      },
+      {
+        "label": "DkVerwaltungQt: create build folder",
+        "type": "shell",
+        "osx": {
+          "command": "mkdir -p ${workspaceFolder}/${config:builddir_osx}-${config:debug_or_release}"
+        },
+        "linux": {
+          "command": "mkdir -p ${workspaceFolder}/${config:builddir_linux}-${config:debug_or_release}"
+        },
+        "windows": {
+          // "command": "New-Item -ItemType Directory -Force -Path ${workspaceFolder}\\${config:builddir_windows}-${config:debug_or_release}",
+          "command": "if not exist ${workspaceFolder}\\${config:builddir_windows}-${config:debug_or_release} mkdir ${workspaceFolder}\\${config:builddir_windows}-${config:debug_or_release}"
+        }
+      },
+      {
+        "label": "DkVerwaltungQt: run qmake",
+        "type": "shell",
+        "osx": {
+          "command": "cd ${config:builddir_osx}-${config:debug_or_release} && ${env:HOME}/Qt/${config:qtdir_osx}/bin/qmake ${workspaceFolder}/DkVerwaltungQt.pro CONFIG+=x86_64 CONFIG+=c++17 ${config:qmake_spec_osx} ${config:qmake_config_debug}"
+        },
+        "linux": {
+          "command": "cd ${config:builddir_linux}-${config:debug_or_release} && ${config:qtdir_linux}/bin/qmake ${workspaceFolder}/DkVerwaltungQt.pro CONFIG+=x86_64 CONFIG+=c++17 ${config:qmake_spec_linux} ${config:qmake_config_debug}"
+        },
+        "windows": {
+          "command": "${config:vc_vars_bat} && cd ${workspaceFolder}\\${config:builddir_windows}-${config:debug_or_release} && ${config:qtdir_windows}\\bin\\qmake ${workspaceFolder}\\DkVerwaltungQt.pro CONFIG+=c++17 ${config:qmake_spec_windows} ${config:qmake_config_arch_windows} ${config:qmake_config_debug}",
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "DkVerwaltungQt: run make",
+        "type": "shell",
+        "osx": {
+          "command": "cd ${config:builddir_osx}-${config:debug_or_release} && make"
+        },
+        "linux": {
+          "command": "cd ${config:builddir_linux}-${config:debug_or_release} && make"
+        },
+        "windows": {
+          // "command": "cd ${workspaceFolder}\\${config:builddir_windows}-${config:debug_or_release} ; Invoke-BatchFile '${config:vc_vars_bat}' ; set INCLUDE ; nmake -f Makefile "
+          "command": "cd ${workspaceFolder}\\${config:builddir_windows}-${config:debug_or_release} && ${config:vc_vars_bat} &&  nmake -f Makefile "
+            
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "DkVerwaltungQt: clean build folder",
+        "type": "shell",
+        "osx": {
+          "command": "cd ${config:builddir_osx}-${config:debug_or_release} && make clean"
+        },
+        "linux": {
+          "command": "cd ${config:builddir_linux}-${config:debug_or_release} && make clean"
+        },
+        "windows": {
+          "command": "cd ${workspaceFolder}\\${config:builddir_windows}-${config:debug_or_release} && ${config:vc_vars_bat} && nmake -f Makefile clean"
+        }
+      },
+      {
+        "label": "DkVerwaltungQt: Build",
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "dependsOn": [
+          "DkVerwaltungQt: create build folder",
+          "DkVerwaltungQt: run qmake",
+          "DkVerwaltungQt: run make"
+        ],
+        "dependsOrder": "sequence"
+      },
+      {
+        "label": "DkVerwaltungQt: MSBuild",
+        "type": "shell",
+        "command": "\"C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\MSBuild\\Current\\bin\\msbuild.exe\" /p:Configuration=${config:debug_or_release} /t:build ${workspaceFolder}\\DkVerwaltungQt.sln",
+        "group": "build",
+        "presentation": {},
+        "problemMatcher": "$msCompile"
+      },
+      {
+        "label": "DkVerwaltungQt: MSBuild clean",
+        "type": "shell",
+        "command": "\"C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\MSBuild\\Current\\bin\\msbuild.exe\" /p:Configuration=${config:debug_or_release} /t:clean ${workspaceFolder}\\DkVerwaltungQt.sln",
+        "group": "build",
+        "problemMatcher": "$msCompile"
+      }
+    ],
+  },
+  "launch": {
+            // Use IntelliSense to learn about possible attributes.
+            // Hover to view descriptions of existing attributes.
+            // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+            "version": "0.2.0",
+            "configurations": [
+              {
+                "name": "(Windows) DkVerwaltungQt",
+                "type": "cppvsdbg",
+                "request": "launch",
+                "program": "${workspaceFolder}/${config:builddir_windows}-${config:debug_or_release}/${config:debug_or_release}/DkVerwaltungQt",
+                "cwd": "${workspaceFolder}/${config:builddir_windows}-${config:debug_or_release}/${config:debug_or_release}",
+                "environment": [
+                  // { "name": "QT_PLUGIN_PATH", "value": "${env:QTDIR}\\plugins" },
+                  // { "name": "QT_TRANSLATIONS_PATH", "value": "${env:QTDIR}\\translations" },
+                  // { "name": "PATH", "value": "${env:QTDIR}\\bin;${env:QTDIR}\\lib;${env:PATH}" },
+                  { "name": "QT_PLUGIN_PATH", "value": "${config:qtdir_windows}\\plugins" },
+                  { "name": "QT_TRANSLATIONS_PATH", "value": "${config:qtdir_windows}\\translations" },
+                  { "name": "PATH", "value": "${config:qtdir_windows}\\bin;${config:qtdir_windows}\\lib;${env:PATH}" },
+                ],
+                // "symbolSearchPath": "C:\\Symbols;C:\\SymbolDir2",
+                "console": "integratedTerminal", // "internalConsole"
+                "logging": {
+                  "moduleLoad": true,
+                  "trace": true,
+                  // "engineLogging": true,
+                  "exceptions": true,
+                  "programOutput": true,
+                  "processExit": true,
+                  "threadExit": true,
+                },
+                "visualizerFile": "${env:USERPROFILE}\\Documents\\Visual Studio 2019\\Visualizers\\qt5.natvis",
+                "sourceFileMap": {
+                  "C:\\Users\\Qt\\work\\qt": "${config:qtdir_windows}\\..\\Src",
+                },
+                // "showDisplayString": true
+              },
+              {
+                "name": "(Windows - MSBuild) DkVerwaltungQt",
+                "type": "cppvsdbg",
+                "request": "launch",
+                "program": "${workspaceFolder}/${config:debug_or_release}/DkVerwaltungQt.exe",
+                "cwd": "${workspaceFolder}/${config:debug_or_release}",
+                "environment": [
+                  // { "name": "QT_PLUGIN_PATH", "value": "${env:QTDIR}\\plugins" },
+                  // { "name": "QT_TRANSLATIONS_PATH", "value": "${env:QTDIR}\\translations" },
+                  // { "name": "PATH", "value": "${env:QTDIR}\\bin:${env:QTDIR}\\lib:${env:PATH}" },
+                  { "name": "QTDIR", "value": "${config:qtdir_win32}" },
+                  { "name": "QT_PLUGIN_PATH", "value": "${config:qtdir_win32}\\plugins" },
+                  { "name": "QT_TRANSLATIONS_PATH", "value": "${config:qtdir_win32}\\translations" },
+                  { "name": "PATH", "value": "${config:qtdir_win32}\\bin;${config:qtdir_win32}\\lib;${env:PATH}" },
+                ],
+                // "symbolSearchPath": "C:\\Symbols;C:\\SymbolDir2",
+                // "console": "integratedTerminal",
+                "logging": {
+                  "moduleLoad": true,
+                  "trace": true
+                },
+                "visualizerFile": "${env:USERPROFILE}\\Documents\\Visual Studio 2019\\Visualizers\\qt5.natvis",
+                // "showDisplayString": true,
+              },
+              {
+                "name": "(Windows - CMake) DkVerwaltungQt",
+                "type": "cppvsdbg",
+                "request": "launch",
+                "program": "${command:cmake.launchTargetPath}",
+                "cwd": "${command:cmake.getLaunchTargetDirectory}",
+                "stopAtEntry": false,
+                "environment": [
+                  { "name": "QT_PLUGIN_PATH", "value": "${config:qtdir_windows}\\plugins" },
+                  { "name": "QT_TRANSLATIONS_PATH", "value": "${config:qtdir_windows}\\translations" },
+                  { "name": "PATH", "value": "${config:qtdir_windows}\\bin;${config:qtdir_windows}\\lib;${env:PATH}" },
+                ],
+                // "symbolSearchPath": "C:\\Symbols;C:\\SymbolDir2",
+                "console": "integratedTerminal", // "internalConsole"
+                "logging": {
+                  "moduleLoad": true,
+                  "trace": true,
+                  // "engineLogging": true,
+                  "exceptions": true,
+                  "programOutput": true,
+                  "processExit": true,
+                  "threadExit": true,
+                },
+                "visualizerFile": "${env:USERPROFILE}\\Documents\\Visual Studio 2019\\Visualizers\\qt5.natvis",
+                "sourceFileMap": {
+                  "C:\\Users\\Qt\\work\\qt": "${config:qtdir_windows}\\..\\Src",
+                },
+                // "showDisplayString": true
+              },
+              {
+                "name": "(Windows - windbg) DkVerwaltungQt",
+                "type": "windbg",
+                "request": "launch",
+                "target": "${workspaceFolder}\\${config:builddir_windows}-${config:debug_or_release}\\${config:debug_or_release}\\DkVerwaltungQt.exe",
+                "verbosity": "debug",
+                "windbgpath": "C:/Program Files (x86)/Windows Kits/10/Debuggers/x86/dbgeng.dll",
+                "workingDir": "${workspaceFolder}/${config:builddir_windows}-${config:debug_or_release}/${config:debug_or_release}",
+                "sources": [ 
+                    "${workspaceRoot}",
+                    "${config:qtdir_windows}\\..\\Src",
+                ]
+              },
+              {
+                "name": "(Windows - cdb) DkVerwaltungQt",
+                "type": "cdb",
+                "request": "launch",
+                "program": "${workspaceFolder}/${config:builddir_windows}-${config:debug_or_release}/${config:debug_or_release}/DkVerwaltungQt",
+                "workingdirectory": "${workspaceFolder}/${config:builddir_windows}-${config:debug_or_release}/${config:debug_or_release}",
+                "sourcepath":  "${workspaceFolder}",
+                // "args": "",
+              },
+              {
+                "name": "(macOS - CMake) DkVerwaltungQt",
+                "type": "lldb",
+                "request": "launch",
+                "env": {
+                    "DYLD_IMAGE_SUFFIX": "_debug",
+                },
+                "sourceMap": { "/Users/qt/work/qt" : "${env:HOME}/Qt/${config:qtdir_osx}/../Src" },
+                "program": "${command:cmake.launchTargetPath}",
+                "cwd": "${command:cmake.getLaunchTargetDirectory}",
+              },
+              {
+                "name": "(macOS) DkVerwaltungQt",
+                "type": "lldb",
+                "request": "launch",
+                "env": {
+                    "DYLD_IMAGE_SUFFIX": "_debug",
+                },
+                "sourceMap": { "/Users/qt/work/qt" : "${env:HOME}/Qt/${config:qtdir_osx}/../Src" },
+                "program": "${workspaceFolder}/${config:builddir_osx}-${config:debug_or_release}/DkVerwaltungQt.app/Contents/MacOS/DkVerwaltungQt",
+                "cwd": "${workspaceFolder}/${config:builddir_osx}-${config:debug_or_release}",
+              },
+              {
+                "type": "lldb",
+                "request": "attach",
+                "name": "(macOS  - attach) DkVerwaltungQt",
+                "sourceMap": { "/Users/qt/work/qt" : "${env:HOME}/Qt/${config:qtdir_osx}/../Src" },
+                // "pid" : "${command:pickProcess}",
+                "pid" : "${command:pickMyProcess}",
+              },
+              {
+                "name": "(Linux) DkVerwaltungQt",
+                "type": "cppdbg",
+                "request": "launch",
+                "logging": { "engineLogging": true },
+                // "sourceFileMap": { "/Users/qt/work/qt" : "${QTDIR}/../Src" },
+                "program": "${workspaceFolder}/${config:builddir_linux}-${config:debug_or_release}/DkVerwaltungQt",
+                "cwd": "${workspaceFolder}/${config:builddir_linux}-${config:debug_or_release}",
+                "stopAtEntry": false,
+                // "environment": [],
+                "environment": [
+                    // { "name": "QTDIR", "value": "/opt/qt515" },
+                    { "name": "LD_LIBRARY_PATH", "value": "${env:LD_LIBRARY_PATH}:${env:QTDIR}/lib:${workspaceFolder}/${config:builddir_linux}-${config:debug_or_release}/lib" },
+                    { "name": "QT_PLUGIN_PATH", "value": "${env:QTDIR}/plugins" },
+                    { "name": "QT_TRANSLATIONS_PATH", "value": "${env:QTDIR}/translations" },
+                    // QT_QPA_PLATFORM_PLUGIN_PATH
+                    { "name": "QT_DEBUG_PLUGIN" , "value": "1" },
+                    // { "name": "PATH", "value": "${env:QTDIR}/bin:${env:PATH}" },
+                    { "name": "DISPLAY", "value": "host.docker.internal:0" },
+                   ],
+                  "externalConsole": false,
+                  "MIMode": "gdb",
+                  "miDebuggerPath": "/usr/bin/gdb",
+                  "setupCommands": [
+                    {
+                      "description": "Automatische Strukturierung und Einrückung für \"gdb\" aktivieren",
+                      "text": "-enable-pretty-printing",
+                      "ignoreFailures": true
+                    }
+                  ]                  
+                },
+                {
+                  "name": "(Linux - CMake) DkVerwaltungQt",
+                  "type": "cppdbg",
+                  "request": "launch",
+                  "logging": { "engineLogging": true },
+                  "program": "${command:cmake.launchTargetPath}",
+                  "cwd": "${command:cmake.getLaunchTargetDirectory}",
+                  "stopAtEntry": false,
+                  // "environment": [],
+                  "environment": [
+                      // { "name": "QTDIR", "value": "/opt/qt515" },
+                      { "name": "LD_LIBRARY_PATH", "value": "${env:LD_LIBRARY_PATH}:${env:QTDIR}/lib:${workspaceFolder}/${config:builddir_linux}-${config:debug_or_release}/lib" },
+                      { "name": "QT_PLUGIN_PATH", "value": "${env:QTDIR}/plugins" },
+                      { "name": "QT_TRANSLATIONS_PATH", "value": "${env:QTDIR}/translations" },
+                      // QT_QPA_PLATFORM_PLUGIN_PATH
+                      { "name": "QT_DEBUG_PLUGIN" , "value": "1" },
+                      // { "name": "PATH", "value": "${env:QTDIR}/bin:${env:PATH}" },
+                      { "name": "DISPLAY", "value": "host.docker.internal:0" },
+                     ],
+                    "externalConsole": false,
+                    "MIMode": "gdb",
+                    "miDebuggerPath": "/usr/bin/gdb",
+                    "setupCommands": [
+                      {
+                        "description": "Automatische Strukturierung und Einrückung für \"gdb\" aktivieren",
+                        "text": "-enable-pretty-printing",
+                        "ignoreFailures": true
+                      }
+                    ]                  
+  
+                },
+            ]    
+    },
+}

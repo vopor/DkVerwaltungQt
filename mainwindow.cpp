@@ -26,6 +26,11 @@ void MainWindow::createMenu()
     QMenu *dateiMenu = new QMenu("Datei");
     dateiMenu->addAction("Datenbank öffnen...", this, &MainWindow::openDatabase);
     dateiMenu->addAction("Datenbank anonymisieren", this, &MainWindow::anonymizeDatabase);
+    dateiMenu->addSeparator();
+    dateiMenu->addAction("Import Csv...", this, &MainWindow::importCsv);
+    dateiMenu->addSeparator();
+    dateiMenu->addAction("Statistik", this, &MainWindow::showStatistik);
+    dateiMenu->addSeparator();
     dateiMenu->addAction("Ansparrechner", this, &MainWindow::showAnsparrechner);
     dateiMenu->addAction("Pdf-Datei anzeigen...", this, &MainWindow::showPdfFile);
     dateiMenu->addSeparator();
@@ -37,7 +42,7 @@ void MainWindow::openDatabase()
 {
     QString dbPath = getStandardPath() + QDir::separator() + "DkVerwaltungQt.db3";
     QString oldDbPath = getStringFromIni("DBPath", dbPath);
-    dbPath = QFileDialog::getOpenFileName(this, QStringLiteral("Datenbank öffnen"), oldDbPath);
+    dbPath = QFileDialog::getOpenFileName(this, QStringLiteral("Datenbank öffnen"), oldDbPath, "sqlite3 (*.db3 *.dkdb)");
     if(!dbPath.isEmpty())
     {
         closeConnection(dbPath);
@@ -65,7 +70,7 @@ void MainWindow::openDatabase()
 void MainWindow::anonymizeDatabase()
 {
     int mbr = QMessageBox::warning(0, QStringLiteral("Datenbank anonymisieren?"),
-                                   QStringLiteral("Soll die Datenbank anonymisiert werden?"), QMessageBox::Yes | QMessageBox::No);
+                                   QStringLiteral("Soll die bestehende Datenbank anonymisiert werden?"), QMessageBox::Yes | QMessageBox::No);
     if(mbr == QMessageBox::Yes)
     {
         ::anonymizeDatabase();
@@ -73,10 +78,92 @@ void MainWindow::anonymizeDatabase()
     }
 }
 
+void MainWindow::importCsv()
+{
+    QString defaultDBPath = getStandardPath() + QDir::separator() + "DkVerwaltungQt.db3";
+    QString dbPath = getStringFromIni("DBPath", defaultDBPath);
+    QString csvPath = QFileInfo(dbPath).dir().absolutePath();
+    QString csvFilename = QFileDialog::getOpenFileName(this, QStringLiteral("Csv-Datei öffnen"), csvPath, "csv (*.csv)");
+    if(!csvFilename.isEmpty() && !dbPath.isEmpty())
+    {
+        int mbr = QMessageBox::warning(0, QStringLiteral("Csv-Datei importieren?"),
+                                       QStringLiteral("Soll die bestehende Datenbank aus der Csv-Datei neu erzeugt werden?"), QMessageBox::Yes | QMessageBox::No);
+        if(mbr != QMessageBox::Yes)
+        {
+            return;
+        }
+        closeConnection(dbPath);
+        QFile::remove(dbPath);
+        QString sourcePath = getResouresPath();
+        QString commandLine = sourcePath + QDir::separator() + "importCsvIntoDkVerwaltungQt.py" + " " + csvFilename + " " + dbPath;
+        qDebug() << commandLine;
+        run_executeCommand(nullptr, commandLine);
+        if (openConnection(dbPath))
+        {
+            MainForm *oldMainForm = mainForm;
+            oldMainForm->hide();
+            mainForm = new MainForm(this);
+            setCentralWidget(mainForm);
+            oldMainForm->deleteLater();
+            oldMainForm = nullptr;
+        }else{
+            QMessageBox::warning(0, QStringLiteral("Fehler"), QStringLiteral("Die Datenbank ") + dbPath + " kann nicht geöffnet werden!");
+        }
+    }
+}
+
 void MainWindow::showAnsparrechner()
 {
    Ansparrechner *ansparrechner = new Ansparrechner(this);
    ansparrechner->exec();
+}
+
+void MainWindow::showStatistik()
+{
+    QString statementYear2 = "SELECT MAX(SUBSTR(Datum ,7,2)) FROM DkBuchungen";
+    QString strYear = getStringValue(statementYear2);
+
+    QString statement;
+    statement = "SELECT ROUND(SUM(Betrag),2) FROM DkBuchungen WHERE DkNummer <> 'Stammkapital' ";
+    statement += "AND (Rueckzahlung = '' OR Rueckzahlung IS  NULL);";
+    double SummeDkEnde = getDoubleValue(statement);
+    statement = "SELECT (ROUND(SUM(Betrag),2) * -1) FROM DkBuchungen WHERE DkNummer <> 'Stammkapital' AND NOT (Rueckzahlung = '' OR Rueckzahlung IS  NULL)  AND Betrag < 0 ";
+    statement += "AND SUBSTR(Datum ,7,2) = '" + strYear + "';";
+    double SummeDkAbgaenge = getDoubleValue(statement);
+    statement = "SELECT SUM( replace(Betrag,',','.') ) FROM DkBuchungen WHERE CAST(replace(Betrag,',','.') AS FLOAT) > 0 ";
+    // statement += "AND ((substr(Datum ,7,2) || substr(Datum ,4,2)|| substr(Datum ,1,2)) > '" + strYear + "0101');";
+    statement += "AND ((substr(Anfangsdatum ,7,2) || substr(Anfangsdatum ,4,2)|| substr(Anfangsdatum ,1,2)) >= '" + strYear + "0101');";
+    double SummeDkZugaenge = getDoubleValue(statement);
+    double SummeDkAnfang = SummeDkEnde + SummeDkAbgaenge - SummeDkZugaenge;
+
+    QString title = "Statistik 20" + strYear;
+
+    QString statistik;
+
+    statistik += title;
+    statistik += "\n\n";
+
+    statistik += "Summer der Direktkredite Anfang:\n";
+    statistik += QString::number(SummeDkAnfang, 'f', 2);
+    statistik += "\n\n";
+
+    statistik += "Durchschnittlicher Zinssattz:\n";
+    statistik += getStringValue("SELECT ROUND(AVG(Zinssatz),2) FROM DkBuchungen WHERE DkNummer <> 'Stammkapital';");
+    statistik += "\n\n";
+
+    statistik += "Summer der gekündigten Direktkredite:\n";
+    statistik += QString::number(SummeDkAbgaenge, 'f', 2);
+    statistik += "\n\n";
+
+    statistik += "Summer der neu eingeworbenen Direktkredite:\n";
+    statistik += QString::number(SummeDkZugaenge, 'f', 2);
+    statistik += "\n\n";
+
+    statistik += "Summer der Direktkredite Ende:\n";
+    statistik += QString::number(SummeDkEnde, 'f', 2);
+    statistik += "\n\n";
+
+    QMessageBox::information(this, title, statistik);
 }
 
 void MainWindow::showPdfFile()

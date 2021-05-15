@@ -19,7 +19,9 @@ signals:
 private slots:
     void openDatabase();
     void anonymizeDatabase();
+    void importCsv();
     void showAnsparrechner();
+    void showStatistik();
     void showPdfFile();
 
 };

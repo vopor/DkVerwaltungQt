@@ -13,11 +13,12 @@ import os
 import sys
 import shutil
 import traceback
-# import csv
-# from collections import defaultdict
+import csv
+from collections import defaultdict
 import sqlite3
 import subprocess
 # import pandas
+import copy
 
 dropUnusedCsvTables = False
 dropUnusedDkVerwaltungQtTables = False
@@ -32,6 +33,12 @@ def get_col_names(cursor, tablename):
     """
     reader=cursor.execute("SELECT * FROM {}".format(tablename))
     return [x[0] for x in reader.description] 
+
+def print_anzahl_in_table(stmt, tableName):
+    select_stmt = "SELECT COUNT(*) FROM " + tableName
+    stmt.execute(select_stmt)
+    anzahl = stmt.fetchone()[0]
+    print "Anzahl " + tableName + ": ", anzahl
 
 # print "sqlite3.version=" + sqlite3.version
 # print "sqlite3.sqlite_version=" + sqlite3.sqlite_version
@@ -58,14 +65,15 @@ if not os.path.isfile(DkVerwaltung_csv_file):
 #     os.remove(DKV2_db3_file)
 if os.path.isfile(DKV2_db3_file):
     print DKV2_db3_file + " existiert."
-    msg = 'Soll sie neu erzeugt werden (ja/nein/abbrechen)?'
-    str = raw_input("%s (j/n/a) " % msg).lower()
-    if ((str == 'j') or (str == '')):
+    msg = 'Soll sie neu erzeugt werden (ja=neu erzeugen/nein=neu füllen/abbrechen)?'
+    str = raw_input("%s (j/n*/a) " % msg).lower()
+    if ((str == 'j')):
         os.remove(DKV2_db3_file)
-    elif (str == 'n'):
+    elif (str == 'n') or (str == ''):
         pass
     else:
-        sys.exit(3)            
+        sys.exit(3)
+
 if not os.path.isfile(DKV2_db3_file):
     Empty_DKV2_db3_file = os.path.dirname(os.path.realpath(__file__)) + os.sep + "Empty-DKV2-Datenbank.dkdb"    
     print Empty_DKV2_db3_file + " => " + DKV2_db3_file
@@ -85,6 +93,8 @@ try:
 
     stmt.execute("DELETE FROM Buchungen");
     stmt.execute("DELETE FROM Vertraege");
+    stmt.execute("DELETE FROM ExBuchungen");
+    stmt.execute("DELETE FROM ExVertraege");
     stmt.execute("DELETE FROM Kreditoren");
     conn.commit()
 
@@ -94,27 +104,84 @@ try:
     #
     print "csv -> DkVerwaltungQt"
     print "csv importieren"
-    # https://stackoverflow.com/questions/2887878/importing-a-csv-file-into-a-sqlite3-database-table-using-python
-    params = ['sqlite3',  DKV2_db3_file.replace('\\','\\\\'),
+    if False:
+        # https://stackoverflow.com/questions/2887878/importing-a-csv-file-into-a-sqlite3-database-table-using-python
+        params = ['sqlite3',  DKV2_db3_file.replace('\\','\\\\'),
                          '-cmd',
                          '.mode csv',
                          '.import ' + "'" + DkVerwaltung_csv_file.replace('\\','\\\\')  + "'"  + ' DKVerwaltungOrg']
-    # print params
-    # cmdstr = 'sqlite3 ' + DKV2_db3_file + ' -cmd ' + ' .mode csv ' + ' .import ' + DkVerwaltung_csv_file.replace('\\','\\\\')  + ' DKVerwaltungOrg'
-    # print cmdstr                         
-    p = subprocess.Popen(params)
-    (output, err) = p.communicate() 
-    p_status = p.wait()
-    if p_status != 0:
-        print "output=" + output
-        print "err=" + err
-        print "p_status=" + p_status
+        # print params
+        # cmdstr = 'sqlite3 ' + DKV2_db3_file + ' -cmd ' + ' .mode csv ' + ' .import ' + DkVerwaltung_csv_file.replace('\\','\\\\')  + ' DKVerwaltungOrg'
+        # print cmdstr                         
+        p = subprocess.Popen(params)
+        (output, err) = p.communicate() 
+        p_status = p.wait()
+        if p_status != 0:
+            print "output=" + output
+            print "err=" + err
+            print "p_status=" + p_status
 
-    # conn = sqlite3.connect(DKV2_db3_file)
-    # stmt = conn.cursor()
-    stmt.execute('ALTER TABLE DKVerwaltungOrg RENAME COLUMN "DK-Nr." to "DKNr";')
-    stmt.execute('ALTER TABLE DKVerwaltungOrg RENAME COLUMN "DK Nummer" to "DKNummer";')
-    stmt.execute('ALTER TABLE DKVerwaltungOrg RENAME COLUMN "Rückzahlung" to "Rueckzahlung";')
+        stmt.execute('ALTER TABLE DKVerwaltungOrg RENAME COLUMN "DK-Nr." to "DKNr";')
+        stmt.execute('ALTER TABLE DKVerwaltungOrg RENAME COLUMN "Rückzahlung" to "Rueckzahlung";')
+    else:
+        with open(DkVerwaltung_csv_file, 'r') as f:
+            reader = csv.DictReader(f, delimiter=",", quotechar="\"")
+            create_table_statement = "CREATE TABLE DKVerwaltungOrg (" 
+            ifieldnames = ["DkNr" if fieldname == "DK-Nr." else fieldname for fieldname in reader.fieldnames]
+            ifieldnames = ["Rueckzahlung" if fieldname == "Rückzahlung" else fieldname for fieldname in ifieldnames]
+            ifieldnames = ["'" + fieldname + "'" for fieldname in ifieldnames]
+            create_table_statement += ','.join(ifieldnames) 
+            create_table_statement += ");"
+            print create_table_statement
+            stmt.execute(create_table_statement)
+            first_row = True
+            for row in reader:
+                insert_statement = "INSERT INTO DKVerwaltungOrg ("  + ','.join(ifieldnames) + ") "
+                insert_statement += "VALUES "
+                insert_statement += "("
+                for index, fieldname in enumerate(reader.fieldnames):
+                    insert_statement += "'" + row[fieldname] + "'"
+                    if index < len(row)-1:
+                        insert_statement += ","
+
+                insert_statement += ");"
+                # print insert_statement
+                stmt.execute(insert_statement)
+                conn.commit()
+        conn.commit()
+
+    print_anzahl_in_table(stmt, "DKVerwaltungOrg")
+
+    select_exists_statement = "SELECT EXISTS (SELECT * FROM sqlite_master WHERE tbl_name = 'DKVerwaltungOrg' AND sql LIKE '%DK Nummer%');"
+    stmt.execute(select_exists_statement)
+    column_dk_nummer_exists = stmt.fetchone()[0]
+    print "column_dk_nummer_exists: ", column_dk_nummer_exists
+    if column_dk_nummer_exists:
+        stmt.execute('ALTER TABLE DKVerwaltungOrg RENAME COLUMN "DK Nummer" to "DKNummer";')
+    else:
+        stmt.execute('ALTER TABLE DKVerwaltungOrg ADD COLUMN "DKNummer";')
+    
+    select_exists_statement = "SELECT COUNT(*) FROM DKVerwaltungOrg WHERE CAST(DkNr AS INTEGER) = 0;"
+    stmt.execute(select_exists_statement)
+    count_dknr_alnum = stmt.fetchone()[0]
+    print "count_dknr_alnum: ", count_dknr_alnum
+
+    if count_dknr_alnum > 0: # DkNr alphanumerisch
+        print "DkNummer setzen: "
+        stmt.execute('UPDATE DKVerwaltungOrg SET DkNummer = DkNr;')
+        print "Anzahl: ", stmt.rowcount
+        print "DkNr setzen: "
+        stmt.execute('UPDATE DKVerwaltungOrg SET DkNr = ROWID;')
+        print "Anzahl: ", stmt.rowcount
+        conn.commit();
+
+    print "Datensätze ohne DkNummer löschen: "
+    stmt.execute('DELETE FROM DKVerwaltungOrg WHERE DkNummer = "";')
+    print "Anzahl: ", stmt.rowcount
+    conn.commit();
+
+    print_anzahl_in_table(stmt, "DKVerwaltungOrg")
+
     stmt.execute('CREATE TABLE DKVerwaltung (Datum TEXT, DKNr TEXT, Vorname TEXT, Name TEXT, Anrede TEXT, DKNummer TEXT, Straße TEXT, PLZ TEXT, Ort TEXT, Email TEXT, Rueckzahlung TEXT, vorgemerkt TEXT, Betrag TEXT, Zinssatz TEXT, Bemerkung TEXT);')
 
     colnamesFrom = get_col_names(stmt, "DKVerwaltungOrg")
@@ -130,17 +197,22 @@ try:
             colnames.append('DkNr')
     colnamesstring = ','.join(colnames)
     # print colnamesstring
-    insert_int_statement = 'INSERT INTO DKVerwaltung SELECT ' + colnamesstring + ' FROM DKVerwaltungOrg WHERE CAST(DkNr AS INTEGER) <> 0 ORDER BY CAST(DkNr AS INTEGER);'
+
+    if True: # DkNr numerisch
+        insert_int_statement = 'INSERT INTO DKVerwaltung SELECT ' + colnamesstring + ' FROM DKVerwaltungOrg WHERE CAST(DkNr AS INTEGER) <> 0 ORDER BY CAST(DkNr AS INTEGER);'
+    else: # DkNr alphanumerisch
+        insert_int_statement = 'INSERT INTO DKVerwaltung SELECT ' + colnamesstring + ' FROM DKVerwaltungOrg WHERE DkNr <> "" ORDER BY DkNr;'
+
     # print insert_int_statement
     stmt.execute(insert_int_statement)
     print "Anzahl: ", stmt.rowcount
     print "Personen hinzufügen"
     stmt.execute('CREATE TABLE DKPersonen (PersonId INTEGER PRIMARY KEY AUTOINCREMENT, Vorname TEXT, Name TEXT, Anrede TEXT, Straße TEXT, PLZ TEXT, Ort TEXT, Email TEXT);')
-    stmt.execute('INSERT INTO DKPersonen (Vorname, Name, Anrede, Straße, PLZ, Ort, Email) SELECT Vorname, Name, Anrede, Straße, PLZ, Ort, Email FROM DKVerwaltung WHERE CAST(DkNr AS INTEGER) <> 0;')
+    stmt.execute('INSERT INTO DKPersonen (Vorname, Name, Anrede, Straße, PLZ, Ort, Email) SELECT Vorname, Name, Anrede, Straße, PLZ, Ort, Email FROM DKVerwaltung;') #  WHERE CAST(DkNr AS INTEGER) <> 0
     print "Anzahl: ", stmt.rowcount
     print "Buchungen hinzufügen"
     stmt.execute('CREATE TABLE DKBuchungen (BuchungId INTEGER PRIMARY KEY AUTOINCREMENT, PersonId INTEGER, Datum TEXT, DKNr TEXT, DKNummer TEXT, Rueckzahlung TEXT, vorgemerkt TEXT, Betrag REAL, Zinssatz REAL, Bemerkung TEXT, Anfangsdatum TEXT, AnfangsBetrag REAL, FOREIGN KEY(PersonId) REFERENCES DKPerson(PersonId));')
-    stmt.execute('INSERT INTO DKBuchungen (PersonId, Datum, DKNr, DKNummer, Rueckzahlung, vorgemerkt, Betrag, Zinssatz, Bemerkung) SELECT ROWID, Datum, DKNr, DKNummer, Rueckzahlung, vorgemerkt, Betrag, Zinssatz, Bemerkung FROM DKVerwaltung WHERE CAST(DkNr AS INTEGER) <> 0;')
+    stmt.execute('INSERT INTO DKBuchungen (PersonId, Datum, DKNr, DKNummer, Rueckzahlung, vorgemerkt, Betrag, Zinssatz, Bemerkung) SELECT ROWID, Datum, DKNr, DKNummer, Rueckzahlung, vorgemerkt, Betrag, Zinssatz, Bemerkung FROM DKVerwaltung;') # WHERE CAST(DkNr AS INTEGER) <> 0
     print "Anzahl: ", stmt.rowcount
     stmt.execute("UPDATE DkBuchungen SET Betrag = replace(replace(replace(Betrag, ' €', ''), '.', ''), ',', '.');")
     stmt.execute("UPDATE DkBuchungen SET Zinssatz = replace(replace(Zinssatz, '%', ''), ',', '.');")
@@ -178,6 +250,18 @@ try:
     print "Anzahl DkBuchungen Anfangsdatum gesetzt: ", stmt.rowcount
     stmt.execute("UPDATE DkBuchungen SET Anfangsbetrag = CAST(replace(replace(substr(Bemerkung, instr(Bemerkung, 'Betrag: ') + 8), '.', ''), ',', '.') AS FLOAT) WHERE instr(Bemerkung, 'neu angelegt') <> 0;")
     print "Anzahl DkBuchungen Anfangsbetrag gesetzt: ", stmt.rowcount
+    # Wenn Anfangsdatum und Anfangsbetrag nicht den Bemerkungen entnommen werden konnten
+    stmt.execute("UPDATE DkBuchungen SET Anfangsdatum = Datum, Anfangsbetrag = Betrag WHERE Anfangsdatum IS NULL OR Anfangsbetrag  IS NULL;")
+    print "Anzahl DkBuchungen Anfangsdatum auf Datum und Anfangsbetrag auf Betrag gesetzt: ", stmt.rowcount
+
+    print "Buchungen vor dem aktuellen Jahr löschen: "
+    stmt.execute('DELETE FROM DkBuchungen WHERE substr(Datum,7,2) < (SELECT MAX(substr(Datum,7,2)) FROM DkBuchungen);')
+    print "Anzahl: ", stmt.rowcount
+
+    print "Stammkapital löschen: "
+    stmt.execute('DELETE FROM DkBuchungen WHERE DkNummer = "Stammkapital";')
+    print "Anzahl: ", stmt.rowcount
+
     conn.commit()
 
     #
@@ -206,6 +290,12 @@ try:
         insert_stmt += 'GROUP BY DkNummer '
         stmt.execute(insert_stmt);
         print "Anzahl: ", stmt.rowcount
+
+        print "Vertraege zinslos setzen"
+        update_stmt = 'UPDATE Vertraege SET thesaurierend = 3 WHERE ZSatz = 0;'
+        stmt.execute(update_stmt);
+        print "Anzahl: ", stmt.rowcount
+
         conn.commit()
 
         print "Buchungen hinzufügen"
@@ -219,6 +309,7 @@ try:
         conn.commit()
 
         print "DKV2 aktualisieren..."
+
         print "VertragsId setzen"
         update_stmt = 'UPDATE Buchungen SET VertragsId = '
         update_stmt += '('
@@ -236,7 +327,6 @@ try:
         # for row in vertraege:
         #     print row
         conn.commit()
-
     
     print "Vergleiche DkVerwaltungQt <-> DKV2"
 
@@ -275,7 +365,9 @@ try:
     select_stmt += 'WHERE Anfangsdatum <> "" AND DkNummer <> "Stammkapital" '
     select_stmt += 'AND NOT EXISTS'
     select_stmt += '('
-    select_stmt += 'SELECT * FROM Vertraege WHERE DKBuchungen.DkNummer = Vertraege.Kennung '    
+    select_stmt += 'SELECT * FROM Vertraege WHERE DKBuchungen.DkNummer = Vertraege.Kennung '
+    # select_stmt += 'UNION '
+    # select_stmt += 'SELECT * FROM ExVertraege WHERE DKBuchungen.DkNummer = ExVertraege.Kennung '
     select_stmt += ')'
     stmt.execute(select_stmt)
     buchungen = stmt.fetchall()
@@ -303,7 +395,7 @@ try:
     select_stmt += 'SELECT KennungA, SummeA '
     select_stmt += 'FROM '
     select_stmt += '( '
-    select_stmt += 'SELECT  Vertraege.Kennung AS KennungA, SUM(Buchungen.Betrag)/100. AS SummeA '
+    select_stmt += 'SELECT  Vertraege.Kennung AS KennungA, ROUND(SUM(Buchungen.Betrag)/100.,2) AS SummeA '
     select_stmt += 'FROM Vertraege, Buchungen '
     select_stmt += 'WHERE Vertraege.Id = Buchungen.VertragsId '
     select_stmt += 'GROUP BY Vertraege.Id '
@@ -314,7 +406,7 @@ try:
     select_stmt += 'SELECT KennungB, SummeB '
     select_stmt += 'FROM '
     select_stmt += '( '
-    select_stmt += 'SELECT DKBuchungen.DkNummer AS KennungB, SUM(Betrag) AS SummeB '
+    select_stmt += 'SELECT DKBuchungen.DkNummer AS KennungB, ROUND(SUM(Betrag),2) AS SummeB '
     select_stmt += 'FROM DKBuchungen '
     select_stmt += 'WHERE KennungA = KennungB '
     select_stmt += 'GROUP BY KennungB '
@@ -355,7 +447,7 @@ try:
     # select_stmt += 'Vertraege.ZSatz AS ZSatz, '
     select_stmt += 'Vertraege.ZSatz /100. AS ZinssatzA, '
     select_stmt += '(SUM(Buchungen.Betrag) /100.) AS WertA, '
-    select_stmt += 'ROUND( (( Vertraege.ZSatz /100.) * (SUM(Buchungen.Betrag) /100.)) /100,2) AS ZinsenA '
+    select_stmt += 'ROUND( ((( Vertraege.ZSatz /100.) * (SUM(Buchungen.Betrag) /100.)) /100), 2) AS ZinsenA '
     # select_stmt += 'SUM((( ROUND((Vertraege.ZSatz /100.),2) * ((Buchungen.Betrag) /100. )) / 100.),2) AS ZinsenA '
     # select_stmt += 'ROUND((( ROUND((Vertraege.ZSatz /100.),2) * (SUM(Buchungen.Betrag) /100. )) / 100.),2) AS ZinsenA '
     # select_stmt += 'SUM((( ROUND((Vertraege.ZSatz /100.),2) * ((Buchungen.Betrag) /100. )) / 100.),2) AS ZinsenA '
@@ -368,7 +460,7 @@ try:
     select_stmt += 'SELECT KennungB, WertB, ZinssatzB, ZinsenB '
     select_stmt += 'FROM '
     select_stmt += '( '
-    select_stmt += 'SELECT DKBuchungen.DkNummer AS KennungB, Zinssatz AS ZinssatzB, SUM(Betrag) AS WertB, ROUND (SUM( (Betrag * Zinssatz) / 100.0 ), 2) AS ZinsenB '
+    select_stmt += 'SELECT DKBuchungen.DkNummer AS KennungB, Zinssatz AS ZinssatzB, SUM(Betrag) AS WertB, ROUND(SUM( (Betrag * Zinssatz) / 100.0 ), 2) AS ZinsenB '
     select_stmt += 'FROM DKBuchungen '
     select_stmt += 'WHERE KennungA = KennungB '
     select_stmt += 'GROUP BY KennungB '
@@ -381,6 +473,64 @@ try:
         print row
     print "Anzahl: ", len(vertraege)
 
+    if True:
+
+        print "abgelaufene Vertraege inkl. Buchungen in VertraegeEx bzw. BuchungenEx"
+
+        insert_stmt = 'INSERT INTO ExVertraege SELECT Vertraege.* '
+        insert_stmt += 'FROM Vertraege, DkBuchungen '
+        insert_stmt += 'WHERE Vertraege.Id = DkBuchungen.Buchungid '
+        insert_stmt += 'AND Rueckzahlung <> ""'
+        stmt.execute(insert_stmt);
+        print "Anzahl ExVertraege: ", stmt.rowcount
+        conn.commit()
+
+        update_stmt = 'UPDATE ExVertraege SET LaufzeitEnde = '
+        update_stmt += '('
+        update_stmt += 'SELECT ("20" || substr(Rueckzahlung,7,2) || "-" || substr(Rueckzahlung,4,2) || "-" || substr(Rueckzahlung,1,2)) '
+        update_stmt += 'FROM DKBuchungen b, ExVertraege c '
+        update_stmt += 'WHERE b.DkNummer = c.Kennung '
+        update_stmt += ')'
+        # print update_stmt
+        stmt.execute(update_stmt);
+        print "Anzahl ExVertraege aktualisiert: ", stmt.rowcount
+        conn.commit()
+
+        insert_stmt = 'INSERT INTO ExBuchungen SELECT Buchungen.* '
+        insert_stmt += 'FROM ExVertraege, Buchungen '
+        insert_stmt += 'WHERE ExVertraege.Id = Buchungen.Vertragsid '
+        stmt.execute(insert_stmt);
+        print "Anzahl ExBuchungen: ", stmt.rowcount
+        conn.commit()
+
+        # DELETE FROM Buchungen
+        stmt.execute('DELETE FROM Buchungen WHERE EXISTS (SELECT * FROM ExBuchungen WHERE Buchungen.Id = ExBuchungen.Id);')
+        print "Anzahl Buchungen gelöscht: ", stmt.rowcount
+        conn.commit()
+        stmt.execute('DELETE FROM Vertraege WHERE EXISTS (SELECT * FROM ExVertraege WHERE ExVertraege.Id = Vertraege.Id);')
+        print "Anzahl Vertraege gelöscht: ", stmt.rowcount
+        conn.commit()
+        
+        print "TODO: Update TimeStamps\n"
+
+        print "Vergleiche DkVerwaltungQt <-> DKV2"
+
+        print "Anzahl Vertraege:"
+        select_stmt = 'SELECT COUNT(*) FROM Vertraege'
+        stmt.execute(select_stmt)
+        print stmt.fetchone()[0]
+        print "Anzahl ExVertraege:"
+        select_stmt = 'SELECT COUNT(*) FROM ExVertraege'
+        stmt.execute(select_stmt)
+        print stmt.fetchone()[0]
+        print "Anzahl Buchungen:"
+        select_stmt = 'SELECT COUNT(*) FROM Buchungen'
+        stmt.execute(select_stmt)
+        print stmt.fetchone()[0]
+        print "Anzahl ExBuchungen:"
+        select_stmt = 'SELECT COUNT(*) FROM ExBuchungen'
+        stmt.execute(select_stmt)
+        print stmt.fetchone()[0]
 
     if dropUnusedCsvTables:
         stmt.execute('DROP TABLE DKVerwaltungORG;')

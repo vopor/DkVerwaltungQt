@@ -149,7 +149,10 @@ try:
     stmt.execute("UPDATE DkBuchungen SET Anfangsbetrag = CAST(replace(replace(substr(Bemerkung, instr(Bemerkung, 'Betrag: ') + 8), '.', ''), ',', '.') AS FLOAT) WHERE instr(Bemerkung, 'neu angelegt') <> 0;")
     print "Anzahl DkBuchungen Anfangsbetrag gesetzt: ", stmt.rowcount
     conn.commit()
-
+    print "Stammkapital löschen: "
+    stmt.execute('DELETE FROM DkBuchungen WHERE DkNummer = "Stammkapital";')
+    print "Anzahl: ", stmt.rowcount
+    conn.commit()
 except SystemExit:
     pass
 except:

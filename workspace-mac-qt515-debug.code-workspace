@@ -5,12 +5,12 @@
 		}
 	],
 	"settings": {
-        // "environment" : [],
-        "terminal.integrated.shell.osx": "/bin/bash",
-		"terminal.integrated.env.osx": {
-			"PATH": "${env:HOME}/Qt/5.15.2/clang_64/bin:${env:PATH}",
-			"QTDIR": "${env:HOME}/Qt/5.15.2/clang_64",
-			"BUILDDIR": "${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_clang_64bit-Debug",
+      // "environment" : [],
+      "terminal.integrated.shell.osx": "/bin/bash",
+		  "terminal.integrated.env.osx": {
+			  "PATH": "${env:HOME}/Qt/5.15.2/clang_64/bin:${env:PATH}",
+			  "QTDIR": "${env:HOME}/Qt/5.15.2/clang_64",
+			  "BUILDDIR": "${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_clang_64bit-Debug",
 		},
     "C_Cpp.default.includePath": [
       "${workspaceFolder}/**",
@@ -20,7 +20,8 @@
       "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include",      
     ],
     "C_Cpp.intelliSenseEngine": "Tag Parser",
-    "workbench.colorTheme": "Visual Studio Dark",
+    "workbench.colorTheme": "Default Light+",
+    // "lldb.library": "/Library/Developer/CommandLineTools/Library/PrivateFrameworks/LLDB.framework/Versions/A/LLDB",
 	},
   "tasks": {
         "version": "2.0.0",
@@ -84,106 +85,35 @@
             "version": "0.2.0",
             "configurations": [
               {
-                "name": "(gdb) cppdbg linux qt515 Launch",
                 "type": "lldb",
                 "request": "launch",
-                "program": "${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_GCC_64bit-Debug/DkVerwaltungQt",
-                "args": [],
-                // "stopAtEntry": false,
-                "cwd": "${workspaceFolder}",
-                // "environment": [{ "name": "squid", "value": "clam" }],
+                "name": "mac debug DkVerwaltungQt",
                 "env": {
-                    "QTDIR": "${env:HOME}/Qt/5.12.10/clang_64",
-                    // "DYLD_FRAMEWORK_PATH": "${env:QTDIR}/lib",
-                    // "DYLD_LIBRARY_PATH": "${env:QTDIR}/lib",
-                    // "QT_PLUGIN_PATH": "${env:QTDIR}/plugins",
-                    // "QT_TRANSLATION_PATH": "${env:QTDIR}/translations",
-                    // // QT_QPA_PLATFORM_PLUGIN_PATH
-                    // // "QT_DEBUG_PLUGIN": "1",
-                    // "PATH": "${env:QTDIR}/bin:${env:PATH}",        
-                    "DYLD_IMAGE_SUFFIX": "_debug",
+                  "QTDIR": "${env:HOME}/Qt/5.15.2/clang_64",
+                  // "DYLD_FRAMEWORK_PATH": "${env:QTDIR}/lib",
+                  // "DYLD_LIBRARY_PATH": "${env:QTDIR}/lib",
+                  // "QT_PLUGIN_PATH": "${env:QTDIR}/plugins",
+                  // "QT_TRANSLATION_PATH": "${env:QTDIR}/translations",
+                  // // QT_QPA_PLATFORM_PLUGIN_PATH
+                  // // "QT_DEBUG_PLUGIN": "1",
+                  // "PATH": "${env:QTDIR}/bin:${env:PATH}",        
+                  "DYLD_IMAGE_SUFFIX": "_debug",
                   },
-                "sourceMap": { "/Users/qt/work/qt" : "${env:QTDIR}/../Src" },
-                /*
-                "environment": [
-                   { "name": "QTDIR", "value": "/opt/qt515" },
-                   { "name": "DYLD_LIBRARY_PATH", "value": "${DYLD_LIBRARY_PATH}:/opt/qt515/lib" },
-                   { "name": "QT_PLUGIN_PATH", "value": "/opt/qt515/plugins" },
-                   { "name": "QT_TRANSLATION_PATH", "value": "/opt/qt515/translations" },
-                   // QT_QPA_PLATFORM_PLUGIN_PATH
-                   // "QT_DEBUG_PLUGIN": "1",
-                   { "name": "PATH", "value": "/opt/qt515/bin:${env:PATH}" },
-                ],
-                */
-                // "environment": [
-                //   { "QTDIR": "/opt/qt515" },
-                //   { "DYLD_LIBRARY_PATH": "${DYLD_LIBRARY_PATH}:/opt/qt515/lib" },
-                //   { "QT_PLUGIN_PATH": "/opt/qt515/plugins" },
-                //   { "QT_TRANSLATION_PATH": "/opt/qt515/translations" },
-                //   // QT_QPA_PLATFORM_PLUGIN_PATH
-                //   // "QT_DEBUG_PLUGIN": "1",
-                //   { "PATH": "/opt/qt515/bin:${env:PATH}" },
-                // ],
-                "sourceFileMap": { "/home/qt/work/qt": "/opt/qt515" },
-                "externalConsole": false,
-                // "MIMode": "gdb",
-                // "miDebuggerPath": "/usr/bin/gdb",
-                "setupCommands": [
-                    {
-                        "description": "Enable pretty-printing for gdb",
-                        "text": "-enable-pretty-printing",
-                        "ignoreFailures": true
-                    }
-                ]
-              },
-              {
-                "name": "(lldb) mac qt515 Starten",
-                "type": "cppdbg",
-                // "type": "lldb",
-                "request": "launch",
-                "args": [],
-                // "environment": [
-                //     { "name": "QTDIR", "value": "/opt/qt515" },
-    
-                "environment": 
-                [
-                  // QT_QPA_PLATFORM_PLUGIN_PATH
-                  // "QT_DEBUG_PLUGIN": "1",
-                  { "name":"QTDIR", "value":"${env:HOME}/Qt/5.15.2/clang_64" },
-                  {"name":"DYLD_FRAMEWORK_PATH", "value":"${env:HOME}/Qt/5.15.2/clang_64/lib"},
-                  {"name":"DYLD_LIBRARY_PATH", "value":"${env:HOME}/Qt/5.15.2/clang_64/lib"},
-                  {"name":"PATH", "value":"${env:HOME}/Qt/5.15.2/clang_64/bin:${env:PATH}"},        
-                  {"name":"DYLD_IMAGE_SUFFIX", "value":"_debug"},
-                  { "name": "QT_PLUGIN_PATH", "value": "${env:HOME}/Qt/5.15.2/clang_64/plugins" },
-                { "name": "QT_TRANSLATION_PATH", "value": "${env:HOME}/Qt/5.15.2/clang_64/translations" },
-                ],
-                "sourceMap": { "/home/qt/work/qt" : "${env:HOME}/../Src" },
-                // "externalConsole": false,
-                // "MIMode": "lldb",
+                // "sourceMap": { "/Users/qt/work/qt" : "${QTDIR}/../Src" },
+                "sourceMap": { "/Users/qt/work/qt" : "${env:HOME}/Qt/5.15.2/Src" },
                 "program": "${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_clang_64bit-Debug/DkVerwaltungQt.app/Contents/MacOS/DkVerwaltungQt",
                 // "program": "${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_clang_64bit-Debug/DkVerwaltungQt.app",
                 "cwd": "${workspaceFolder}/build-DkVerwaltungQt-Desktop_Qt_5_15_2_clang_64bit-Debug",
-                // "stopAtEntry": false,
-                // "customLaunchSetupCommands": [
-                //   { "text": "target-run", "description": "run target", "ignoreFailures": false }
-                // ],
-                // "launchCompleteCommand": "exec-run",
-                // "env": {
-                //     "QTDIR": "development",
-                // },
-                "linux": {
-                  "MIMode": "gdb",
-                  "miDebuggerPath": "/usr/bin/gdb"
-                },
-                "osx": {
-                  // "MIMode": "lldb"
-                  "type": "lldb"
-                },
-                "windows": {
-                  "MIMode": "gdb",
-                  "miDebuggerPath": "C:\\MinGw\\bin\\gdb.exe"
-                }
-              }
+              },
+              {
+                "type": "lldb",
+                "request": "attach",
+                "name": "mac debug attach DkVerwaltungQt",
+                // "sourceMap": { "/Users/qt/work/qt" : "${env:QTDIR}/../Src" },
+                "sourceMap": { "/Users/qt/work/qt" : "${env:HOME}/Qt/5.15.2/Src" },
+                // "pid" : "${command:pickProcess}",
+                "pid" : "${command:pickMyProcess}",
+              },
             ]    
     },
 }

@@ -314,15 +314,17 @@ bool openConnection(const QString &dbName)
             }
             QString statement = "CREATE VIEW DKBuchungen AS ";
             statement += "SELECT b.Id AS BuchungId, v.KreditorId AS PersonId, ";
-            statement += "( substr(b.Datum,6,2) || '.' || substr(b.Datum,9,2) || '.' || substr(b.Datum,3,2))  AS Datum, ";
+            statement += "( substr(b.Datum,9,2) || '.' || substr(b.Datum,6,2) || '.' || substr(b.Datum,3,2))  AS Datum, ";
             statement += "b.VertragsId AS DKNr, v.Kennung AS DKNummer, ";
             // TODO:
-            // wird auch eim Import nach DKV2 nicht berücksichtigt.
+            // wird auch beim Import nach DKV2 nicht berücksichtigt.
             // müsste aus exBuchunen, exVertraege kommen
             // 2013-12-04 -> 26.01.18
-            statement += "'' AS Rueckzahlung, ";
-            statement += "CASE WHEN (v.LaufzeitEnde != '3000-12-31') THEN ( substr(v.LaufzeitEnde,6,2) || '.' || substr(v.LaufzeitEnde,9,2) || '.' || substr(v.LaufzeitEnde,3,2)) END AS vorgemerkt, ";
-            statement += "CASE WHEN (Buchungsart = 2) THEN ( -1 * (b.Betrag / 100.0) ) ELSE (b.Betrag / 100.0) END AS Betrag, ";
+            // statement += "'' AS Rueckzahlung, ";
+            statement += "CASE WHEN (b.Betrag < 0) THEN b.Datum ELSE '' END AS Rueckzahlung, ";
+            statement += "CASE WHEN (v.LaufzeitEnde != '3000-12-31') THEN ( substr(v.LaufzeitEnde,9,2) || '.' || substr(v.LaufzeitEnde,6,2) || '.' || substr(v.LaufzeitEnde,3,2)) END AS vorgemerkt, ";
+            // statement += "CASE WHEN (Buchungsart = 2) THEN ( -1 * (b.Betrag / 100.0) ) ELSE (b.Betrag / 100.0) END AS Betrag, ";
+            statement += "(b.Betrag / 100.0) AS Betrag, ";
             statement += "(v.ZSatz / 100.0) AS Zinssatz, ";
             // TODO:
             // 23.01.14 F13T-2013-004
@@ -330,9 +332,10 @@ bool openConnection(const QString &dbName)
             // 30.06.17 [auto] DK-Nr. 004 gekündigt. Betrag: 10.000,00 €.
             statement += "'' AS Bemerkung, ";
             // statement += "c.Anfangsdatum AS Anfangsdatum, ";
-            statement += "( substr(c.Anfangsdatum,6,2) || '.' || substr(c.Anfangsdatum,9,2) || '.' || substr(c.Anfangsdatum,3,2)) AS Anfangsdatum, ";
+            statement += "( substr(c.Anfangsdatum,9,2) || '.' || substr(c.Anfangsdatum,6,2) || '.' || substr(c.Anfangsdatum,3,2)) AS Anfangsdatum, ";
             statement += "(v.Betrag / 100.0) AS AnfangsBetrag ";
-            statement += "FROM Buchungen b, Vertraege v, ";
+            // statement += "FROM Buchungen b, Vertraege v, ";
+            statement += "FROM (SELECT * FROM Buchungen UNION SELECT * FROM ExBuchungen) b, (SELECT * FROM Vertraege UNION SELECT * FROM ExVertraege) v, ";
             statement += "(SELECT  MIN(x.Datum) AS Anfangsdatum,  x.VertragsId AS VertragsId FROM Buchungen x GROUP BY x.VertragsId) AS c ";
             statement += "WHERE b.VertragsId = v.Id ";
             statement += "AND c.VertragsId = v.Id; ";

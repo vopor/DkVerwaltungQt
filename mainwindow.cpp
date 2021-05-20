@@ -127,14 +127,22 @@ void MainWindow::showStatistik()
     statement = "SELECT ROUND(SUM(Betrag),2) FROM DkBuchungen WHERE DkNummer <> 'Stammkapital' ";
     statement += "AND (Rueckzahlung = '' OR Rueckzahlung IS  NULL);";
     double SummeDkEnde = getDoubleValue(statement);
+
     statement = "SELECT (ROUND(SUM(Betrag),2) * -1) FROM DkBuchungen WHERE DkNummer <> 'Stammkapital' AND NOT (Rueckzahlung = '' OR Rueckzahlung IS  NULL)  AND Betrag < 0 ";
     statement += "AND SUBSTR(Datum ,7,2) = '" + strYear + "';";
     double SummeDkAbgaenge = getDoubleValue(statement);
+
     statement = "SELECT SUM( replace(Betrag,',','.') ) FROM DkBuchungen WHERE CAST(replace(Betrag,',','.') AS FLOAT) > 0 ";
     // statement += "AND ((substr(Datum ,7,2) || substr(Datum ,4,2)|| substr(Datum ,1,2)) > '" + strYear + "0101');";
     statement += "AND ((substr(Anfangsdatum ,7,2) || substr(Anfangsdatum ,4,2)|| substr(Anfangsdatum ,1,2)) >= '" + strYear + "0101');";
     double SummeDkZugaenge = getDoubleValue(statement);
+
     double SummeDkAnfang = SummeDkEnde + SummeDkAbgaenge - SummeDkZugaenge;
+
+    statement = "SELECT SUM( replace(Betrag,',','.') ) FROM DkBuchungen WHERE CAST(replace(Betrag,',','.') AS FLOAT) > 0 ";
+    statement += "AND ((substr(vorgemerkt ,7,2) || substr(vorgemerkt ,4,2)|| substr(vorgemerkt ,1,2)) >= '" + strYear + "0101') ";
+    statement += "AND ((substr(vorgemerkt ,7,2) || substr(vorgemerkt ,4,2)|| substr(vorgemerkt ,1,2)) <= '" + strYear + "1231'); ";
+    double SummeDkVorgemerkt = getDoubleValue(statement);
 
     QString title = "Statistik 20" + strYear;
 
@@ -143,7 +151,7 @@ void MainWindow::showStatistik()
     statistik += title;
     statistik += "\n\n";
 
-    statistik += "Summer der Direktkredite Anfang:\n";
+    statistik += "Summe der Direktkredite Anfang:\n";
     statistik += QString::number(SummeDkAnfang, 'f', 2);
     statistik += "\n\n";
 
@@ -151,16 +159,20 @@ void MainWindow::showStatistik()
     statistik += getStringValue("SELECT ROUND(AVG(Zinssatz),2) FROM DkBuchungen WHERE DkNummer <> 'Stammkapital';");
     statistik += "\n\n";
 
-    statistik += "Summer der gekündigten Direktkredite:\n";
+    statistik += "Summe der gekündigten Direktkredite:\n";
     statistik += QString::number(SummeDkAbgaenge, 'f', 2);
     statistik += "\n\n";
 
-    statistik += "Summer der neu eingeworbenen Direktkredite:\n";
+    statistik += "Summe der neu eingeworbenen Direktkredite:\n";
     statistik += QString::number(SummeDkZugaenge, 'f', 2);
     statistik += "\n\n";
 
-    statistik += "Summer der Direktkredite Ende:\n";
+    statistik += "Summe der Direktkredite Ende:\n";
     statistik += QString::number(SummeDkEnde, 'f', 2);
+    statistik += "\n\n";
+
+    statistik += "Summe der vorgemerkten Direktkredite:\n";
+    statistik += QString::number(SummeDkVorgemerkt, 'f', 2);
     statistik += "\n\n";
 
     QMessageBox::information(this, title, statistik);

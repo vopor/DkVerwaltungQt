@@ -282,7 +282,7 @@ try:
         insert_stmt = 'INSERT INTO Vertraege (id, KreditorId, Kennung, ZSatz, Betrag, thesaurierend, Vertragsdatum, LaufzeitEnde, Kfrist) '
         insert_stmt += 'SELECT BuchungId, PersonId, DKNummer, DKBuchungen.Zinssatz*100, AnfangsBetrag*100, 1, '
         insert_stmt += '"20" || substr(Anfangsdatum,7,2) || "-" || substr(Anfangsdatum,4,2) || "-" || substr(Anfangsdatum,1,2), '
-        insert_stmt += 'CASE WHEN (vorgemerkt != "") THEN ("20" || substr(vorgemerkt,7,2) || "-" || substr(vorgemerkt,4,2) || "-" || substr(vorgemerkt,1,2)) ELSE "3000-12-31" END, '
+        insert_stmt += 'CASE WHEN (vorgemerkt != "") THEN ("20" || substr(vorgemerkt,7,2) || "-" || substr(vorgemerkt,4,2) || "-" || substr(vorgemerkt,1,2)) ELSE "9999-12-31" END, '
         insert_stmt += 'CASE WHEN (vorgemerkt != "") THEN -1 ELSE 6 END '
         insert_stmt += 'FROM DKBuchungen '
         insert_stmt += 'WHERE Anfangsdatum <> "" '

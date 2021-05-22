@@ -302,15 +302,15 @@ void BuchungForm::writeDataForDkVorlageBuchung(){
             double Zinssatz = m_buchungenModel->data(m_buchungenModel->index(m_BuchungIndex.row(), DkBuchungen_Zinssatz)).toDouble();
             QString strAnfangsdatum = m_buchungenModel->data(m_buchungenModel->index(m_BuchungIndex.row(), DkBuchungen_Anfangsdatum)).toString();
             QString strDatum = m_buchungenModel->data(m_buchungenModel->index(m_BuchungIndex.row(), DkBuchungen_Datum)).toString();
-            // QDate dateFrom = QDate::fromString(strDatum, "dd.MM.yy");
-            QDate dateFrom = QDate::fromString(strAnfangsdatum, "dd.MM.yy");
+            // QDate dateFrom = getDateFromYearString(strDatum);
+            QDate dateFrom = getDateFromYearString(strAnfangsdatum);
             // QString strEnddatum = QDate::currentDate().addDays(-1).toString("dd.MM.yy");
             QString strEnddatum = m_buchungenModel->data(m_buchungenModel->index(m_BuchungIndex.row(), DkBuchungen_vorgemerkt)).toString();
-            QDate dateTo = QDate::fromString(strEnddatum, "dd.MM.yy").addDays(-1);
+            QDate dateTo = getDateFromYearString(strEnddatum).addDays(-1);
             if(strEnddatum.length() == 0)
             {
                 strEnddatum = "31.12." + QDate::currentDate().toString("dd.MM.yy").right(2);
-                dateTo = QDate::fromString(strEnddatum, "dd.MM.yy");
+                dateTo = getDateFromYearString(strEnddatum);
             }
             // double Zinsen = computeDkZinsenZeitraum(Betrag, Zinssatz, dateFrom, dateTo);
             // Zinsen += (Betrag - AnfangsBetrag);

@@ -611,6 +611,24 @@ qDebug() << QString("%1 years, %2 months and %3 days").arg(years).arg(months).ar
 //    - DAY(@dt_Start)
 //    - CASE WHEN DAY(@dt_Ende) = 31 THEN 1 ELSE 0 END AS [Tage30/360]
 
+QDate getDateFromYearString(const QString &yearString)
+{
+    QDate ret;
+    QStringList list = yearString.split('.');
+    if(list.count() == 3)
+    {
+        QString year4String;
+        if(list.at(2).length() == 2)
+        {
+            year4String = list.at(0) + '.' + list.at(1) + '.' + "20" + list.at(2);
+        }else if(list.at(2).length() == 4){
+            year4String = yearString;
+        }
+        ret = QDate::fromString(year4String, "dd.MM.yyyy");
+    }
+    return ret;
+}
+
 int getAnzTage(const QDate &dateFrom, const QDate &dateTo, bool inclLastDay)
 {
    // Q_ASSERT(dateFrom.year() == dateTo.year());

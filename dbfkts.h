@@ -54,6 +54,7 @@ void setTestUserEmailAdress(const QString &testUserEmailAdress);
 // int getJahr();
 
 int getAnzTageJahr();
+QDate getDateFromYearString(const QString &yearString);
 int getAnzTage(const QDate &dateFrom, const QDate &dateTo, bool inclLastDay); // =true
 int getAnzTageZeitraum(const QDate &dateFrom, const QDate &dateTo);
 

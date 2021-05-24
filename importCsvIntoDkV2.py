@@ -254,8 +254,10 @@ try:
     stmt.execute("UPDATE DkBuchungen SET Anfangsdatum = Datum, Anfangsbetrag = Betrag WHERE Anfangsdatum IS NULL OR Anfangsbetrag  IS NULL;")
     print "Anzahl DkBuchungen Anfangsdatum auf Datum und Anfangsbetrag auf Betrag gesetzt: ", stmt.rowcount
 
-    print "Buchungen vor dem aktuellen Jahr löschen: "
-    stmt.execute('DELETE FROM DkBuchungen WHERE substr(Datum,7,2) < (SELECT MAX(substr(Datum,7,2)) FROM DkBuchungen);')
+    # print "Buchungen vor dem aktuellen Jahr löschen: "
+    # stmt.execute('DELETE FROM DkBuchungen WHERE substr(Datum,7,2) < (SELECT MAX(substr(Datum,7,2)) FROM DkBuchungen);')
+    print "Buchungen ohne Betrag (vor dem aktuellen Jahr) löschen: "
+    stmt.execute('DELETE FROM DkBuchungen WHERE Betrag = 0')
     print "Anzahl: ", stmt.rowcount
 
     print "Stammkapital löschen: "
@@ -277,12 +279,16 @@ try:
         stmt.execute(insert_stmt);
         print "Anzahl: ", stmt.rowcount
         conn.commit()
-    
+
         print "Vertraege hinzufügen"
         insert_stmt = 'INSERT INTO Vertraege (id, KreditorId, Kennung, ZSatz, Betrag, thesaurierend, Vertragsdatum, LaufzeitEnde, Kfrist) '
         insert_stmt += 'SELECT BuchungId, PersonId, DKNummer, DKBuchungen.Zinssatz*100, AnfangsBetrag*100, 1, '
         insert_stmt += '"20" || substr(Anfangsdatum,7,2) || "-" || substr(Anfangsdatum,4,2) || "-" || substr(Anfangsdatum,1,2), '
-        insert_stmt += 'CASE WHEN (vorgemerkt != "") THEN ("20" || substr(vorgemerkt,7,2) || "-" || substr(vorgemerkt,4,2) || "-" || substr(vorgemerkt,1,2)) ELSE "9999-12-31" END, '
+        # insert_stmt += 'CASE WHEN (vorgemerkt != "") THEN ("20" || substr(vorgemerkt,7,2) || "-" || substr(vorgemerkt,4,2) || "-" || substr(vorgemerkt,1,2)) ELSE "9999-12-31" END, '
+        insert_stmt += 'CASE WHEN (vorgemerkt != "") THEN ("20" || substr(vorgemerkt,7,2) || "-" || substr(vorgemerkt,4,2) || "-" || substr(vorgemerkt,1,2)) '
+        insert_stmt += 'ELSE '
+        insert_stmt += 'CASE WHEN (Rueckzahlung != "") THEN ("20" || substr(Rueckzahlung,7,2) || "-" || substr(Rueckzahlung,4,2) || "-" || substr(Rueckzahlung,1,2)) '
+        insert_stmt += 'ELSE "9999-12-31" END END, '
         insert_stmt += 'CASE WHEN (vorgemerkt != "") THEN -1 ELSE 6 END '
         insert_stmt += 'FROM DKBuchungen '
         insert_stmt += 'WHERE Anfangsdatum <> "" '
@@ -410,7 +416,7 @@ try:
     select_stmt += 'FROM DKBuchungen '
     select_stmt += 'WHERE KennungA = KennungB '
     select_stmt += 'GROUP BY KennungB '
-    select_stmt += 'HAVING SUM(Betrag) <> SummeA'
+    select_stmt += 'HAVING SummeB <> SummeA'
     select_stmt += ') '
     select_stmt += ') '
     stmt.execute(select_stmt)
@@ -418,7 +424,35 @@ try:
     for row in vertraege:
         print row
     print "Anzahl: ", len(vertraege)
-        
+
+    select_stmt = '';
+    select_stmt += 'SELECT KennungB, SummeB '
+    select_stmt += 'FROM '
+    select_stmt += '( '
+    select_stmt += 'SELECT DKBuchungen.DkNummer AS KennungB, ROUND(SUM(Betrag),2) AS SummeB '
+    select_stmt += 'FROM DKBuchungen '
+    select_stmt += 'GROUP BY KennungB '
+    select_stmt += 'ORDER BY KennungB '
+    select_stmt += ') '
+    select_stmt += 'WHERE EXISTS '
+    select_stmt += '( '
+    select_stmt += 'SELECT KennungA, SummeA '
+    select_stmt += 'FROM '
+    select_stmt += '( '
+    select_stmt += 'SELECT  Vertraege.Kennung AS KennungA, ROUND(SUM(Buchungen.Betrag)/100.,2) AS SummeA '
+    select_stmt += 'FROM Vertraege, Buchungen '
+    select_stmt += 'WHERE Vertraege.Id = Buchungen.VertragsId '
+    select_stmt += 'AND KennungA = KennungB '
+    select_stmt += 'GROUP BY Vertraege.Id '
+    select_stmt += 'HAVING SummeA <> SummeB'
+    select_stmt += ') '
+    select_stmt += ') '
+    stmt.execute(select_stmt)
+    vertraege = stmt.fetchall()
+    for row in vertraege:
+        print row
+    print "Anzahl: ", len(vertraege)
+
     print "Vertraege mit abweichenden aufsummierten Zinsen:"
 
     # DKV2: vStat_aktiverVertraege_thesa
@@ -488,8 +522,8 @@ try:
         update_stmt = 'UPDATE ExVertraege SET LaufzeitEnde = '
         update_stmt += '('
         update_stmt += 'SELECT ("20" || substr(Rueckzahlung,7,2) || "-" || substr(Rueckzahlung,4,2) || "-" || substr(Rueckzahlung,1,2)) '
-        update_stmt += 'FROM DKBuchungen b, ExVertraege c '
-        update_stmt += 'WHERE b.DkNummer = c.Kennung '
+        update_stmt += 'FROM DKBuchungen b '
+        update_stmt += 'WHERE b.DkNummer = ExVertraege.Kennung '
         update_stmt += ')'
         # print update_stmt
         stmt.execute(update_stmt);
@@ -511,8 +545,6 @@ try:
         print "Anzahl Vertraege gelöscht: ", stmt.rowcount
         conn.commit()
         
-        print "TODO: Update TimeStamps\n"
-
         print "Vergleiche DkVerwaltungQt <-> DKV2"
 
         print "Anzahl Vertraege:"
@@ -532,6 +564,7 @@ try:
         stmt.execute(select_stmt)
         print stmt.fetchone()[0]
 
+    print "TODO: Update TimeStamps\n"
     if dropUnusedCsvTables:
         stmt.execute('DROP TABLE DKVerwaltungORG;')
         stmt.execute('DROP TABLE DKVerwaltung;')

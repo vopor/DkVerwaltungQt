@@ -50,8 +50,8 @@ bool BuchungenSortFilterProxyModel::lessThan(const QModelIndex & source_left, co
         QString stringLeft = sourceModel()->data(source_left).toString();
         QString stringRight = sourceModel()->data(source_right).toString();
         if(stringLeft.length() && stringRight.length()){
-            QDate dateLeft = QDate::fromString(stringLeft, "dd.MM.yy");
-            QDate dateRight = QDate::fromString(stringRight, "dd.MM.yy");
+            QDate dateLeft = getDateFromYearString(stringLeft);
+            QDate dateRight = getDateFromYearString(stringRight);
             if(!dateLeft.isValid()) return true;
             if(!dateRight.isValid()) return false;
             return dateLeft < dateRight;
@@ -406,8 +406,8 @@ void MainForm::generateJahresDkBestaetigungen()
                         strEnddatum = "31.12." + strJahr;
                     }
                     // Tagesgenaue Berechnung
-                    QDate dateFrom = QDate::fromString(strAnfangsdatum, "dd.MM.yy");
-                    QDate dateTo = QDate::fromString(strEnddatum, "dd.MM.yy");
+                    QDate dateFrom = getDateFromYearString(strAnfangsdatum);
+                    QDate dateTo = getDateFromYearString(strEnddatum);
                     bool inclLastDay = true;
                     if(bRueckzahlung){
                        // dateTo = dateTo.addDays(-1);
@@ -428,7 +428,7 @@ void MainForm::generateJahresDkBestaetigungen()
                     SummeZinsen += Zinsen;
                     SummeEndbetrag += Endbetrag;
 
-                    // strAnfangsdatum = QDate::fromString(strAnfangsdatum, "dd.MM.yy").toString("dd.MM.yyyy");
+                    // strAnfangsdatum = getDateFromYearString(strAnfangsdatum).toString("dd.MM.yyyy");
                     QString strAnfangsbetrag = QString("%L1").arg(Betrag ,12,'f',2,' ') + " &euro;";
                     QString strZinssatz = QString("%L1").arg(Zinssatz ,12,'f',2,' ') + " &#37;";
                     QString strZinsen = QString("%L1").arg(Zinsen ,12,'f',2,' ') + " &euro;";
@@ -682,8 +682,8 @@ void MainForm::generateJahresDkZinsBescheinigungen()
                        strEnddatum = "31.12." + strJahr;
                    }
                    // Tagesgenaue Berechnung
-                   QDate dateFrom = QDate::fromString(strAnfangsdatum, "dd.MM.yy");
-                   QDate dateTo = QDate::fromString(strEnddatum, "dd.MM.yy");
+                   QDate dateFrom = getDateFromYearString(strAnfangsdatum);
+                   QDate dateTo = getDateFromYearString(strEnddatum);
                    bool inclLastDay = true;
                    if(bRueckzahlung){
                        inclLastDay = false;
@@ -696,7 +696,7 @@ void MainForm::generateJahresDkZinsBescheinigungen()
                    SummeZinsen += Zinsen;
                    SummeEndbetrag += Endbetrag;
 
-                   // strAnfangsdatum = QDate::fromString(strAnfangsdatum, "dd.MM.yy").toString("dd.MM.yyyy");
+                   // strAnfangsdatum = getDateFromYearString(strAnfangsdatum).toString("dd.MM.yyyy");
                    QString strAnfangsbetrag = QString("%L1").arg(Betrag ,12,'f',2,' ') + " &euro;";
                    QString strZinssatz = QString("%L1").arg(Zinssatz ,12,'f',2,' ') + " &#37;";
                    QString strZinsen = QString("%L1").arg(Zinsen ,12,'f',2,' ') + " &euro;";
@@ -843,7 +843,7 @@ void MainForm::updateBuchungenSummen()
         statementDkZinsen += QString::number(PersonId);
     }
     double summeDkZinsen = getDoubleValue(statementDkZinsen);
-    QDate dateTo = QDate::fromString(datumBuchungenDkZinsenEdit->text(), "dd.MM.yy");
+    QDate dateTo = getDateFromYearString(datumBuchungenDkZinsenEdit->text());
     QDate dateFrom = QDate(dateTo.year(), 1, 1);
     // int anzTage = getAnzTageJahr();
     // if(dateFrom.isValid() && dateTo.isValid()){

@@ -11,8 +11,14 @@ INCLUDEPATH += .
 
 APP_RESOURCES_FILES.files = ./Jahreskontoauszug.html ./Zinsbescheinigung.html ./F13TurleyGmbH2.gif ./sendDKJAKtos.py ./printCommandDescription.sh ./mail-content.txt ./importCsvIntoDkVerwaltungQt.py
 APP_RESOURCES_FILES.path = Contents/Resources
-
 QMAKE_BUNDLE_DATA += APP_RESOURCES_FILES
+
+APP_TRANSLATIONS_FILES.files = $$[QT_INSTALL_TRANSLATIONS]/qt_de.qm $$[QT_INSTALL_TRANSLATIONS]/qtbase_de.qm
+APP_TRANSLATIONS_FILES.path = Contents/translations
+QMAKE_BUNDLE_DATA += APP_TRANSLATIONS_FILES
+
+# macx:QMAKE_POST_LINK += mkdir -p $${OUT_PWD}/$${TARGET}.app/Contents/translations &&
+# macx:QMAKE_POST_LINK += cp $$[QT_INSTALL_TRANSLATIONS]/qtbase_de.qm $${OUT_PWD}/$${TARGET}.app/Contents/translations/ &&
 
 # macx:ICON = $${TARGET}.icns
 # macx:QMAKE_INFO_PLIST = Info.plist

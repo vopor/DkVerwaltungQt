@@ -4,6 +4,7 @@
 			"path": "."
 		}
 	],
+  
 	"settings": {
     "programm_name" : "DkVerwaltungQt",
     // debug_or_release
@@ -162,6 +163,11 @@
         { "name": "DISPLAY", "value": "host.docker.internal:0" },
       ],
     },
+    "python.pythonPath": "/usr/bin/python",
+    "cmake.configureOnOpen": false,
+    "files.associations": {
+      "list": "cpp"
+    },
     // "lldb.library": "/Library/Developer/CommandLineTools/Library/PrivateFrameworks/LLDB.framework/Versions/A/LLDB",
     // "cmake.cmakePath" : "/Applications/CMake.app/Contents/bin/cmake",
     // "cmake.cmakePath": "C:\\Qt\\Tools\\CMake_64\\bin\\cmake.exe",
@@ -169,7 +175,64 @@
 	},
   "tasks": {
     "version": "2.0.0",
+    "inputs": [
+      {
+        "id": "runTask",
+        "type": "command",
+        // "command": "workbench.action.tasks.terminate",
+        "command": "workbench.action.tasks.runTask",
+        "args": "DkVerwaltungQt: test environment ",
+      },      
+      {
+        "type": "pickString",
+        "id": "debug_or_release",
+        "description": "debug or release?",
+        "options": [
+          "Debug",
+          "Release",
+        ],
+        "default": "Debug"
+      },
+      {
+        "type": "promptString",
+        "id": "componentName",
+        "description": "Name your component.",
+        "default": "my-new-component"
+      }
+    ],            
     "tasks": [
+      {
+        "label": "DkVerwaltungQt: test input variables ",
+        "type": "shell",
+        "presentation": {
+          "echo": true,
+          "focus": false,
+          "panel": "dedicated",
+          "clear": false
+        },
+        "osx": {
+          // "command": "echo ${config:qtdir_osx} && env && echo QTDIR=$QTDIR && echo SHELL=$SHELL",
+          // "command": "echo ${input:componentType}",
+          "command": "echo ${input:runTask}",
+          // "options": {
+          //   "shell": {
+          //     "env":{
+          //     "PATH": "${env:HOME}/Qt/${config:qtdir_osx}/bin:${env:PATH}",
+          //     "QTDIR": "${env:HOME}/Qt/${config:qtdir_osx}",
+          //     } 
+          //   }
+          // }
+        },
+        "linux": {
+          "command": "echo linux ${config:qtdir_linux} && echo env"
+        },
+        "windows": {
+            "command": "${config:vc_vars_bat} && echo windows ${config:qtdir_windows} && set ",
+        },
+        "problemMatcher": [
+          "$go"
+        ]
+      },
       {
         "label": "DkVerwaltungQt: test environment ",
         "type": "shell",
@@ -292,7 +355,41 @@
             // Hover to view descriptions of existing attributes.
             // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
             "version": "0.2.0",
+            "inputs": [
+              {
+                "type": "pickString",
+                "id": "input_progname",
+                "description": "input progname",
+                "options": [
+                  "DkVerwaltungQt.app/Contents/MacOS/DkVerwaltungQt",
+                  "DkVerwaltungQt.app",
+                ],
+                "default": "DkVerwaltungQt.app/Contents/MacOS/DkVerwaltungQt"
+              },
+              {
+                "type": "pickString",
+                "id": "debug_or_release",
+                "description": "debug or release?",
+                "options": [
+                  "Debug",
+                  "Release",
+                ],
+                "default": "Debug"
+              },
+            ],            
+        
             "configurations": [
+              {
+                "name": "(macOS) test input variables",
+                "type": "lldb",
+                "request": "launch",
+                "env": {
+                    "DYLD_IMAGE_SUFFIX": "_debug",
+                },
+                "sourceMap": { "/Users/qt/work/qt" : "${env:HOME}/Qt/${config:qtdir_osx}/../Src" },
+                "program": "${workspaceFolder}/${config:builddir_osx}-${input:debug_or_release}/${input:input_progname}",
+                "cwd": "${workspaceFolder}/${config:builddir_osx}-${config:debug_or_release}",
+              },
               {
                 "name": "(Windows) DkVerwaltungQt",
                 "type": "cppvsdbg",

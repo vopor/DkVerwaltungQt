@@ -75,6 +75,43 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
     }
 }
 
+void installTranslateFile(const QString& translationFile)
+{
+    QTranslator* pTrans = new QTranslator();
+    if( pTrans->load(translationFile))
+        if( QCoreApplication::installTranslator(pTrans)) {
+            qInfo() << "Successfully installed language file " << translationFile;
+            return;
+        }
+    qCritical() << "failed to load translations " << translationFile;
+}
+
+void setGermanUi()
+{
+    QString translationFolder = QApplication::applicationDirPath() + "/../translations/%1";
+    installTranslateFile(translationFolder.arg("qtbase_de.qm"));
+}
+
+#ifdef XXX
+void setGermanUi()
+{
+
+    QString translationsPath(QLibraryInfo::location(QLibraryInfo::TranslationsPath));
+    QLocale locale = QLocale::system();
+
+    QTranslator qtTranslator;
+    if (qtTranslator.load(locale, "qt", "_", translationsPath))
+    {
+        QCoreApplication::installTranslator(&qtTranslator);
+    }
+    QTranslator qtBaseTranslator;
+    if (qtBaseTranslator.load(locale, "qtbase", "_", translationsPath))
+    {
+        QCoreApplication::installTranslator(&qtBaseTranslator);
+    }
+}
+#endif
+
 int main(int argc, char *argv[])
 {
     oldMessageHandler = qInstallMessageHandler(myMessageOutput);
@@ -85,9 +122,10 @@ int main(int argc, char *argv[])
     QApplication::setOrganizationName("MHS");
 
     setlocale(LC_ALL, "C");
-    QLocale::setDefault(QLocale::c());
+    QLocale::setDefault(QLocale::c());    
 
     QApplication app(argc, argv);
+    setGermanUi();
 
     qDebug() << "settings: " << getSettings().fileName();
     QString dbPath = getStandardPath() + QDir::separator() + "DkVerwaltungQt.db3";

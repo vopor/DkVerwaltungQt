@@ -253,7 +253,7 @@ bool openConnection(const QString &dbName)
                              db.lastError().text());
         return false;
     }else{
-        bool b =  isDKV2Database();
+        bool b =  false; // isDKV2Database();
         if(b)
         {
             int c = 0;

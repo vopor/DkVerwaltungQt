@@ -125,20 +125,23 @@ void dumpEnv()
     }
 }
 
-void run_executeCommand(QWidget *button, const QString &commandLine)
+int run_executeCommand(QWidget *button, const QString &commandLine, QString &stdOutput, QString &stdError)
 {
+    int retCode = -1;
     if(commandLine.isEmpty())
-        return;
+        return -1;
     if(button) button->setEnabled(false);
     qDebug() << commandLine;
     QPointer<QProcess> process = new QProcess;
-    QMetaObject::Connection connFinished = QObject::connect(process, static_cast<void (QProcess::*)(int exitCode, QProcess::ExitStatus exitStatus)>(&QProcess::finished), [process, button, commandLine] (int exitCode, QProcess::ExitStatus exitStatus){
+    QMetaObject::Connection connFinished = QObject::connect(process, static_cast<void (QProcess::*)(int exitCode, QProcess::ExitStatus exitStatus)>(&QProcess::finished), [process, button, commandLine, &stdOutput, &retCode] (int exitCode, QProcess::ExitStatus exitStatus){
         if(process->state() == QProcess::NotRunning){
             qDebug() << commandLine << " finished: " << process->processId();
             if(process->exitStatus()  == QProcess::NormalExit){
                 qDebug() << commandLine << " exited normal: " << process->processId() << "exitcode: " << process->exitCode();
                 QByteArray output = process->readAllStandardOutput();
                 qDebug() << output;
+                stdOutput = output;
+                retCode = process->exitCode();
             }
         }
         delete process;
@@ -147,11 +150,13 @@ void run_executeCommand(QWidget *button, const QString &commandLine)
 
     });
     // QObject::connect(process, static_cast<void (QProcess::*)(QProcess::ProcessError error)>(&QProcess::errorOccurred), [process, button, commandLine] (QProcess::ProcessError error)
-    QObject::connect(process, &QProcess::errorOccurred, [process, button, commandLine] (QProcess::ProcessError error)
+    QObject::connect(process, &QProcess::errorOccurred, [process, button, commandLine, &stdError, &retCode] (QProcess::ProcessError error)
                      {
                          qDebug() << commandLine << " process error: " << error << " pid: " << process->processId();
                          QByteArray output = process->readAllStandardError();
                          qDebug() << output;
+                         stdError = output;
+                         retCode = process->exitCode();
                          delete process;
                          if(button) button->setEnabled(true);
                          // process = nullptr;
@@ -164,6 +169,7 @@ void run_executeCommand(QWidget *button, const QString &commandLine)
     if(process) qDebug() << commandLine << " process finished: " << process->processId();
     // qDebug() << commandLine << " process finished";
     // bringAppToForeground(process->processId());
+    return retCode;
 #ifdef XXX
     QObject::disconnect(connFinished);
     process->waitForFinished(10000);

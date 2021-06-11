@@ -98,7 +98,9 @@ void MainWindow::importCsv()
         QString sourcePath = getResouresPath();
         QString commandLine = sourcePath + QDir::separator() + "importCsvIntoDkVerwaltungQt.py" + " " + csvFilename + " " + dbPath;
         qDebug() << commandLine;
-        run_executeCommand(nullptr, commandLine);
+        QString stdOutput;
+        QString stdError;
+        run_executeCommand(nullptr, commandLine, stdOutput, stdError);
         if (openConnection(dbPath))
         {
             MainForm *oldMainForm = mainForm;
@@ -127,11 +129,24 @@ void MainWindow::importDKV2()
         {
             return;
         }
+        closeConnection(dbPath);
         QString sourcePath = getResouresPath();
         QString commandLine = sourcePath + QDir::separator() + "importDKV2IntoDkVerwaltungQt.py" + " " + dkdbFilename + " " + dbPath;
         qDebug() << commandLine;
-        run_executeCommand(nullptr, commandLine);
-        mainForm->updateViews();
+        QString stdOutput;
+        QString stdError;
+        run_executeCommand(nullptr, commandLine, stdOutput, stdError);
+        if (openConnection(dbPath))
+        {
+            MainForm *oldMainForm = mainForm;
+            oldMainForm->hide();
+            mainForm = new MainForm(this);
+            setCentralWidget(mainForm);
+            oldMainForm->deleteLater();
+            oldMainForm = nullptr;
+        }else{
+            QMessageBox::warning(0, QStringLiteral("Fehler"), QStringLiteral("Die Datenbank ") + dbPath + " kann nicht geöffnet werden!");
+        }
     }
 }
 

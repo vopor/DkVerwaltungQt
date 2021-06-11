@@ -20,6 +20,7 @@ private slots:
     void openDatabase();
     void anonymizeDatabase();
     void importCsv();
+    void importDKV2();
     void showAnsparrechner();
     void showStatistik();
     void showPdfFile();

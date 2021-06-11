@@ -9,7 +9,7 @@ INCLUDEPATH += .
 
 # win32:CONFIG -= debug_and_release
 
-APP_RESOURCES_FILES.files = ./Jahreskontoauszug.html ./Zinsbescheinigung.html ./F13TurleyGmbH2.gif ./sendDKJAKtos.py ./printCommandDescription.sh ./mail-content.txt ./importCsvIntoDkVerwaltungQt.py
+APP_RESOURCES_FILES.files = ./Jahreskontoauszug.html ./Zinsbescheinigung.html ./F13TurleyGmbH2.gif ./sendDKJAKtos.py ./printCommandDescription.sh ./mail-content.txt ./importCsvIntoDkVerwaltungQt.py ./importDKV2IntoDkVerwaltungQt.py
 APP_RESOURCES_FILES.path = Contents/Resources
 QMAKE_BUNDLE_DATA += APP_RESOURCES_FILES
 

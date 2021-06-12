@@ -4,7 +4,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Das Script exportiert die Daten der Datenbank aus DkVerwaltungQt nach DKV2.
+# Das Script importiert die Daten der Datenbank aus DKV2 nach DkVerwaltungQt.
 # 
 # Aufruf: ./importDKV2IntoDkVerwaltungQt.py <DKV2-db3-file> <DkVerwaltungQt-db3-file>
 #
@@ -57,8 +57,8 @@ try:
     # müsste aus exBuchunen, exVertraege kommen
     # 2013-12-04 -> 26.01.18
     # insert_stmt += "'' AS Rueckzahlung, ";
-    insert_stmt += "CASE WHEN (b.Betrag < 0) THEN b.Datum ELSE '' END AS Rueckzahlung, ";
-    insert_stmt += "CASE WHEN (v.LaufzeitEnde != '3000-12-31') THEN ( substr(v.LaufzeitEnde,9,2) || '.' || substr(v.LaufzeitEnde,6,2) || '.' || substr(v.LaufzeitEnde,3,2)) END AS vorgemerkt, ";
+    insert_stmt += "CASE WHEN (b.Betrag < 0) THEN ( substr(b.Datum,9,2) || '.' || substr(b.Datum,6,2) || '.' || substr(b.Datum,3,2)) ELSE '' END AS Rueckzahlung, ";
+    insert_stmt += "CASE WHEN (v.LaufzeitEnde != '9999-12-31') THEN ( substr(v.LaufzeitEnde,9,2) || '.' || substr(v.LaufzeitEnde,6,2) || '.' || substr(v.LaufzeitEnde,3,2)) END AS vorgemerkt, ";
     # insert_stmt += "CASE WHEN (Buchungsart = 2) THEN ( -1 * (b.Betrag / 100.0) ) ELSE (b.Betrag / 100.0) END AS Betrag, ";
     insert_stmt += "(b.Betrag / 100.0) AS Betrag, ";
     insert_stmt += "(v.ZSatz / 100.0) AS Zinssatz, ";
@@ -71,8 +71,10 @@ try:
     insert_stmt += "( substr(c.Anfangsdatum,9,2) || '.' || substr(c.Anfangsdatum,6,2) || '.' || substr(c.Anfangsdatum,3,2)) AS Anfangsdatum, ";
     insert_stmt += "(v.Betrag / 100.0) AS AnfangsBetrag ";
     # insert_stmt += "FROM Buchungen b, Vertraege v, ";
-    insert_stmt += "FROM (SELECT * FROM db_from.Buchungen UNION SELECT * FROM db_from.ExBuchungen) b, (SELECT * FROM db_from.Vertraege UNION SELECT * FROM db_from.ExVertraege) v, ";
-    insert_stmt += "(SELECT  MIN(x.Datum) AS Anfangsdatum,  x.VertragsId AS VertragsId FROM db_from.Buchungen x GROUP BY x.VertragsId) AS c ";
+    insert_stmt += "FROM "
+    insert_stmt += "(SELECT * FROM db_from.Buchungen UNION SELECT * FROM db_from.ExBuchungen) b, "
+    insert_stmt += "(SELECT * FROM db_from.Vertraege UNION SELECT * FROM db_from.ExVertraege) v, "
+    insert_stmt += "(SELECT  MIN(x.Datum) AS Anfangsdatum,  x.VertragsId AS VertragsId FROM (SELECT * FROM db_from.Buchungen UNION SELECT * FROM db_from.ExBuchungen) x GROUP BY x.VertragsId) AS c "
     insert_stmt += "WHERE b.VertragsId = v.Id ";
     insert_stmt += "AND c.VertragsId = v.Id; ";
     stmt.execute(insert_stmt);

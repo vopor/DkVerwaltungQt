@@ -78,7 +78,6 @@ try:
     stmt.execute(statement)
     
     buchungen = stmt.fetchall()
-    print ("buchungen", len(buchungen))
     # for row in buchungen:
     #     print (row)
     print ("buchungen ", len(buchungen)) 

@@ -139,6 +139,15 @@ try:
     update_statement += ');'
     stmt.execute(update_statement)
     # stmt.execute('UPDATE DkBuchungen SET PersonId = (select mpid from (Select t.PersonId AS pid, xx.MaxPersonId as mpid, t.Vorname , t.Name from DkPersonen t inner join ( Select max(PersonId) AS MaxPersonId, Vorname, Name from DkPersonen group by Vorname, Name) xx on t.Vorname = xx.Vorname AND t.Name = xx.Name ORDER BY PersonID) where DkBuchungen.PersonId = pid);')
+    conn.commit()
+    print "Buchungen ohne Betrag (vor dem aktuellen Jahr) löschen: "
+    stmt.execute('DELETE FROM DkBuchungen WHERE Betrag = 0')
+    print "Anzahl: ", stmt.rowcount
+    conn.commit()
+    print "Stammkapital löschen: "
+    stmt.execute('DELETE FROM DkBuchungen WHERE DkNummer = "Stammkapital";')
+    print "Anzahl: ", stmt.rowcount
+    conn.commit()
     print "Anzahl DkBuchungen DkPersonen zugordnet: ", stmt.rowcount
     stmt.execute('DELETE FROM DkPersonen WHERE NOT EXISTS (SELECT * FROM DkBuchungen WHERE DkBuchungen.PersonId = DkPersonen.PersonId);')
     print "Anzahl DkPersonen gelöscht: ", stmt.rowcount
@@ -148,10 +157,6 @@ try:
     print "Anzahl DkBuchungen Anfangsdatum gesetzt: ", stmt.rowcount
     stmt.execute("UPDATE DkBuchungen SET Anfangsbetrag = CAST(replace(replace(substr(Bemerkung, instr(Bemerkung, 'Betrag: ') + 8), '.', ''), ',', '.') AS FLOAT) WHERE instr(Bemerkung, 'neu angelegt') <> 0;")
     print "Anzahl DkBuchungen Anfangsbetrag gesetzt: ", stmt.rowcount
-    conn.commit()
-    print "Stammkapital löschen: "
-    stmt.execute('DELETE FROM DkBuchungen WHERE DkNummer = "Stammkapital";')
-    print "Anzahl: ", stmt.rowcount
     conn.commit()
 except SystemExit:
     pass

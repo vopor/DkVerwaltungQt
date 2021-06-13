@@ -6,7 +6,7 @@
 #
 # Das Script exportiert die Daten der Datenbank aus DkVerwaltungQt.
 # 
-# Aufruf: ./exportDkVerwaltungQtToCsv.py <DkVerwaltungQt-db3-file> <csv-file>
+# Aufruf: ./exportDkVerwaltungQtToCsv.py <DKV2-db3-file> <csv-file>
 #
 
 import os
@@ -38,17 +38,17 @@ try:
 
     # Datum,DK-Nr.,Vorname,Name,Anrede,DK Nummer,Straße,PLZ,Ort,Email,Rückzahlung,vorgemerkt,Betrag,Zinssatz,Bemerkung
     statement = ""
-    statement += "SELECT b.Datum AS Datum, "
-    statement += "b.BuchungId AS BuchungId, a.Vorname, a.Name, '', b.DkNummer, a.Straße, a.PLZ, a.Ort, a.Email, " # a.Anrede
-    statement += "b.Rueckzahlung, b.vorgemerkt, b.Betrag, b.Zinssatz, "
+    statement += "SELECT Datum, ROWID, Vorname, Name, '', DkNummer, Straße, PLZ, Ort, Email, " # CAST(DkNr AS INTEGER) # Anrede
+    statement += "Rueckzahlung, vorgemerkt, CAST(replace(replace(replace(Betrag, ' €', ''), '.', ''), ',', '.') AS FLOAT), CAST(replace(replace(Zinssatz, '%', ''), ',', '.') AS FLOAT), "
     # TODO:
     # 23.01.14 F13T-2013-004
     # [auto] DK-Nr. 004 neu angelegt. Betrag: 10.000,00 €.
     # 30.06.17 [auto] DK-Nr. 004 gekündigt. Betrag: 10.000,00 €.
     statement += "'' AS Bemerkung "
-    statement += "FROM DkPersonen a, DkBuchungen b "
-    statement += "WHERE a.PersonId = b.PersonId "
-    # statement += "ORDER BY b.DkNr "
+    statement += "FROM DkVerwaltung "
+    statement += "WHERE Betrag <> '0,00 €' "
+    statement += "AND DkNummer <> 'Stammkapital' "
+    # statement += "ORDER BY CAST(DkNr AS INTEGER) "
 
     print(statement)
     stmt.execute(statement)

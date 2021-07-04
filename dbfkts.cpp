@@ -144,8 +144,7 @@ int run_executeCommand(QWidget *button, const QString &commandLine, QString &std
                 retCode = process->exitCode();
             }
         }
-        delete process;
-        // process = nullptr;
+        process->deleteLater();
         if(button) button->setEnabled(true);
 
     });
@@ -157,7 +156,7 @@ int run_executeCommand(QWidget *button, const QString &commandLine, QString &std
                          qDebug() << output;
                          stdError = output;
                          retCode = process->exitCode();
-                         delete process;
+                         process->deleteLater();
                          if(button) button->setEnabled(true);
                          // process = nullptr;
                      });

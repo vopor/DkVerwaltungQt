@@ -166,7 +166,28 @@ void MainWindow::importOds()
 
 void MainWindow::exportCsv()
 {
-    // exportDkVerwaltungQtToCsv.py
+    QString defaultDBPath = getStandardPath() + QDir::separator() + "DkVerwaltungQt.db3";
+    QString dbPath = getStringFromIni("DBPath", defaultDBPath);
+    QString csvPath = QFileInfo(dbPath).dir().absolutePath();
+    QString csvFilename = dbPath;
+    csvFilename = csvFilename + ".csv";
+    csvFilename = QFileDialog::getSaveFileName(this, QStringLiteral("Csv-Datei exportieren"), csvFilename, "csv (*.csv)");
+    if(csvFilename.length())
+    {
+        QString sourcePath = getResouresPath();
+        QString commandLine = sourcePath + QDir::separator() + "exportDkVerwaltungQtToCsv.py" + " " + dbPath + " " + csvFilename;
+        qDebug() << commandLine;
+        QString stdOutput;
+        QString stdError;
+        run_executeCommand(nullptr, commandLine, stdOutput, stdError);
+        if(QFileInfo(csvFilename).exists())
+        {
+            QString cmd = "open -e " + csvFilename;
+            QProcess::startDetached(cmd);
+        }else{
+            QMessageBox::warning(0, QStringLiteral("Fehler"), QStringLiteral("Die Csv-Datei ") + csvFilename + " kann nicht geöffnet werden!");
+        }
+    }
 }
 
 void MainWindow::importDKV2()

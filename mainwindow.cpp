@@ -33,6 +33,7 @@ void MainWindow::createMenu()
     dateiMenu->addAction("Import DKV2...", this, &MainWindow::importDKV2);
     dateiMenu->addSeparator();
     dateiMenu->addAction("Export Csv...", this, &MainWindow::exportCsv);
+    dateiMenu->addAction("Export DKV2 Csv...", this, &MainWindow::exportDKV2Csv);
     dateiMenu->addSeparator();
     dateiMenu->addAction("Statistik", this, &MainWindow::showStatistik);
     dateiMenu->addSeparator();
@@ -164,7 +165,7 @@ void MainWindow::importOds()
     }
 }
 
-void MainWindow::exportCsv()
+void MainWindow::exportCsvInternal(const QString &scriptFilename)
 {
     QString defaultDBPath = getStandardPath() + QDir::separator() + "DkVerwaltungQt.db3";
     QString dbPath = getStringFromIni("DBPath", defaultDBPath);
@@ -175,7 +176,7 @@ void MainWindow::exportCsv()
     if(csvFilename.length())
     {
         QString sourcePath = getResouresPath();
-        QString commandLine = sourcePath + QDir::separator() + "exportDkVerwaltungQtToCsv.py" + " " + dbPath + " " + csvFilename;
+        QString commandLine = sourcePath + QDir::separator() + scriptFilename + " " + dbPath + " " + csvFilename;
         qDebug() << commandLine;
         QString stdOutput;
         QString stdError;
@@ -188,6 +189,21 @@ void MainWindow::exportCsv()
             QMessageBox::warning(0, QStringLiteral("Fehler"), QStringLiteral("Die Csv-Datei ") + csvFilename + " kann nicht geöffnet werden!");
         }
     }
+}
+
+void MainWindow::exportCsv()
+{
+    exportCsvInternal("exportDkVerwaltungQtToCsv.py");
+}
+
+void MainWindow::exportDKV2Csv()
+{
+    if(!isDKV2Database())
+    {
+        QMessageBox::warning(0, QStringLiteral("Fehler"), QStringLiteral("Die Datenbank enthält keine DKV2 Tabellen."));
+        return;
+    }
+    exportCsvInternal("exportDKV2ToCsv.py");
 }
 
 void MainWindow::importDKV2()

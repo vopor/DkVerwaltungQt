@@ -11,7 +11,8 @@ private:
     MainForm *mainForm;
 private:
     void createMenu();
-    void importCsvInternal(const QString & csvFilename);
+    void importCsvInternal(const QString &csvFilename);
+    void exportCsvInternal(const QString &scriptFilename);
 public:
     explicit MainWindow(QWidget *parent = nullptr);
 
@@ -22,8 +23,9 @@ private slots:
     void anonymizeDatabase();
     void importCsv();
     void importOds();
-    void exportCsv();
     void importDKV2();
+    void exportCsv();
+    void exportDKV2Csv();
     void showAnsparrechner();
     void showStatistik();
     void showPdfFile();

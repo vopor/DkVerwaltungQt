@@ -1,0 +1,162 @@
+REM  *****  BASIC  *****
+
+Sub Main
+
+FelderFuellen
+
+End Sub
+
+Sub Test
+
+MsgBox "Hallo"
+
+End Sub
+
+Sub TestArg(arg as string)
+
+MsgBox arg
+
+End Sub
+
+Sub FelderFuellen
+'Exportiert die Adressdaten in eine Briefvorlage 
+ Dim oVorlage as Object                'Writer-Vorlage
+ Dim mNoArgs()              
+ Dim sExport(16) as String             'Exportdaten      
+ Dim sPlatzhalter(16) as String        'Platzhalter im Zieldokument
+ Dim oErsetzen as Object           
+ Dim Datum as Date
+ 
+' MsgBox "Es wurde kein Betrag eingegeben." & Chr(13) & Chr (13), 48, "Irgendwas passiert immer..."   
+''Vorlage auswählen
+'Dim sPfad as String
+'sPfad = "/Users/volker/Documents/13ha/DkVerwaltungQt/Vorlage Anschreiben DK-Eingang.ott"
+''Vorlage öffnen
+'oVorlage = StarDesktop.loadComponentFromURL(ConvertToURL(sPfad), "_blank", 0, mNoArgs())
+ 
+  tmpPath = "/Users/volker/Documents/13ha/DkVerwaltungQt/DkVerwaltungQt.tmp"
+  FileNo = FreeFile
+  if FileExists(tmpPath) Then
+     ' MsgBox tmpPath & " existiert."
+  Open tmpPath For Input As FileNo
+  i = 1
+  Do While Not Eof(FileNo)
+     Line Input #FileNo, InputData
+     sExport(i) = InputData
+     i = i + 1
+  Loop 
+  else
+     MsgBox tmpPath & " existiert nicht!" 
+  end if
+  
+ oVorlage = ThisComponent
+ oErsetzen = oVorlage.createReplaceDescriptor
+ oErsetzen.SearchCaseSensitive = True
+  
+'Vorlage anpassen
+' sExport(1) = "Hallo"
+ sPlatzhalter(1) = "Vorname"
+' sExport(2) = ""
+ sPlatzhalter(2) = "Name"
+' sExport(3) = ""
+ sPlatzhalter(3) = "Anrede"
+' sExport(4) = ""
+ sPlatzhalter(4) = "co"
+' sExport(5) = ""
+ sPlatzhalter(5) = "Straße"
+' sExport(6) = ""
+ sPlatzhalter(6) = "PLZ"
+' sExport(7) = ""
+ sPlatzhalter(7) = "Ort"
+' sExport(8) = ""
+ sPlatzhalter(8) = "Nummer"
+' sExport(9) = "" ' CDateFromIso(oForm.getByName("Datum").CurrentValue)
+ sPlatzhalter(9) = "Datum"
+' sExport(10) = ""
+ sPlatzhalter(10) = "Betrag"
+' sExport(11) = ""
+ sPlatzhalter(11) = "Zinsen"
+' sExport(12) = ""
+ sPlatzhalter(12) = "Zinssatz"
+' sExport(13) = "r"
+ sPlatzhalter(13) = "r"
+' sExport(14) = ""
+ sPlatzhalter(14) = "Vormerkung"
+' sExport(15) = ""
+ sPlatzhalter(15) = "Anfangsdatum"
+ ' sExport(16) = ""
+ sPlatzhalter(16) = "AnfangsBetrag"
+    
+ For i = 1 to 16
+   oErsetzen.SearchString = "{" & sPlatzhalter(i) & "}"
+   oErsetzen.ReplaceString = sExport(i)
+   oVorlage.replaceAll(oErsetzen)
+ next i 
+
+End Sub
+
+REM  *****  BASIC  *****
+
+Sub ConvertSheet( SpreadSheetPath as String, SheetNameSeek as String)
+REM IN SpreadSheetPath is the FULL PATH and file
+REM IN SheetName sheet name to be found and converted to CSV
+
+REM MsgBox "Hallo"
+
+Dim Doc As Object  
+Dim Dummy()
+
+SheetNameSeek=trim(SheetNameSeek)
+
+If (Not GlobalScope.BasicLibraries.isLibraryLoaded("Tools")) Then
+  GlobalScope.BasicLibraries.LoadLibrary("Tools")
+End If
+
+REM content of an opened window can be replaced with the help of the frame parameter and SearchFlags:
+
+SearchFlags = com.sun.star.frame.FrameSearchFlag.CREATE + _
+com.sun.star.frame.FrameSearchFlag.ALL
+
+REM Set up a propval object to store the filter properties
+Dim Propval(1) as New com.sun.star.beans.PropertyValue
+Propval(0).Name = "FilterName"
+Propval(0).Value = "Text - txt - csv (StarCalc)"
+Propval(1).Name = "FilterOptions"
+REM Propval(1).Value = "44,34,76,1"
+REM Import from UTF-8, Language German, Comma separated, Text delimiter ", Quoted field as text: 
+REM 44,34,76,1,,1031,true,true
+REM Export to Windows-1252, Field delimiter : comma, Text delimiter : quote, Save cell contents as shown: 
+REM 44,34,ANSI,1,,0,false,true,true
+Propval(1).Value = "44,34,76,1,,0,false,true,true"
+
+
+Url=ConvertToUrl(SpreadSheetPath)
+
+  Doc = StarDesktop.loadComponentFromURL(Url, "MyFrame", _SearchFlags, Dummy)
+  FileN=FileNameoutofPath(Url)
+
+  BaseFilename = Tools.Strings.GetFileNameWithoutExtension(FileN)
+
+  DirLoc=DirectoryNameoutofPath(ConvertFromUrl(Url),"/")+"/"
+
+  Sheets = Doc.Sheets
+
+  NumSheets = Sheets.Count - 1
+    For J = 0 to NumSheets
+
+        SheetName = Sheets(J).Name
+
+        if (SheetName = SheetNameSeek)  then
+
+          Doc.getCurrentController.setActiveSheet(Sheets(J))        
+
+          Filename = DirLoc + BaseFilename + "."+ SheetName + ".csv"
+
+          FileURL = convertToURL(Filename)
+
+          Doc.StoreAsURL(FileURL, Propval())             
+    end if
+    Next J
+Doc.close(true)
+NextFile = Dir
+End Sub

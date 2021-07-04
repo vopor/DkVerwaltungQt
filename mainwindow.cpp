@@ -12,6 +12,7 @@
 #include <QMenuBar>
 #include <QDir>
 #include <QDebug>
+#include <QProcess>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
@@ -28,7 +29,10 @@ void MainWindow::createMenu()
     dateiMenu->addAction("Datenbank anonymisieren", this, &MainWindow::anonymizeDatabase);
     dateiMenu->addSeparator();
     dateiMenu->addAction("Import Csv...", this, &MainWindow::importCsv);
+    dateiMenu->addAction("Import Ods...", this, &MainWindow::importOds);
     dateiMenu->addAction("Import DKV2...", this, &MainWindow::importDKV2);
+    dateiMenu->addSeparator();
+    dateiMenu->addAction("Export Csv...", this, &MainWindow::exportCsv);
     dateiMenu->addSeparator();
     dateiMenu->addAction("Statistik", this, &MainWindow::showStatistik);
     dateiMenu->addSeparator();
@@ -79,6 +83,32 @@ void MainWindow::anonymizeDatabase()
     }
 }
 
+void MainWindow::importCsvInternal(const QString & csvFilename)
+{
+    QString defaultDBPath = getStandardPath() + QDir::separator() + "DkVerwaltungQt.db3";
+    QString dbPath = getStringFromIni("DBPath", defaultDBPath);
+    closeConnection(dbPath);
+    QFile::remove(dbPath);
+    QString sourcePath = getResouresPath();
+    QString commandLine = sourcePath + QDir::separator() + "importCsvIntoDkVerwaltungQt.py" + " " + csvFilename + " " + dbPath;
+    qDebug() << commandLine;
+    QString stdOutput;
+    QString stdError;
+    run_executeCommand(nullptr, commandLine, stdOutput, stdError);
+    if (openConnection(dbPath))
+    {
+        MainForm *oldMainForm = mainForm;
+        oldMainForm->hide();
+        mainForm = new MainForm(this);
+        setCentralWidget(mainForm);
+        oldMainForm->deleteLater();
+        oldMainForm = nullptr;
+    }else{
+        QMessageBox::warning(0, QStringLiteral("Fehler"), QStringLiteral("Die Datenbank ") + dbPath + " kann nicht geöffnet werden!");
+    }
+
+}
+
 void MainWindow::importCsv()
 {
     QString defaultDBPath = getStandardPath() + QDir::separator() + "DkVerwaltungQt.db3";
@@ -93,26 +123,50 @@ void MainWindow::importCsv()
         {
             return;
         }
-        closeConnection(dbPath);
-        QFile::remove(dbPath);
-        QString sourcePath = getResouresPath();
-        QString commandLine = sourcePath + QDir::separator() + "importCsvIntoDkVerwaltungQt.py" + " " + csvFilename + " " + dbPath;
-        qDebug() << commandLine;
-        QString stdOutput;
-        QString stdError;
-        run_executeCommand(nullptr, commandLine, stdOutput, stdError);
-        if (openConnection(dbPath))
-        {
-            MainForm *oldMainForm = mainForm;
-            oldMainForm->hide();
-            mainForm = new MainForm(this);
-            setCentralWidget(mainForm);
-            oldMainForm->deleteLater();
-            oldMainForm = nullptr;
-        }else{
-            QMessageBox::warning(0, QStringLiteral("Fehler"), QStringLiteral("Die Datenbank ") + dbPath + " kann nicht geöffnet werden!");
-        }
+        importCsvInternal(csvFilename);
     }
+}
+
+// https://stackoverflow.com/questions/56529277/saving-specific-excel-sheet-as-csv
+void MainWindow::importOds()
+{
+    QString defaultDBPath = getStandardPath() + QDir::separator() + "DkVerwaltungQt.db3";
+    QString dbPath = getStringFromIni("DBPath", defaultDBPath);
+    QString odsPath = QFileInfo(dbPath).dir().absolutePath();
+    QString odsFilename = QFileDialog::getOpenFileName(this, QStringLiteral("Ods-Datei öffnen"), odsPath, "ods (*.ods)");
+    if(!odsFilename.isEmpty() && !dbPath.isEmpty())
+    {
+        int mbr = QMessageBox::warning(0, QStringLiteral("Ods-Datei importieren?"),
+                                       QStringLiteral("Soll die bestehende Datenbank aus der Ods-Datei neu erzeugt werden?"), QMessageBox::Yes | QMessageBox::No);
+        if(mbr != QMessageBox::Yes)
+        {
+            return;
+        }
+        QString oo = getOpenOfficePath();
+        // QString macro = "vnd.sun.star.script:DkVerwaltungQt.Module1.FelderFuellen?language=Basic&location=application";
+        QString macro = "macro:///DkVerwaltungQt.Module1.ConvertSheet(" + odsFilename + ", Journal)";
+        QString program = oo;
+        QStringList arguments;
+        arguments.append("-headless");
+        arguments.append(macro);
+        QProcess::execute(oo, arguments); // synchron
+        QString csvFilename = odsFilename;
+        csvFilename = csvFilename.replace(".ods", ".Journal.csv");
+        if(QFileInfo(csvFilename).exists())
+        {
+            importCsvInternal(csvFilename);
+        }
+        else
+        {
+            QMessageBox::warning(0, QStringLiteral("Fehler"), QStringLiteral("Die Csv-Datei ") + csvFilename + " kann nicht geöffnet werden!");
+        }
+
+    }
+}
+
+void MainWindow::exportCsv()
+{
+    // exportDkVerwaltungQtToCsv.py
 }
 
 void MainWindow::importDKV2()

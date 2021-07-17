@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
         bool existingData = QFile::exists(dbPath);
         if (!existingData)
         {
-            int mbr = QMessageBox::warning(0, QStringLiteral("Datenbank Fehler"),
+            int mbr = QMessageBox::warning(nullptr, QStringLiteral("Datenbank Fehler"),
                              dbPath + QStringLiteral(" existiert nicht! Soll die Datenbank angelegt werden?"), QMessageBox::Yes | QMessageBox::No);
             if(mbr != QMessageBox::Yes)
             {
@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
             dbPath = getFilePathFromIni("DBPath", getStandardPath(), "DkVerwaltungQt.db3");
             if (!QFile::exists(dbPath))
             {
-                QMessageBox::warning(0, QStringLiteral("Datenbank Fehler"),
+                QMessageBox::warning(nullptr, QStringLiteral("Datenbank Fehler"),
                                      dbPath + QStringLiteral(" existiert nicht!l"), QMessageBox::Ok);
                 return 2;
             }

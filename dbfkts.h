@@ -32,6 +32,11 @@ bool createConnection(const QString &dbName);
 bool openConnection(const QString &dbName);
 bool closeConnection(const QString &dbName);
 bool isDKV2Database();
+bool isDkVerwaltungQtDatabase();
+bool createDkVerwaltungQtViewsFromDKV2();
+bool createDkVerwaltungQtTables();
+bool fillDkVerwaltungQtTablesFromDKV2();
+
 void anonymizeDatabase();
 void displayLastSqlError();
 

@@ -61,23 +61,29 @@ if not os.path.isfile(DkVerwaltung_csv_file):
     print DkVerwaltung_csv_file + " existiert nicht."
     sys.exit(2)
 
-# if os.path.isfile(DKV2_db3_file):
-#     os.remove(DKV2_db3_file)
-if os.path.isfile(DKV2_db3_file):
-    print DKV2_db3_file + " existiert."
-    msg = 'Soll sie neu erzeugt werden (ja=neu erzeugen/nein=neu füllen/abbrechen)?'
-    str = raw_input("%s (j/n*/a) " % msg).lower()
-    if ((str == 'j')):
-        os.remove(DKV2_db3_file)
-    elif (str == 'n') or (str == ''):
-        pass
-    else:
+if True:
+    if not os.path.isfile(DKV2_db3_file):
+        print DKV2_db3_file + "existiert nicht."
         sys.exit(3)
 
-if not os.path.isfile(DKV2_db3_file):
-    Empty_DKV2_db3_file = os.path.dirname(os.path.realpath(__file__)) + os.sep + "Empty-DKV2-Datenbank.dkdb"    
-    print Empty_DKV2_db3_file + " => " + DKV2_db3_file
-    shutil.copyfile(Empty_DKV2_db3_file, DKV2_db3_file)
+else:
+    # if os.path.isfile(DKV2_db3_file):
+    #     os.remove(DKV2_db3_file)
+    if os.path.isfile(DKV2_db3_file):
+        print DKV2_db3_file + " existiert."
+        msg = 'Soll sie neu erzeugt werden (ja=neu erzeugen/nein=neu füllen/abbrechen)?'
+        str = raw_input("%s (j/n*/a) " % msg).lower()
+        if ((str == 'j')):
+            os.remove(DKV2_db3_file)
+        elif (str == 'n') or (str == ''):
+            pass
+        else:
+            sys.exit(3)
+
+    if not os.path.isfile(DKV2_db3_file):
+        Empty_DKV2_db3_file = os.path.dirname(os.path.realpath(__file__)) + os.sep + "Empty-DKV2-Datenbank.dkdb"    
+        print Empty_DKV2_db3_file + " => " + DKV2_db3_file
+        shutil.copyfile(Empty_DKV2_db3_file, DKV2_db3_file)
 
 try:
 
@@ -264,7 +270,18 @@ try:
     stmt.execute('DELETE FROM DkBuchungen WHERE DkNummer = "Stammkapital";')
     print "Anzahl: ", stmt.rowcount
 
-    conn.commit()
+    if False:
+        update_statement = ''
+        update_statement += 'UPDATE DkBuchungen '
+        update_statement += 'SET Datum = Anfangsdatum, Betrag = Anfangsbetrag ' 
+        update_statement += 'WHERE BuchungId IN '
+        update_statement += '('
+        update_statement += 'SELECT MIN(c.BuchungId) FROM DkBuchungen c '
+        update_statement += 'GROUP BY c.DkNummer '
+        update_statement += ')'
+        stmt.execute(update_statement)
+        print "Anzahl DkBuchungen Anfangsdatum und Anfangsbetrag zugordnet: ", stmt.rowcount
+        conn.commit()
 
     #
     # ./importDkVerwaltungQtIntoDKV2.py
@@ -578,8 +595,9 @@ try:
 except SystemExit:
     pass
 except:
-    print "Unexpected error:", sys.exc_info()[0]
-    print sys.exc_info()
-    print traceback.print_exc()
+    print >> sys.stderr, "Unexpected error:", sys.exc_info()[0]
+    print >> sys.stderr, sys.exc_info()
+    print >> sys.stderr, traceback.print_exc()
+    sys.exit(99)
 
 sys.exit(0)

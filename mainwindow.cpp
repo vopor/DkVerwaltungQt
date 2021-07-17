@@ -28,27 +28,43 @@ void MainWindow::createMenu()
     dateiMenu->addAction("Datenbank öffnen...", this, &MainWindow::openDatabase);
     dateiMenu->addAction("Datenbank anonymisieren", this, &MainWindow::anonymizeDatabase);
     dateiMenu->addSeparator();
-    dateiMenu->addAction("Import Csv...", this, &MainWindow::importCsv);
-    dateiMenu->addAction("Import Ods...", this, &MainWindow::importOds);
-    dateiMenu->addAction("Import DKV2...", this, &MainWindow::importDKV2);
+    dateiMenu->addAction("Import Ods into DkVerwaltungQt...", this, &MainWindow::importOdsIntoDkVerwaltungQt);
+    dateiMenu->addAction("Import Csv into DkVerwaltungQt...", this, &MainWindow::importCsvIntoDkVerwaltungQt);
+    // dateiMenu->addAction("Import DkVerwaltungQt into DkVerwaltungQt...", this, &MainWindow::importDkVerwaltungQtIntoDkVerwaltungQt);
+    dateiMenu->addAction("Import DKV2 into DkVerwaltungQt...", this, &MainWindow::importDKV2IntoDkVerwaltungQt);
+    // dateiMenu->addSeparator();
+    // dateiMenu->addAction("Import Ods into DKV2...", this, &MainWindow::importDkVerwaltungQtIntoDkVerwaltungQt);
+    // dateiMenu->addAction("Import Csv into DKV2...", this, &MainWindow::importDkVerwaltungQtIntoDkVerwaltungQt);
+    // dateiMenu->addAction("Import DkVerwaltungQt into DKV2...", this, &MainWindow::importDkVerwaltungQtIntoDkVerwaltungQt);
+    // dateiMenu->addAction("Import DKV2 into DKV2...", this, &MainWindow::importDkVerwaltungQtIntoDkVerwaltungQt);
     dateiMenu->addSeparator();
-    dateiMenu->addAction("Export Csv...", this, &MainWindow::exportCsv);
-    dateiMenu->addAction("Export DKV2 Csv...", this, &MainWindow::exportDKV2Csv);
+    dateiMenu->addAction("Export DkVerwaltungQt to Csv...", this, &MainWindow::exportDkVerwaltungQtToCsv);
+    dateiMenu->addAction("Export DKV2 to Csv...", this, &MainWindow::exportDKV2ToCsv);
     dateiMenu->addSeparator();
+    dateiMenu->addAction("DkVerwaltungQt -> DKV2", this, &MainWindow::DkVerwaltungQtToDKV2);
+    dateiMenu->addAction("DKV2 -> DkVerwaltungQt", this, &MainWindow::DKV2ToDkVerwaltungQt);
+    dateiMenu->addSeparator();
+    // dateiMenu->addAction("Compare DKV2 with DkVerwaltungQt", this, &MainWindow::compareDKV2WithDkVerwaltungQt);
+    // dateiMenu->addAction("Compare DKV2 with DkVerwaltungQt as Csv", this, &MainWindow::compareDKV2WithDkVerwaltungQtAsCsv);
+    // dateiMenu->addSeparator();
     dateiMenu->addAction("Statistik", this, &MainWindow::showStatistik);
     dateiMenu->addSeparator();
     dateiMenu->addAction("Ansparrechner", this, &MainWindow::showAnsparrechner);
     dateiMenu->addAction("Pdf-Datei anzeigen...", this, &MainWindow::showPdfFile);
     dateiMenu->addSeparator();
     dateiMenu->addAction("Beenden", this, &MainWindow::close);
+    dateiMenu->addAction("Über...", this, &MainWindow::about);
     menuBar()->addMenu(dateiMenu);
 }
 
-void MainWindow::openDatabase()
+void MainWindow::about()
 {
-    QString dbPath = getStandardPath() + QDir::separator() + "DkVerwaltungQt.db3";
-    QString oldDbPath = getStringFromIni("DBPath", dbPath);
-    dbPath = QFileDialog::getOpenFileName(this, QStringLiteral("Datenbank öffnen"), oldDbPath, "sqlite3 (*.db3 *.dkdb)");
+    QMessageBox::information(this, "DkVerwaltungQt", "DkVerwaltungQt\n\nVersion 1.0");
+}
+
+bool MainWindow::reopenDatabase(const QString &dbPath)
+{
+    bool ret = false;
     if(!dbPath.isEmpty())
     {
         closeConnection(dbPath);
@@ -64,9 +80,26 @@ void MainWindow::openDatabase()
             setCentralWidget(mainForm);
             oldMainForm->deleteLater();
             oldMainForm = nullptr;
+            ret = true;
         }else{
-            if (!openConnection(oldDbPath)){
-                QMessageBox::warning(0, QStringLiteral("Fehler"), QStringLiteral("Weder ") + dbPath + " noch " + oldDbPath + " können geöffnet werden!");
+            QMessageBox::warning(this, QStringLiteral("Fehler"), QStringLiteral("Die Datenbank ") + dbPath + " kann nicht geöffnet werden!");
+        }
+    }
+    return ret;
+}
+
+void MainWindow::openDatabase()
+{
+    QString dbPath = getStandardPath() + QDir::separator() + "DkVerwaltungQt.db3";
+    QString oldDbPath = getStringFromIni("DBPath", dbPath);
+    dbPath = QFileDialog::getOpenFileName(this, QStringLiteral("Datenbank öffnen"), oldDbPath, "sqlite3 (*.db3 *.dkdb)");
+    if(!dbPath.isEmpty())
+    {
+        if (!reopenDatabase(dbPath))
+        {
+            if (!openConnection(oldDbPath))
+            {
+                QMessageBox::warning(this, QStringLiteral("Fehler"), QStringLiteral("Weder ") + dbPath + " noch " + oldDbPath + " können geöffnet werden!");
             }
         }
     }
@@ -75,7 +108,7 @@ void MainWindow::openDatabase()
 
 void MainWindow::anonymizeDatabase()
 {
-    int mbr = QMessageBox::warning(0, QStringLiteral("Datenbank anonymisieren?"),
+    int mbr = QMessageBox::warning(this, QStringLiteral("Datenbank anonymisieren?"),
                                    QStringLiteral("Soll die bestehende Datenbank anonymisiert werden?"), QMessageBox::Yes | QMessageBox::No);
     if(mbr == QMessageBox::Yes)
     {
@@ -84,33 +117,43 @@ void MainWindow::anonymizeDatabase()
     }
 }
 
+int MainWindow::executeCommand(const QString &commandLine)
+{
+    qDebug() << commandLine;
+    QString stdOutput;
+    QString stdError;
+    int retCode = run_executeCommand(nullptr, commandLine, stdOutput, stdError);
+    if(retCode != 0)
+    {
+        QString msg = "Fehler:\n\n";
+        msg += stdError;
+        QMessageBox::warning(this, QStringLiteral("Fehler"), msg);
+    }
+    else
+    {
+        QString msg = "Hinweis:\n\n";
+        msg += stdOutput;
+        QMessageBox::information(this, QStringLiteral("Hinweis"), msg);
+    }
+    return retCode;
+}
+
 void MainWindow::importCsvInternal(const QString & csvFilename)
 {
     QString defaultDBPath = getStandardPath() + QDir::separator() + "DkVerwaltungQt.db3";
     QString dbPath = getStringFromIni("DBPath", defaultDBPath);
     closeConnection(dbPath);
-    QFile::remove(dbPath);
+    // QFile::remove(dbPath);
     QString sourcePath = getResouresPath();
     QString commandLine = sourcePath + QDir::separator() + "importCsvIntoDkVerwaltungQt.py" + " " + csvFilename + " " + dbPath;
-    qDebug() << commandLine;
-    QString stdOutput;
-    QString stdError;
-    run_executeCommand(nullptr, commandLine, stdOutput, stdError);
-    if (openConnection(dbPath))
+    int retCode = executeCommand(commandLine);
+    if(retCode == 0)
     {
-        MainForm *oldMainForm = mainForm;
-        oldMainForm->hide();
-        mainForm = new MainForm(this);
-        setCentralWidget(mainForm);
-        oldMainForm->deleteLater();
-        oldMainForm = nullptr;
-    }else{
-        QMessageBox::warning(0, QStringLiteral("Fehler"), QStringLiteral("Die Datenbank ") + dbPath + " kann nicht geöffnet werden!");
+        reopenDatabase(dbPath);
     }
-
 }
 
-void MainWindow::importCsv()
+void MainWindow::importCsvIntoDkVerwaltungQt()
 {
     QString defaultDBPath = getStandardPath() + QDir::separator() + "DkVerwaltungQt.db3";
     QString dbPath = getStringFromIni("DBPath", defaultDBPath);
@@ -118,8 +161,7 @@ void MainWindow::importCsv()
     QString csvFilename = QFileDialog::getOpenFileName(this, QStringLiteral("Csv-Datei öffnen"), csvPath, "csv (*.csv)");
     if(!csvFilename.isEmpty() && !dbPath.isEmpty())
     {
-        int mbr = QMessageBox::warning(0, QStringLiteral("Csv-Datei importieren?"),
-                                       QStringLiteral("Soll die bestehende Datenbank aus der Csv-Datei neu erzeugt werden?"), QMessageBox::Yes | QMessageBox::No);
+        int mbr = QMessageBox::warning(this, QStringLiteral("Csv-Datei importieren?"), QStringLiteral("Sollen die aktuellen DkVerwaltungQt-Daten durch die Csv-Daten ersetzt werden?"), QMessageBox::Yes | QMessageBox::No);
         if(mbr != QMessageBox::Yes)
         {
             return;
@@ -129,7 +171,7 @@ void MainWindow::importCsv()
 }
 
 // https://stackoverflow.com/questions/56529277/saving-specific-excel-sheet-as-csv
-void MainWindow::importOds()
+void MainWindow::importOdsIntoDkVerwaltungQt()
 {
     QString defaultDBPath = getStandardPath() + QDir::separator() + "DkVerwaltungQt.db3";
     QString dbPath = getStringFromIni("DBPath", defaultDBPath);
@@ -137,8 +179,8 @@ void MainWindow::importOds()
     QString odsFilename = QFileDialog::getOpenFileName(this, QStringLiteral("Ods-Datei öffnen"), odsPath, "ods (*.ods)");
     if(!odsFilename.isEmpty() && !dbPath.isEmpty())
     {
-        int mbr = QMessageBox::warning(0, QStringLiteral("Ods-Datei importieren?"),
-                                       QStringLiteral("Soll die bestehende Datenbank aus der Ods-Datei neu erzeugt werden?"), QMessageBox::Yes | QMessageBox::No);
+
+        int mbr = QMessageBox::warning(this, QStringLiteral("Ods-Datei importieren?"), QStringLiteral("Sollen die aktuellen DkVerwaltungQt-Daten durch die ODS-Daten ersetzt werden?"), QMessageBox::Yes | QMessageBox::No);
         if(mbr != QMessageBox::Yes)
         {
             return;
@@ -159,10 +201,69 @@ void MainWindow::importOds()
         }
         else
         {
-            QMessageBox::warning(0, QStringLiteral("Fehler"), QStringLiteral("Die Csv-Datei ") + csvFilename + " kann nicht geöffnet werden!");
+            QMessageBox::warning(this, QStringLiteral("Fehler"), QStringLiteral("Die Csv-Datei ") + csvFilename + " kann nicht geöffnet werden!");
         }
 
     }
+}
+
+void MainWindow::importDKV2IntoDkVerwaltungQt()
+{
+    QString defaultDBPath = getStandardPath() + QDir::separator() + "DkVerwaltungQt.db3";
+    QString dbPath = getStringFromIni("DBPath", defaultDBPath);
+    QString dkdbPath = QFileInfo(dbPath).dir().absolutePath();
+    QString dkdbFilename = QFileDialog::getOpenFileName(this, QStringLiteral("DKV2-Datenbank importieren"), dkdbPath, "dkdb (*.dkdb)");
+    if(!dkdbFilename.isEmpty() && !dbPath.isEmpty())
+    {
+        int mbr = QMessageBox::warning(this, QStringLiteral("DKV2-Datenbank importieren?"), QStringLiteral("Sollen die aktuellen DkVerwaltungQt-Daten durch die DKV2-Daten ersetzt werden?"), QMessageBox::Yes | QMessageBox::No);
+        if(mbr != QMessageBox::Yes)
+        {
+            return;
+        }
+        closeConnection(dbPath);
+        QString sourcePath = getResouresPath();
+        QString commandLine = sourcePath + QDir::separator() + "importDKV2IntoDkVerwaltungQt.py" + " " + dkdbFilename + " " + dbPath;
+        int retCode = executeCommand(commandLine);
+        if(retCode == 0)
+        {
+            reopenDatabase(dbPath);
+        }
+    }
+}
+
+void MainWindow::updateTablesInternal(const QString &scriptFilename)
+{
+    QString defaultDBPath = getStandardPath() + QDir::separator() + "DkVerwaltungQt.db3";
+    QString dbPath = getStringFromIni("DBPath", defaultDBPath);
+    closeConnection(dbPath);
+    QString sourcePath = getResouresPath();
+    QString commandLine = sourcePath + QDir::separator() + scriptFilename + " " + dbPath + " " + dbPath;
+    int retCode = executeCommand(commandLine);
+    if(retCode == 0)
+    {
+        reopenDatabase(dbPath);
+    }
+}
+
+void MainWindow::DKV2ToDkVerwaltungQt()
+{
+    if(!isDKV2Database())
+    {
+        QMessageBox::warning(this, QStringLiteral("Fehler"), QStringLiteral("Die Datenbank enthält keine DKV2 Tabellen."));
+        return;
+    }
+    updateTablesInternal("importDKV2IntoDkVerwaltungQt.py");
+
+}
+
+void MainWindow::DkVerwaltungQtToDKV2()
+{
+    if(!isDKV2Database())
+    {
+        QMessageBox::warning(this, QStringLiteral("Fehler"), QStringLiteral("Die Datenbank enthält keine DKV2 Tabellen."));
+        return;
+    }
+    updateTablesInternal("importDkVerwaltungQtIntoDKV2.py");
 }
 
 void MainWindow::exportCsvInternal(const QString &scriptFilename)
@@ -177,68 +278,30 @@ void MainWindow::exportCsvInternal(const QString &scriptFilename)
     {
         QString sourcePath = getResouresPath();
         QString commandLine = sourcePath + QDir::separator() + scriptFilename + " " + dbPath + " " + csvFilename;
-        qDebug() << commandLine;
-        QString stdOutput;
-        QString stdError;
-        run_executeCommand(nullptr, commandLine, stdOutput, stdError);
+        int retCode = executeCommand(commandLine);
         if(QFileInfo(csvFilename).exists())
         {
             QString cmd = "open -e " + csvFilename;
             QProcess::startDetached(cmd);
         }else{
-            QMessageBox::warning(0, QStringLiteral("Fehler"), QStringLiteral("Die Csv-Datei ") + csvFilename + " kann nicht geöffnet werden!");
+            QMessageBox::warning(this, QStringLiteral("Fehler"), QStringLiteral("Die Csv-Datei ") + csvFilename + " kann nicht geöffnet werden!");
         }
     }
 }
 
-void MainWindow::exportCsv()
+void MainWindow::exportDkVerwaltungQtToCsv()
 {
     exportCsvInternal("exportDkVerwaltungQtToCsv.py");
 }
 
-void MainWindow::exportDKV2Csv()
+void MainWindow::exportDKV2ToCsv()
 {
     if(!isDKV2Database())
     {
-        QMessageBox::warning(0, QStringLiteral("Fehler"), QStringLiteral("Die Datenbank enthält keine DKV2 Tabellen."));
+        QMessageBox::warning(this, QStringLiteral("Fehler"), QStringLiteral("Die Datenbank enthält keine DKV2 Tabellen."));
         return;
     }
     exportCsvInternal("exportDKV2ToCsv.py");
-}
-
-void MainWindow::importDKV2()
-{
-    QString defaultDBPath = getStandardPath() + QDir::separator() + "DkVerwaltungQt.db3";
-    QString dbPath = getStringFromIni("DBPath", defaultDBPath);
-    QString dkdbPath = QFileInfo(dbPath).dir().absolutePath();
-    QString dkdbFilename = QFileDialog::getOpenFileName(this, QStringLiteral("DKV2-Datenbank importieren"), dkdbPath, "dkdb (*.dkdb)");
-    if(!dkdbFilename.isEmpty() && !dbPath.isEmpty())
-    {
-        int mbr = QMessageBox::warning(0, QStringLiteral("DKV2-Datenbank importieren?"),
-                                       QStringLiteral("Sollen die aktuellen Daten durch die DKV2-Daten ersetzt werden?"), QMessageBox::Yes | QMessageBox::No);
-        if(mbr != QMessageBox::Yes)
-        {
-            return;
-        }
-        closeConnection(dbPath);
-        QString sourcePath = getResouresPath();
-        QString commandLine = sourcePath + QDir::separator() + "importDKV2IntoDkVerwaltungQt.py" + " " + dkdbFilename + " " + dbPath;
-        qDebug() << commandLine;
-        QString stdOutput;
-        QString stdError;
-        run_executeCommand(nullptr, commandLine, stdOutput, stdError);
-        if (openConnection(dbPath))
-        {
-            MainForm *oldMainForm = mainForm;
-            oldMainForm->hide();
-            mainForm = new MainForm(this);
-            setCentralWidget(mainForm);
-            oldMainForm->deleteLater();
-            oldMainForm = nullptr;
-        }else{
-            QMessageBox::warning(0, QStringLiteral("Fehler"), QStringLiteral("Die Datenbank ") + dbPath + " kann nicht geöffnet werden!");
-        }
-    }
 }
 
 void MainWindow::showAnsparrechner()

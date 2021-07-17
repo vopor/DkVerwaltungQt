@@ -195,20 +195,8 @@ int run_executeCommand(QWidget *button, const QString &commandLine, QString &std
 bool createConnection(const QString &dbName)
 {
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-    bool dbExisted = QFileInfo(dbName).exists();
+    // bool dbExisted = QFileInfo(dbName).exists();
     bool ret = openConnection(dbName);
-    if(ret)
-    {
-        if(!dbExisted)
-        {
-            db.exec("CREATE TABLE DKPersonen (PersonId INTEGER PRIMARY KEY AUTOINCREMENT, Vorname TEXT, Name TEXT, Anrede TEXT, Straße TEXT, PLZ TEXT, Ort TEXT, Email TEXT);");
-            displayLastSqlError();
-            db.exec("CREATE TABLE DKBuchungen (BuchungId INTEGER PRIMARY KEY AUTOINCREMENT, PersonId INTEGER, Datum TEXT, DKNr TEXT, DKNummer TEXT, Rueckzahlung TEXT, vorgemerkt TEXT, Betrag REAL, Zinssatz REAL, Bemerkung TEXT, Anfangsdatum TEXT, AnfangsBetrag REAL, FOREIGN KEY(PersonId) REFERENCES DKPerson(PersonId));");
-            displayLastSqlError();
-            db.exec("CREATE TABLE DKZinssaetze (Zinssatz REAL PRIMARY KEY, Beschreibung TEXT);");
-            displayLastSqlError();
-        }
-    }
     return ret;
 }
 
@@ -225,6 +213,15 @@ bool isDKV2Database()
         return true;
     }
     return false;
+}
+
+bool isDkVerwaltungQtDatabase()
+{
+    QSqlDatabase db = QSqlDatabase::database();
+    int c = getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='DKPersonen'");
+    c &= getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='DKBuchungen'");
+    c &= getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='DKZinssaetze'");
+    return c;
 }
 
 void anonymizeDatabase()
@@ -249,6 +246,131 @@ void displayLastSqlError()
     }
 }
 
+bool createDkVerwaltungQtViewsFromDKV2()
+{
+    QSqlDatabase db = QSqlDatabase::database();
+    bool b = isDKV2Database();
+    if(b)
+    {
+        int c = 0;
+        // DKPersonen-Table
+        c = getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='DKPersonen'");
+        if(c)
+        {
+            c = getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='DKPersonenTable'");
+            if(!c)
+            {
+                db.exec("ALTER TABLE DKPersonen RENAME TO DKPersonenTable;");
+            }else{
+                db.exec("DROP TABLE DKPersonen;");
+            }
+            displayLastSqlError();
+        }
+        // DKBuchungen-Table
+        c = getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='DKBuchungen'");
+        if(c)
+        {
+            c = getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='DKPersonenTable'");
+            if(!c)
+            {
+                db.exec("ALTER TABLE DKBuchungen RENAME TO DKBuchungenTable;");
+            }else{
+                db.exec("DROP TABLE DKBuchungen;");
+            }
+            displayLastSqlError();
+        }
+        // DKZinssaetze-Table
+        c = getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='DKZinssaetze'");
+        if(c)
+        {
+            c = getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='DKZinssaetzeTable'");
+            if(!c)
+            {
+                db.exec("ALTER TABLE DKZinssaetze RENAME TO DKZinssaetzeTable;");
+            }else{
+                db.exec("DROP TABLE DKZinssaetze;");
+            }
+            displayLastSqlError();
+        }
+        // DKPersonen-View
+        c = getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='view' AND name='DKPersonen'");
+        if(c)
+        {
+            db.exec("DROP VIEW DKPersonen;");
+            displayLastSqlError();
+        }
+        db.exec("CREATE VIEW DKPersonen AS SELECT Id AS PersonId, Vorname AS Vorname, Nachname AS Name, Strasse AS Straße, Plz AS PLZ, Stadt AS Ort, EMail AS Email FROM Kreditoren;");
+        displayLastSqlError();
+        // DKBuchungen-View
+        c = getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='view' AND name='DKBuchungen'");
+        if(c)
+        {
+            db.exec("DROP VIEW DKBuchungen;");
+            displayLastSqlError();
+        }
+        QString statement = "CREATE VIEW DKBuchungen AS ";
+        statement += "SELECT b.Id AS BuchungId, v.KreditorId AS PersonId, ";
+        statement += "( substr(b.Datum,9,2) || '.' || substr(b.Datum,6,2) || '.' || substr(b.Datum,3,2))  AS Datum, ";
+        statement += "b.VertragsId AS DKNr, v.Kennung AS DKNummer, ";
+        // TODO:
+        // wird auch beim Import nach DKV2 nicht berücksichtigt.
+        // müsste aus exBuchunen, exVertraege kommen
+        // 2013-12-04 -> 26.01.18
+        // statement += "'' AS Rueckzahlung, ";
+        statement += "CASE WHEN (b.Betrag < 0) THEN b.Datum ELSE '' END AS Rueckzahlung, ";
+        statement += "CASE WHEN (v.LaufzeitEnde != '3000-12-31') THEN ( substr(v.LaufzeitEnde,9,2) || '.' || substr(v.LaufzeitEnde,6,2) || '.' || substr(v.LaufzeitEnde,3,2)) END AS vorgemerkt, ";
+        // statement += "CASE WHEN (Buchungsart = 2) THEN ( -1 * (b.Betrag / 100.0) ) ELSE (b.Betrag / 100.0) END AS Betrag, ";
+        statement += "(b.Betrag / 100.0) AS Betrag, ";
+        statement += "(v.ZSatz / 100.0) AS Zinssatz, ";
+        // TODO:
+        // 23.01.14 F13T-2013-004
+        // [auto] DK-Nr. 004 neu angelegt. Betrag: 10.000,00 €.
+        // 30.06.17 [auto] DK-Nr. 004 gekündigt. Betrag: 10.000,00 €.
+        statement += "'' AS Bemerkung, ";
+        // statement += "c.Anfangsdatum AS Anfangsdatum, ";
+        statement += "( substr(c.Anfangsdatum,9,2) || '.' || substr(c.Anfangsdatum,6,2) || '.' || substr(c.Anfangsdatum,3,2)) AS Anfangsdatum, ";
+        statement += "(v.Betrag / 100.0) AS AnfangsBetrag ";
+        // statement += "FROM Buchungen b, Vertraege v, ";
+        statement += "FROM (SELECT * FROM Buchungen UNION SELECT * FROM ExBuchungen) b, (SELECT * FROM Vertraege UNION SELECT * FROM ExVertraege) v, ";
+        statement += "(SELECT  MIN(x.Datum) AS Anfangsdatum,  x.VertragsId AS VertragsId FROM Buchungen x GROUP BY x.VertragsId) AS c ";
+        statement += "WHERE b.VertragsId = v.Id ";
+        statement += "AND c.VertragsId = v.Id; ";
+        db.exec(statement);
+        displayLastSqlError();
+
+        // DKZinssaetze
+        c = getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='view' AND name='DKZinssaetze'");
+        if(c)
+        {
+            db.exec("DROP VIEW DKZinssaetze;");
+            displayLastSqlError();
+        }
+        db.exec("CREATE VIEW DKZinssaetze AS SELECT ZSatz / 100.0 AS Zinssatz, NULL AS Beschreibung FROM Vertaege GROUP BY ZSatz ORDER BY ZSatz;");
+        displayLastSqlError();
+        // TODO
+        // reconnect readonly
+    }
+    return b;
+}
+
+bool createDkVerwaltungQtTables()
+{
+    QSqlDatabase db = QSqlDatabase::database();
+    db.exec("CREATE TABLE IF NOT EXISTS DKPersonen (PersonId INTEGER PRIMARY KEY AUTOINCREMENT, Vorname TEXT, Name TEXT, Anrede TEXT, Straße TEXT, PLZ TEXT, Ort TEXT, Email TEXT);");
+    displayLastSqlError();
+    db.exec("CREATE TABLE IF NOT EXISTS DKBuchungen (BuchungId INTEGER PRIMARY KEY AUTOINCREMENT, PersonId INTEGER, Datum TEXT, DKNr TEXT, DKNummer TEXT, Rueckzahlung TEXT, vorgemerkt TEXT, Betrag REAL, Zinssatz REAL, Bemerkung TEXT, Anfangsdatum TEXT, AnfangsBetrag REAL, FOREIGN KEY(PersonId) REFERENCES DKPerson(PersonId));");
+    displayLastSqlError();
+    db.exec("CREATE TABLE IF NOT EXISTS DKZinssaetze (Zinssatz REAL PRIMARY KEY, Beschreibung TEXT);");
+    displayLastSqlError();
+    return true;
+}
+
+bool fillDkVerwaltungQtTablesFromDKV2()
+{
+    qDebug() << "Noch nicht implementiert.";
+    return false;
+}
+
 bool openConnection(const QString &dbName)
 {
     QSqlDatabase db = QSqlDatabase::database();
@@ -258,107 +380,9 @@ bool openConnection(const QString &dbName)
                              db.lastError().text());
         return false;
     }else{
-        bool b =  false; // isDKV2Database();
-        if(b)
-        {
-            int c = 0;
-            // DKPersonen-Table
-            c = getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='DKPersonen'");
-            if(c)
-            {
-                c = getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='DKPersonenTable'");
-                if(!c)
-                {
-                    db.exec("ALTER TABLE DKPersonen RENAME TO DKPersonenTable;");
-                }else{
-                    db.exec("DROP TABLE DKPersonen;");
-                }
-                displayLastSqlError();
-            }
-            // DKBuchungen-Table
-            c = getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='DKBuchungen'");
-            if(c)
-            {
-                c = getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='DKPersonenTable'");
-                if(!c)
-                {
-                    db.exec("ALTER TABLE DKBuchungen RENAME TO DKBuchungenTable;");
-                }else{
-                    db.exec("DROP TABLE DKBuchungen;");
-                }
-                displayLastSqlError();
-            }
-            // DKZinssaetze-Table
-            c = getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='DKZinssaetze'");
-            if(c)
-            {
-                c = getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='DKZinssaetzeTable'");
-                if(!c)
-                {
-                    db.exec("ALTER TABLE DKZinssaetze RENAME TO DKZinssaetzeTable;");
-                }else{
-                    db.exec("DROP TABLE DKZinssaetze;");
-                }
-                displayLastSqlError();
-            }
-            // DKPersonen-View
-            c = getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='view' AND name='DKPersonen'");
-            if(c)
-            {
-                db.exec("DROP VIEW DKPersonen;");
-                displayLastSqlError();
-            }
-            db.exec("CREATE VIEW DKPersonen AS SELECT Id AS PersonId, Vorname AS Vorname, Nachname AS Name, Strasse AS Straße, Plz AS PLZ, Stadt AS Ort, EMail AS Email FROM Kreditoren;");
-            displayLastSqlError();
-            // DKBuchungen-View
-            c = getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='view' AND name='DKBuchungen'");
-            if(c)
-            {
-                db.exec("DROP VIEW DKBuchungen;");
-                displayLastSqlError();
-            }
-            QString statement = "CREATE VIEW DKBuchungen AS ";
-            statement += "SELECT b.Id AS BuchungId, v.KreditorId AS PersonId, ";
-            statement += "( substr(b.Datum,9,2) || '.' || substr(b.Datum,6,2) || '.' || substr(b.Datum,3,2))  AS Datum, ";
-            statement += "b.VertragsId AS DKNr, v.Kennung AS DKNummer, ";
-            // TODO:
-            // wird auch beim Import nach DKV2 nicht berücksichtigt.
-            // müsste aus exBuchunen, exVertraege kommen
-            // 2013-12-04 -> 26.01.18
-            // statement += "'' AS Rueckzahlung, ";
-            statement += "CASE WHEN (b.Betrag < 0) THEN b.Datum ELSE '' END AS Rueckzahlung, ";
-            statement += "CASE WHEN (v.LaufzeitEnde != '3000-12-31') THEN ( substr(v.LaufzeitEnde,9,2) || '.' || substr(v.LaufzeitEnde,6,2) || '.' || substr(v.LaufzeitEnde,3,2)) END AS vorgemerkt, ";
-            // statement += "CASE WHEN (Buchungsart = 2) THEN ( -1 * (b.Betrag / 100.0) ) ELSE (b.Betrag / 100.0) END AS Betrag, ";
-            statement += "(b.Betrag / 100.0) AS Betrag, ";
-            statement += "(v.ZSatz / 100.0) AS Zinssatz, ";
-            // TODO:
-            // 23.01.14 F13T-2013-004
-            // [auto] DK-Nr. 004 neu angelegt. Betrag: 10.000,00 €.
-            // 30.06.17 [auto] DK-Nr. 004 gekündigt. Betrag: 10.000,00 €.
-            statement += "'' AS Bemerkung, ";
-            // statement += "c.Anfangsdatum AS Anfangsdatum, ";
-            statement += "( substr(c.Anfangsdatum,9,2) || '.' || substr(c.Anfangsdatum,6,2) || '.' || substr(c.Anfangsdatum,3,2)) AS Anfangsdatum, ";
-            statement += "(v.Betrag / 100.0) AS AnfangsBetrag ";
-            // statement += "FROM Buchungen b, Vertraege v, ";
-            statement += "FROM (SELECT * FROM Buchungen UNION SELECT * FROM ExBuchungen) b, (SELECT * FROM Vertraege UNION SELECT * FROM ExVertraege) v, ";
-            statement += "(SELECT  MIN(x.Datum) AS Anfangsdatum,  x.VertragsId AS VertragsId FROM Buchungen x GROUP BY x.VertragsId) AS c ";
-            statement += "WHERE b.VertragsId = v.Id ";
-            statement += "AND c.VertragsId = v.Id; ";
-            db.exec(statement);
-            displayLastSqlError();
-
-            // DKZinssaetze
-            c = getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='view' AND name='DKZinssaetze'");
-            if(c)
-            {
-                db.exec("DROP VIEW DKZinssaetze;");
-                displayLastSqlError();
-            }
-            db.exec("CREATE VIEW DKZinssaetze AS SELECT ZSatz / 100.0 AS Zinssatz, NULL AS Beschreibung FROM Vertaege GROUP BY ZSatz ORDER BY ZSatz;");
-            displayLastSqlError();
-            // TODO
-            // reconnect readonly
-        }
+        // createDkVerwaltungQtViewsFromDKV2();
+        createDkVerwaltungQtTables();
+        fillDkVerwaltungQtTablesFromDKV2();
     }
     return true;
 }
@@ -912,7 +936,7 @@ int getIntValue(const QString &statement){
 }
 
 double getDoubleValue(const QString &statement){
-    double doubleValue = -1;
+    double doubleValue = 0;
     QVariant v = getVariantValue(statement);
     if(v.isValid()){
         doubleValue = v.toDouble();

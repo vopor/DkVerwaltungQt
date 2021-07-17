@@ -43,18 +43,34 @@ if not os.path.isfile(DkVerwaltung_csv_file):
     print DkVerwaltung_csv_file + " existiert nicht."
     sys.exit(2)
 
-# if os.path.isfile(DkVerwaltungQt_db3_file):
-#     os.remove(DkVerwaltungQt_db3_file)
-if os.path.isfile(DkVerwaltungQt_db3_file):
-    print DkVerwaltungQt_db3_file + " existiert."
-    msg = 'Soll sie neu erzeugt werden?'
-    str = raw_input("%s (J/n) " % msg).lower()
-    if not ((str == 'j') or (str == '')):
-        sys.exit(3)
-    os.remove(DkVerwaltungQt_db3_file)
+createDB = False
+if True:
+    if not os.path.isfile(DkVerwaltungQt_db3_file):
+        createDB = True
+else:
+    # if os.path.isfile(DkVerwaltungQt_db3_file):
+    #     os.remove(DkVerwaltungQt_db3_file)
+    if os.path.isfile(DkVerwaltungQt_db3_file):
+        print DkVerwaltungQt_db3_file + " existiert."
+        msg = 'Soll sie neu erzeugt werden?'
+        str = raw_input("%s (J/n) " % msg).lower()
+        if not ((str == 'j') or (str == '')):
+            sys.exit(3)
+        os.remove(DkVerwaltungQt_db3_file)
 
 try:
     
+    if not createDB:
+        conn = sqlite3.connect(DkVerwaltungQt_db3_file)
+        stmt = conn.cursor()
+        stmt.execute('DROP TABLE IF EXISTS DKVerwaltungORG;')
+        stmt.execute('DROP TABLE IF EXISTS DKVerwaltung;')
+        stmt.execute('DROP TABLE IF EXISTS DkPersonen;')
+        stmt.execute('DROP TABLE IF EXISTS DkBuchungen;')
+        stmt.execute('DROP TABLE IF EXISTS DKZinssaetze;')
+        conn.commit()
+        conn.close()
+
     #
     # sqlite3 DkVerwaltungQt.db3 < CreateDkVerwaltungQt.sql
     #
@@ -161,8 +177,9 @@ try:
 except SystemExit:
     pass
 except:
-    print "Unexpected error:", sys.exc_info()[0]
-    print sys.exc_info()
-    print traceback.print_exc()
+    print >> sys.stderr, "Unexpected error:", sys.exc_info()[0]
+    print >> sys.stderr, sys.exc_info()
+    print >> sys.stderr, traceback.print_exc()
+    sys.exit(99)
 
 sys.exit(0)

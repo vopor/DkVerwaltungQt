@@ -6,7 +6,7 @@
 #
 # Das Script vergleicht die Daten der Datenbank von DkVerwaltungQt mit DKV2.
 # 
-# Aufruf: ./compareWithDKV2.py <DkVerwaltungQt-db3-file> <DKV2-db3-file>
+# Aufruf: ./compareDkVerwaltungQtWithDKV2.py <DkVerwaltungQt-db3-file> <DKV2-db3-file>
 #
 
 import os
@@ -15,16 +15,16 @@ import sqlite3
 # print sqlite3.version
 # print sys.argv
 if len(sys. argv) < 3:
-    print "Aufruf: ./compareWithDKV2.py <DkVerwaltungQt-db3-file> <DKV2-db3-file>"
+    print "Aufruf: " + os.path.basename(__file__) + "  <DkVerwaltungQt-db3-file> <DKV2-db3-file>"
     exit(1)
 
 DkVerwaltungQt_db3_file=sys.argv[1]
 DKV2_db3_file=sys.argv[2]
 if not os.path.isfile(DkVerwaltungQt_db3_file):
-    print DkVerwaltungQt_db3_file + "existiert nicht."
+    print DkVerwaltungQt_db3_file + " existiert nicht."
     exit(2)
 if not os.path.isfile(DKV2_db3_file):
-    print DKV2_db3_file + "existiert nicht."
+    print DKV2_db3_file + " existiert nicht."
     exit(3)
 
 try:

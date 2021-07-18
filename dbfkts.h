@@ -47,6 +47,7 @@ QString getSettingsFile();
 QSettings &getSettings();
 QString getFilePathFromIni(const QString &iniEntry, const QString &filePath, const QString &fileName);
 QString getOpenOfficePath();
+QString getCompareToolPath();
 QString getStringFromIni(const QString &key, const QString &defaultValue);
 void setStringToIni(const QString &key, const QString &value);
 QString getThunderbirdPath();

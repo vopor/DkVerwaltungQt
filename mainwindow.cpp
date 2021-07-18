@@ -13,6 +13,7 @@
 #include <QDir>
 #include <QDebug>
 #include <QProcess>
+#include <QStandardPaths>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
@@ -44,9 +45,9 @@ void MainWindow::createMenu()
     dateiMenu->addAction("DkVerwaltungQt -> DKV2", this, &MainWindow::DkVerwaltungQtToDKV2);
     dateiMenu->addAction("DKV2 -> DkVerwaltungQt", this, &MainWindow::DKV2ToDkVerwaltungQt);
     dateiMenu->addSeparator();
-    // dateiMenu->addAction("Compare DKV2 with DkVerwaltungQt", this, &MainWindow::compareDKV2WithDkVerwaltungQt);
-    // dateiMenu->addAction("Compare DKV2 with DkVerwaltungQt as Csv", this, &MainWindow::compareDKV2WithDkVerwaltungQtAsCsv);
-    // dateiMenu->addSeparator();
+    dateiMenu->addAction("Compare DKV2 DkVerwaltungQt with DKV2", this, &MainWindow::compareDkVerwaltungQtWithDKV2);
+    dateiMenu->addAction("Compare DKV2 with DkVerwaltungQt as Csv", this, &MainWindow::compareDKV2WithDkVerwaltungQtAsCsv);
+    dateiMenu->addSeparator();
     dateiMenu->addAction("Statistik", this, &MainWindow::showStatistik);
     dateiMenu->addSeparator();
     dateiMenu->addAction("Ansparrechner", this, &MainWindow::showAnsparrechner);
@@ -266,6 +267,13 @@ void MainWindow::DkVerwaltungQtToDKV2()
     updateTablesInternal("importDkVerwaltungQtIntoDKV2.py");
 }
 
+void MainWindow::exportCsvInternal(const QString &scriptFilename, const QString &dbPath, const QString &csvFilename)
+{
+    QString sourcePath = getResouresPath();
+    QString commandLine = sourcePath + QDir::separator() + scriptFilename + " " + dbPath + " " + csvFilename;
+    int retCode = executeCommand(commandLine);
+}
+
 void MainWindow::exportCsvInternal(const QString &scriptFilename)
 {
     QString defaultDBPath = getStandardPath() + QDir::separator() + "DkVerwaltungQt.db3";
@@ -276,9 +284,7 @@ void MainWindow::exportCsvInternal(const QString &scriptFilename)
     csvFilename = QFileDialog::getSaveFileName(this, QStringLiteral("Csv-Datei exportieren"), csvFilename, "csv (*.csv)");
     if(csvFilename.length())
     {
-        QString sourcePath = getResouresPath();
-        QString commandLine = sourcePath + QDir::separator() + scriptFilename + " " + dbPath + " " + csvFilename;
-        int retCode = executeCommand(commandLine);
+        exportCsvInternal(scriptFilename, dbPath, csvFilename);
         if(QFileInfo(csvFilename).exists())
         {
             QString cmd = "open -e " + csvFilename;
@@ -302,6 +308,42 @@ void MainWindow::exportDKV2ToCsv()
         return;
     }
     exportCsvInternal("exportDKV2ToCsv.py");
+}
+
+void MainWindow::compareDkVerwaltungQtWithDKV2()
+{
+    QString defaultDBPath = getStandardPath() + QDir::separator() + "DkVerwaltungQt.db3";
+    QString dbPath = getStringFromIni("DBPath", defaultDBPath);
+    QString sourcePath = getResouresPath();
+    QString commandLine = sourcePath + QDir::separator() + "compareDkVerwaltungQtWithDKV2.py" + " " + dbPath + " " + dbPath;
+    int retCode = executeCommand(commandLine);
+}
+
+void MainWindow::compareDKV2WithDkVerwaltungQtAsCsv()
+{
+    QString defaultDBPath = getStandardPath() + QDir::separator() + "DkVerwaltungQt.db3";
+    QString dbPath = getStringFromIni("DBPath", defaultDBPath);
+    QString csvPath = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+    QString csvFilenameDKV2 = csvPath + QDir::separator() + "DKV2.csv";
+    QString csvFilenameDkVerwaltungQt = csvPath + QDir::separator() + "DkVerwaltungQt.csv";
+
+    exportCsvInternal("exportDKV2ToCsv.py", dbPath, csvFilenameDKV2);
+    if(!QFileInfo(csvFilenameDKV2).exists())
+    {
+        QMessageBox::warning(this, QStringLiteral("Fehler"), QStringLiteral("Die Csv-Datei ") + csvFilenameDKV2 + " konnte nicht erzeugt werden!");
+        return;
+    }
+    exportCsvInternal("exportDkVerwaltungQtToCsv.py", dbPath, csvFilenameDkVerwaltungQt);
+    if(!QFileInfo(csvFilenameDkVerwaltungQt).exists())
+    {
+        QMessageBox::warning(this, QStringLiteral("Fehler"), QStringLiteral("Die Csv-Datei ") + csvFilenameDkVerwaltungQt + " konnte nicht erzeugt werden!");
+        return;
+    }
+    QString program = getCompareToolPath();
+    QStringList arguments;
+    arguments << csvFilenameDKV2;
+    arguments << csvFilenameDkVerwaltungQt;
+    QProcess::startDetached(program, arguments);
 }
 
 void MainWindow::showAnsparrechner()

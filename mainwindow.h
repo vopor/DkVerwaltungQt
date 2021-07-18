@@ -13,6 +13,7 @@ private:
     void createMenu();
     void importCsvInternal(const QString &csvFilename);
     void exportCsvInternal(const QString &scriptFilename);
+    void exportCsvInternal(const QString &scriptFilename, const QString &dbPath, const QString &csvFilename);
     void updateTablesInternal(const QString &scriptFilename);
     bool reopenDatabase(const QString &dbPath);
     int  executeCommand(const QString &commandLine);
@@ -31,6 +32,8 @@ private slots:
     void DkVerwaltungQtToDKV2();
     void exportDkVerwaltungQtToCsv();
     void exportDKV2ToCsv();
+    void compareDkVerwaltungQtWithDKV2();
+    void compareDKV2WithDkVerwaltungQtAsCsv();
     void showAnsparrechner();
     void showStatistik();
     void showPdfFile();

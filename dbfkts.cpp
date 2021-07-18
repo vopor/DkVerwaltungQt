@@ -519,6 +519,17 @@ QString getOpenOfficePath()
     return oo;
 }
 
+QString getCompareToolPath()
+{
+    QString compareToolPath;
+#if defined (Q_OS_MAC)
+    compareToolPath = getFilePathFromIni("CompareToolPath", "/Applications/Beyond Compare.app/Contents/MacOS/", "bcomp");
+#elif defined(Q_OS_WIN)
+    compareToolPath = getFilePathFromIni("CompareToolPath", "", "");
+#endif
+    return compareToolPath;
+}
+
 QString getStringFromIni(const QString &key, const QString &defaultValue)
 {
     QString value = defaultValue;

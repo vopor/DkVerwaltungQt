@@ -48,6 +48,8 @@ try:
     # statement += "CASE WHEN ((b.Ex = 1)) THEN (substr(b.Datum,9,2) || '.' || substr(b.Datum,6,2) || '.' || substr(b.Datum,3,2)) ELSE '' END AS Rueckzahlung, "
     statement += "CASE WHEN ((b.Ex = 1)) THEN ( substr(v.LaufzeitEnde,9,2) || '.' || substr(v.LaufzeitEnde,6,2) || '.' || substr(v.LaufzeitEnde,3,2)) ELSE '' END AS Rueckzahlung, "
     
+    # statement += "CASE WHEN (b.BuchungsArt = 2) THEN (substr(b.Datum,9,2) || '.' || substr(b.Datum,6,2) || '.' || substr(b.Datum,3,2)) ELSE '' END AS Rueckzahlung, "
+    
     statement += "CASE WHEN ((v.LaufzeitEnde != '9999-12-31') AND (b.Ex = 0)) THEN ( substr(v.LaufzeitEnde,9,2) || '.' || substr(v.LaufzeitEnde,6,2) || '.' || substr(v.LaufzeitEnde,3,2)) END AS vorgemerkt, "
     
     # statement += "CASE WHEN (v.LaufzeitEnde != '9999-12-31') "

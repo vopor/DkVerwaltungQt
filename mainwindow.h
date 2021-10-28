@@ -27,6 +27,7 @@ private slots:
     void anonymizeDatabase();
     void importCsvIntoDkVerwaltungQt();
     void importOdsIntoDkVerwaltungQt();
+    void importDkVerwaltungQtIntoDkVerwaltungQt();
     void importDKV2IntoDkVerwaltungQt();
     void DKV2ToDkVerwaltungQt();
     void DkVerwaltungQtToDKV2();

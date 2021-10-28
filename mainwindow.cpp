@@ -31,7 +31,7 @@ void MainWindow::createMenu()
     dateiMenu->addSeparator();
     dateiMenu->addAction("Import Ods into DkVerwaltungQt...", this, &MainWindow::importOdsIntoDkVerwaltungQt);
     dateiMenu->addAction("Import Csv into DkVerwaltungQt...", this, &MainWindow::importCsvIntoDkVerwaltungQt);
-    // dateiMenu->addAction("Import DkVerwaltungQt into DkVerwaltungQt...", this, &MainWindow::importDkVerwaltungQtIntoDkVerwaltungQt);
+    dateiMenu->addAction("Import DkVerwaltungQt into DkVerwaltungQt...", this, &MainWindow::importDkVerwaltungQtIntoDkVerwaltungQt);
     dateiMenu->addAction("Import DKV2 into DkVerwaltungQt...", this, &MainWindow::importDKV2IntoDkVerwaltungQt);
     // dateiMenu->addSeparator();
     // dateiMenu->addAction("Import Ods into DKV2...", this, &MainWindow::importDkVerwaltungQtIntoDkVerwaltungQt);
@@ -206,6 +206,31 @@ void MainWindow::importOdsIntoDkVerwaltungQt()
         }
 
     }
+}
+
+void MainWindow::importDkVerwaltungQtIntoDkVerwaltungQt()
+{
+    QString defaultDBPath = getStandardPath() + QDir::separator() + "DkVerwaltungQt.db3";
+    QString dbPath = getStringFromIni("DBPath", defaultDBPath);
+    QString db3Path = QFileInfo(dbPath).dir().absolutePath();
+    QString db3Filename = QFileDialog::getOpenFileName(this, QStringLiteral("DkVerwaltungQt-Datenbank importieren"), db3Path, "db3 (*.db3)");
+    if(!db3Filename.isEmpty() && !dbPath.isEmpty())
+    {
+        int mbr = QMessageBox::warning(this, QStringLiteral("DkVerwaltungQt-Datenbank importieren?"), QStringLiteral("Sollen die aktuellen DkVerwaltungQt-Daten durch die DkVerwaltungQt-Daten ersetzt werden?"), QMessageBox::Yes | QMessageBox::No);
+        if(mbr != QMessageBox::Yes)
+        {
+            return;
+        }
+        closeConnection(dbPath);
+        QString sourcePath = getResouresPath();
+        QString commandLine = sourcePath + QDir::separator() + "importDkVerwaltungQtIntoDkVerwaltungQt.py" + " " + db3Filename + " " + dbPath;
+        int retCode = executeCommand(commandLine);
+        if(retCode == 0)
+        {
+            reopenDatabase(dbPath);
+        }
+    }
+
 }
 
 void MainWindow::importDKV2IntoDkVerwaltungQt()

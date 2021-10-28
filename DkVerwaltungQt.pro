@@ -10,7 +10,9 @@ INCLUDEPATH += .
 # win32:CONFIG -= debug_and_release
 
 APP_RESOURCES_FILES.files = ./Jahreskontoauszug.html ./Zinsbescheinigung.html ./F13TurleyGmbH2.gif ./sendDKJAKtos.py ./printCommandDescription.sh ./mail-content.txt
-APP_RESOURCES_FILES.files += ./importCsvIntoDkVerwaltungQt.py ./importDKV2IntoDkVerwaltungQt.py ./importDkVerwaltungQtIntoDKV2.py ./exportDkVerwaltungQtToCsv.py ./exportDKV2ToCsv.py ./compareDkVerwaltungQtWithDKV2.py
+APP_RESOURCES_FILES.files += ./importCsvIntoDkVerwaltungQt.py ./importDKV2IntoDkVerwaltungQt.py ./importDkVerwaltungQtIntoDKV2.py ./importDkVerwaltungQtIntoDkVerwaltungQt.py
+APP_RESOURCES_FILES.files += ./exportDkVerwaltungQtToCsv.py ./exportDKV2ToCsv.py ./compareDkVerwaltungQtWithDKV2.py
+
 APP_RESOURCES_FILES.path = Contents/Resources
 QMAKE_BUNDLE_DATA += APP_RESOURCES_FILES
 
@@ -44,6 +46,7 @@ TARGETDIR = $$shell_path($${OUT_PWD})
 !macx:QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/importCsvIntoDkVerwaltungQt.py) $${TARGETDIR}
 !macx:QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/importDKV2IntoDkVerwaltungQt.py) $${TARGETDIR}
 !macx:QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/importDkVerwaltungQtIntoDKV2.py) $${TARGETDIR}
+!macx:QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/importDkVerwaltungQtIntoDkVerwaltungQt.py) $${TARGETDIR}
 !macx:QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/exportDkVerwaltungQtToCsv.py) $${TARGETDIR}
 !macx:QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/exportDKV2ToCsv.py) $${TARGETDIR}
 !macx:QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/compareDkVerwaltungQtWithDKV2.py) $${TARGETDIR}

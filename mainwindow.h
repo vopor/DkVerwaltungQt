@@ -23,6 +23,7 @@ public:
 signals:
 
 private slots:
+    void newDatabase();
     void openDatabase();
     void anonymizeDatabase();
     void importCsvIntoDkVerwaltungQt();

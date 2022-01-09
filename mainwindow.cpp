@@ -29,6 +29,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 void MainWindow::createMenu()
 {
     QMenu *dateiMenu = new QMenu("Datei");
+    dateiMenu->addAction("Datenbank anlegen...", this, &MainWindow::newDatabase);
     dateiMenu->addAction("Datenbank öffnen...", this, &MainWindow::openDatabase);
     dateiMenu->addAction("Datenbank anonymisieren", this, &MainWindow::anonymizeDatabase);
     dateiMenu->addSeparator();
@@ -93,6 +94,24 @@ bool MainWindow::reopenDatabase(const QString &dbPath)
         }
     }
     return ret;
+}
+
+void MainWindow::newDatabase()
+{
+    QString dbPath = getStandardPath() + QDir::separator() + "DkVerwaltungQt.db3";
+    QString oldDbPath = getStringFromIni("DBPath", dbPath);
+    dbPath = QFileDialog::getSaveFileName(this, QStringLiteral("Datenbank anlegen"), oldDbPath, "sqlite3 (*.db3 *.dkdb)");
+    if(!dbPath.isEmpty())
+    {
+        if (!reopenDatabase(dbPath))
+        {
+            if (!openConnection(oldDbPath))
+            {
+                QMessageBox::warning(this, QStringLiteral("Fehler"), QStringLiteral("Weder ") + dbPath + " noch " + oldDbPath + " können geöffnet werden!");
+            }
+        }
+    }
+    qDebug() << "dbPath from ini: " << dbPath;
 }
 
 void MainWindow::openDatabase()

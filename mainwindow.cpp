@@ -15,6 +15,9 @@
 #include <QProcess>
 #include <QStandardPaths>
 
+#include <QApplication>
+#include <QSqlQuery>
+
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
    setWindowTitle("DkVerwaltungQt");
@@ -44,6 +47,9 @@ void MainWindow::createMenu()
     dateiMenu->addSeparator();
     dateiMenu->addAction("DkVerwaltungQt -> DKV2", this, &MainWindow::DkVerwaltungQtToDKV2);
     dateiMenu->addAction("DKV2 -> DkVerwaltungQt", this, &MainWindow::DKV2ToDkVerwaltungQt);
+    dateiMenu->addSeparator();
+    dateiMenu->addAction("DkVerwaltungQt-Tables -> DKV2-Views", this, &MainWindow::DkVerwaltungQtTablesToDKV2Views);
+    dateiMenu->addAction("DKV2-Views -> DkVerwaltungQt-Tables", this, &MainWindow::DKV2ViewsToDkVerwaltungQtTables);
     dateiMenu->addSeparator();
     dateiMenu->addAction("Compare DKV2 DkVerwaltungQt with DKV2", this, &MainWindow::compareDkVerwaltungQtWithDKV2);
     dateiMenu->addAction("Compare DKV2 with DkVerwaltungQt as Csv", this, &MainWindow::compareDKV2WithDkVerwaltungQtAsCsv);
@@ -126,8 +132,11 @@ int MainWindow::executeCommand(const QString &commandLine)
     int retCode = run_executeCommand(nullptr, commandLine, stdOutput, stdError);
     if(retCode != 0)
     {
-        QString msg = "Fehler:\n\n";
+        QString msg = QString("Fehler ") + "(" + QString::number(retCode) + ")" + ":\n\n";
         msg += stdError;
+        msg += "\n\n";
+        msg += "command:\n\n";
+        msg += commandLine;
         QMessageBox::warning(this, QStringLiteral("Fehler"), msg);
     }
     else
@@ -146,7 +155,7 @@ void MainWindow::importCsvInternal(const QString & csvFilename)
     closeConnection(dbPath);
     // QFile::remove(dbPath);
     QString sourcePath = getResouresPath();
-    QString commandLine = sourcePath + QDir::separator() + "importCsvIntoDkVerwaltungQt.py" + " " + csvFilename + " " + dbPath;
+    QString commandLine = sourcePath + QDir::separator() + "importCsvIntoDkVerwaltungQt.py" + " " + "\"" + csvFilename + "\"" + " " + "\"" + dbPath + "\"";
     int retCode = executeCommand(commandLine);
     if(retCode == 0)
     {
@@ -263,7 +272,7 @@ void MainWindow::updateTablesInternal(const QString &scriptFilename)
     QString dbPath = getStringFromIni("DBPath", defaultDBPath);
     closeConnection(dbPath);
     QString sourcePath = getResouresPath();
-    QString commandLine = sourcePath + QDir::separator() + scriptFilename + " " + dbPath + " " + dbPath;
+    QString commandLine = sourcePath + QDir::separator() + scriptFilename + " " + "\"" + dbPath + "\"" + " " + "\"" + dbPath + "\"";
     int retCode = executeCommand(commandLine);
     if(retCode == 0)
     {
@@ -292,10 +301,59 @@ void MainWindow::DkVerwaltungQtToDKV2()
     updateTablesInternal("importDkVerwaltungQtIntoDKV2.py");
 }
 
+void MainWindow::DkVerwaltungQtTablesToDKV2Views()
+{
+    if(!isDKV2Database())
+    {
+        QMessageBox::warning(this, QStringLiteral("Fehler"), QStringLiteral("Die Datenbank enthält keine DKV2 Tabellen."));
+        return;
+    }
+    QString defaultDBPath = getStandardPath() + QDir::separator() + "DkVerwaltungQt.db3";
+    QString dbPath = getStringFromIni("DBPath", defaultDBPath);
+    closeConnection(dbPath);
+    openConnection(dbPath);
+    QSqlQuery query;
+    query.prepare("PRAGMA FOREIGN_KEYS = OFF");
+    query.exec();
+    displayLastSqlError();
+    // // mainForm->closeViews();
+    // MainForm *oldMainForm = mainForm;
+    // oldMainForm->hide();
+    // delete oldMainForm;
+    // // oldMainForm->deleteLater();
+    // oldMainForm = nullptr;
+    // // QCoreApplication::removePostedEvents(nullptr, 0);
+    // qApp->sendPostedEvents(0, QEvent::DeferredDelete);
+    createDkVerwaltungQtViewsFromDKV2();
+    // mainForm = new MainForm(this);
+    // setCentralWidget(mainForm);
+    // // mainForm->updateViews();
+    reopenDatabase(dbPath);
+}
+
+void MainWindow::DKV2ViewsToDkVerwaltungQtTables()
+{
+    if(!isDKV2Database())
+    {
+        QMessageBox::warning(this, QStringLiteral("Fehler"), QStringLiteral("Die Datenbank enthält keine DKV2 Tabellen."));
+        return;
+    }
+    QString defaultDBPath = getStandardPath() + QDir::separator() + "DkVerwaltungQt.db3";
+    QString dbPath = getStringFromIni("DBPath", defaultDBPath);
+    closeConnection(dbPath);
+    openConnection(dbPath);
+    dropDkVerwaltungQtViewsFromDKV2();
+    QSqlQuery query;
+    query.prepare("PRAGMA FOREIGN_KEYS = ON");
+    query.exec();
+    displayLastSqlError();
+    reopenDatabase(dbPath);
+}
+
 void MainWindow::exportCsvInternal(const QString &scriptFilename, const QString &dbPath, const QString &csvFilename)
 {
     QString sourcePath = getResouresPath();
-    QString commandLine = sourcePath + QDir::separator() + scriptFilename + " " + dbPath + " " + csvFilename;
+    QString commandLine = sourcePath + QDir::separator() + scriptFilename + " " + "\"" + dbPath + "\"" + " " + "\"" + csvFilename + "\"";
     int retCode = executeCommand(commandLine);
 }
 
@@ -340,7 +398,7 @@ void MainWindow::compareDkVerwaltungQtWithDKV2()
     QString defaultDBPath = getStandardPath() + QDir::separator() + "DkVerwaltungQt.db3";
     QString dbPath = getStringFromIni("DBPath", defaultDBPath);
     QString sourcePath = getResouresPath();
-    QString commandLine = sourcePath + QDir::separator() + "compareDkVerwaltungQtWithDKV2.py" + " " + dbPath + " " + dbPath;
+    QString commandLine = sourcePath + QDir::separator() + "compareDkVerwaltungQtWithDKV2.py" + " "  + "\"" + dbPath  + "\"" + " "  + "\"" + dbPath  + "\"";
     int retCode = executeCommand(commandLine);
 }
 

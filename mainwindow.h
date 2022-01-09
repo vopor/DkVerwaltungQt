@@ -29,10 +29,12 @@ private slots:
     void importOdsIntoDkVerwaltungQt();
     void importDkVerwaltungQtIntoDkVerwaltungQt();
     void importDKV2IntoDkVerwaltungQt();
-    void DKV2ToDkVerwaltungQt();
-    void DkVerwaltungQtToDKV2();
     void exportDkVerwaltungQtToCsv();
     void exportDKV2ToCsv();
+    void DKV2ToDkVerwaltungQt();
+    void DkVerwaltungQtToDKV2();
+    void DkVerwaltungQtTablesToDKV2Views();
+    void DKV2ViewsToDkVerwaltungQtTables();
     void compareDkVerwaltungQtWithDKV2();
     void compareDKV2WithDkVerwaltungQtAsCsv();
     void showAnsparrechner();

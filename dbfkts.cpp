@@ -139,6 +139,10 @@ int run_executeCommand(QWidget *button, const QString &commandLine, QString &std
             if(process->exitStatus()  == QProcess::NormalExit){
                 qDebug() << commandLine << " exited normal: " << process->processId() << "exitcode: " << process->exitCode();
                 QByteArray output = process->readAllStandardOutput();
+                if(output.length() == 0)
+                {
+                    output = process->readAllStandardError();;
+                }
                 qDebug() << output;
                 stdOutput = output;
                 retCode = process->exitCode();
@@ -270,7 +274,7 @@ bool createDkVerwaltungQtViewsFromDKV2()
         c = getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='DKBuchungen'");
         if(c)
         {
-            c = getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='DKPersonenTable'");
+            c = getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='DKBuchungenTable'");
             if(!c)
             {
                 db.exec("ALTER TABLE DKBuchungen RENAME TO DKBuchungenTable;");
@@ -345,10 +349,60 @@ bool createDkVerwaltungQtViewsFromDKV2()
             db.exec("DROP VIEW DKZinssaetze;");
             displayLastSqlError();
         }
-        db.exec("CREATE VIEW DKZinssaetze AS SELECT ZSatz / 100.0 AS Zinssatz, NULL AS Beschreibung FROM Vertaege GROUP BY ZSatz ORDER BY ZSatz;");
+        db.exec("CREATE VIEW DKZinssaetze AS SELECT ZSatz / 100.0 AS Zinssatz, NULL AS Beschreibung FROM Vertraege GROUP BY ZSatz ORDER BY ZSatz;");
         displayLastSqlError();
         // TODO
         // reconnect readonly
+    }
+    return b;
+}
+
+bool dropDkVerwaltungQtViewsFromDKV2()
+{
+    QSqlDatabase db = QSqlDatabase::database();
+    bool b = isDKV2Database();
+    if(b)
+    {
+        int c = 0;
+        // DKPersonen-Table
+        c = getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='view' AND name='DKPersonen'");
+        if(c)
+        {
+            c = getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='DKPersonenTable'");
+            if(c)
+            {
+                db.exec("DROP VIEW DKPersonen;");
+                displayLastSqlError();
+                db.exec("ALTER TABLE DKPersonenTable RENAME TO DKPersonen;");
+                displayLastSqlError();
+            }
+        }
+        // DKBuchungen-Table
+        c = getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='view' AND name='DKBuchungen'");
+        if(c)
+        {
+            c = getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='DKBuchungenTable'");
+            if(c)
+            {
+                db.exec("DROP VIEW DKBuchungen;");
+                displayLastSqlError();
+                db.exec("ALTER TABLE DKBuchungenTable RENAME TO DKBuchungen;");
+                displayLastSqlError();
+            }
+        }
+        // DKZinssaetze-Table
+        c = getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='view' AND name='DKZinssaetze'");
+        if(c)
+        {
+            c = getIntValue("SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='DKZinssaetzeTable'");
+            if(c)
+            {
+                db.exec("DROP VIEW DKZinssaetze;");
+                displayLastSqlError();
+                db.exec("ALTER TABLE DKZinssaetzeTable RENAME TO DKZinssaetze;");
+                displayLastSqlError();
+            }
+        }
     }
     return b;
 }

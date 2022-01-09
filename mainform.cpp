@@ -11,6 +11,8 @@
 
 #include <QStyledItemDelegate>
 
+#include <QPrinter>
+
 class NumberFormatDelegate : public QStyledItemDelegate
 {
 public:
@@ -286,6 +288,15 @@ int openTerminal(const QString &path, const QString &command=QString())
     return QProcess::startDetached("osascript",  QStringList() << "-e" << scriptCmd);
 }
 
+namespace {
+
+double cm2Pt(double cm)
+{
+    return cm * 28.3465;
+}
+
+}
+
 void MainForm::generateJahresDkBestaetigungen()
 {
     if(!checkPrerequisitesExists()){
@@ -492,10 +503,39 @@ void MainForm::generateJahresDkBestaetigungen()
                 continue;
             writeHtmlTextToHtmlFile(personFileNameHtml, str);
 
+            
             QString fileNamePdf = personFileNameHtml;
             fileNamePdf = fileNamePdf.replace(".html", ".pdf");
-            qDebug() << "convertHtmlFileToPdfFile " << personFileNameHtml << " => " << fileNamePdf;
-            convertHtmlFileToPdfFile(personFileNameHtml, fileNamePdf);
+
+
+            // Auflösung ist noch nicht befriedigend
+            if(true)
+            {
+                qDebug() << "convertHtmlFileToPdfFile " << personFileNameHtml << " => " << fileNamePdf;
+                convertHtmlFileToPdfFile(personFileNameHtml, fileNamePdf);
+            }
+            else
+            {
+                QTextDocument doc;
+                doc.setHtml(str);
+                QPrinter printer;
+                printer.setOutputFormat(QPrinter::PdfFormat);
+                QPageLayout pl =printer.pageLayout ();
+                double leftB   = cm2Pt(3.); // breiter für Lochung
+                double topB    = cm2Pt(1.); // logo darf in den oberen Rand reichen
+                double rightB  = cm2Pt(0.); // logo darf in den Rand reichen
+                double bottomB = cm2Pt(2.);
+                pl.setPageSize (QPageSize(QPageSize::A4) /*, QMargins(leftB, topB,rightB, bottomB)*/);
+                printer.setPageLayout (pl);
+                printer.setOutputFileName(fileNamePdf);
+
+                QSizeF htmlSize = pl.pageSize ().size (QPageSize::Unit::Point);
+                htmlSize.setWidth  (htmlSize.width() -leftB -rightB);
+                htmlSize.setHeight (htmlSize.height() -topB -bottomB);
+                doc.setPageSize(htmlSize);
+                doc.print(&printer);
+            }
+
             if(!sendenCheckBox->isChecked())
             {
                 if(nurCheckBox->isChecked())
@@ -859,6 +899,11 @@ void MainForm::updateViews()
 {
     updatePersonenView();
     updateSummen();
+}
+
+void MainForm::closeViews(){
+    buchungenModel->clear();
+    personenModel->clear();
 }
 
 void MainForm::updatePersonenView()

@@ -26,6 +26,7 @@ public:
 
 public slots:
     void updateViews();
+    void closeViews();
 
 private slots:
 

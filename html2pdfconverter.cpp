@@ -9,7 +9,8 @@ Html2PdfConverter::Html2PdfConverter(QString inputPath, QString outputPath)
     , m_outputPath(move(outputPath))
     , m_page(new QWebEnginePage)
 {
-    // m_printer.setResolution(300);
+    int resolution = m_printer.resolution();
+    m_printer.setResolution(resolution);
     // m_printer.setFullPage(true);
     m_printer.setPageMargins(QMarginsF(25, 25, 25, 25), QPageLayout::Millimeter);
     m_printer.setPageSize(QPageSize(QPageSize::A4));

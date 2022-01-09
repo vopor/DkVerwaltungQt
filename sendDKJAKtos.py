@@ -150,7 +150,7 @@ def ask_to_continue2():
 def getContent():
 	return """
 	die Bewohner*innen des Wohnprojekts 472 wünschen ein schönes neues Jahr und bedanken sich herzlich für die Unterstützung. 
-        Dies ist der Kontoauszug Deiner/Ihrer Direktkredite für das Jahr 2020 bei der F13 Turley GmbH.
+        Dies ist der Kontoauszug Deiner/Ihrer Direktkredite für das Jahr 2021 bei der F13 Turley GmbH.
 	Die Zinsen wurden dem Direktkreditkonto gutgeschrieben. 
 	Auf Wunsch erstellen wir eine gesonderte Zinsbescheinigung für die Steuererklärung. 
         Wir bitten um Überprüfung. Falls etwas nicht stimmt oder unverständlich ist, bitte einfach per E-Mail (Kontakt-DK@13hafreiheit.de) oder per Telefon (01575-1183759) bei uns melden.
@@ -167,7 +167,7 @@ def getContent():
 	""".replace('\t', '')
 
 # main
-doIt = False
+doIt = True
 if len(sys.argv) == 2:
     if sys.argv[1] == "s":
         doIt = True
@@ -183,14 +183,10 @@ dirFiles.sort()
 for i in dirFiles:
     if i.endswith(".pdf"):
         if ss in i:
-            # if not (("fischer-stefan@live.de" in i) or (("hapeneumann@googlemail.com" in i))):
-            # if not (("fischer-stefan@live.de" in i)):
-            # if not (("hapeneumann@googlemail.com" in i)):
-            # if not (("evebeyer@gmx.net" in i)):
-            # if not ("VPorzelt@gmx.de" in i):
-            #    continue
-            # if ("VPorzelt@gmx.de" in i):
-            #     doIt = True
+            # if not (("VPorzelt@gmx.de" in i) or (("ina.eggert@posteo.de" in i))):
+            #     continue
+            if not ("VPorzelt@gmx.de" in i):
+               continue
             print i
             counter = counter + 1            
             if not doIt:
@@ -221,7 +217,7 @@ for i in dirFiles:
                     newcontent += "\n"
                     # newcontent += getContent()
                     newcontent += "die Bewohner*innen des Wohnprojekts 472 wünschen ein schönes neues Jahr und bedanken sich herzlich für die Unterstützung." + "\n"
-                    newcontent += "Dies ist der Kontoauszug Deiner/Ihrer Direktkredite für das Jahr 2020 bei der F13 Turley GmbH." + "\n"
+                    newcontent += "Dies ist der Kontoauszug Deiner/Ihrer Direktkredite für das Jahr 2021 bei der F13 Turley GmbH." + "\n"
                     newcontent += "Die Zinsen wurden dem Direktkreditkonto gutgeschrieben." + "\n"
                     newcontent += "Auf Wunsch erstellen wir eine gesonderte Zinsbescheinigung für die Steuererklärung." + "\n"
                     newcontent += "Wir bitten um Überprüfung. Falls etwas nicht stimmt oder unverständlich ist, bitte einfach per E-Mail (Kontakt-DK@13hafreiheit.de) oder Telefon (01575-1183759) bei uns melden." + "\n"
@@ -241,9 +237,10 @@ for i in dirFiles:
                     if sendIt:
                         code = make_message(
                           content = newcontent,
-                          subject = "Kontoauszug 2020 DK F13 Turley GmbH",
+                          subject = "Kontoauszug 2021 DK F13 Turley GmbH",
                           to_addr = email,
-                          from_addr = "13hafreiheit <13hafreiheit@gmx.de>",
+                          from_addr = "\"kontakt-dk@13hafreiheit.de\" <kontakt-dk@13hafreiheit.de>",
+                          # from_addr = "13hafreiheit <13hafreiheit@gmx.de>",
                           send = False,
                           # cc_addr = args.c,
                           # bcc_addr = args.b,

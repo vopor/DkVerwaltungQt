@@ -43,6 +43,7 @@ TARGETDIR = $$shell_path($${OUT_PWD})
 !macx:QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/Zinsbescheinigung.html) $${TARGETDIR}
 !macx:QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/F13TurleyGmbH2.gif) $${TARGETDIR}
 !macx:QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/mail-content.txt) $${TARGETDIR}
+!macx:QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/html2pdf.sh) $${TARGETDIR}
 !macx:QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/importCsvIntoDkVerwaltungQt.py) $${TARGETDIR}
 !macx:QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/importDKV2IntoDkVerwaltungQt.py) $${TARGETDIR}
 !macx:QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/importDkVerwaltungQtIntoDKV2.py) $${TARGETDIR}

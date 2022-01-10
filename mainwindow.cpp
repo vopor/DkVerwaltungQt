@@ -45,6 +45,7 @@ void MainWindow::createMenu()
     dateiMenu->addSeparator();
     dateiMenu->addAction("Export DkVerwaltungQt to Csv...", this, &MainWindow::exportDkVerwaltungQtToCsv);
     dateiMenu->addAction("Export DKV2 to Csv...", this, &MainWindow::exportDKV2ToCsv);
+    dateiMenu->addAction("Export DKV2 to Csv nach JA...", this, &MainWindow::exportDKV2ToCsvNachJA);
     dateiMenu->addSeparator();
     dateiMenu->addAction("DkVerwaltungQt -> DKV2", this, &MainWindow::DkVerwaltungQtToDKV2);
     dateiMenu->addAction("DKV2 -> DkVerwaltungQt", this, &MainWindow::DKV2ToDkVerwaltungQt);
@@ -410,6 +411,16 @@ void MainWindow::exportDKV2ToCsv()
         return;
     }
     exportCsvInternal("exportDKV2ToCsv.py");
+}
+
+void MainWindow::exportDKV2ToCsvNachJA()
+{
+    if(!isDKV2Database())
+    {
+        QMessageBox::warning(this, QStringLiteral("Fehler"), QStringLiteral("Die Datenbank enthält keine DKV2 Tabellen."));
+        return;
+    }
+    exportCsvInternal("exportDKV2ToCsvNachJA.py");
 }
 
 void MainWindow::compareDkVerwaltungQtWithDKV2()

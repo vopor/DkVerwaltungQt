@@ -32,6 +32,7 @@ private slots:
     void importDKV2IntoDkVerwaltungQt();
     void exportDkVerwaltungQtToCsv();
     void exportDKV2ToCsv();
+    void exportDKV2ToCsvNachJA();
     void DKV2ToDkVerwaltungQt();
     void DkVerwaltungQtToDKV2();
     void DkVerwaltungQtTablesToDKV2Views();

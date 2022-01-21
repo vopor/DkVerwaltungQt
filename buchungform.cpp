@@ -267,17 +267,7 @@ void BuchungForm::deleteBuchung()
 }
 
 void BuchungForm::writeDataForDkVorlageBuchung(){
-    // if(!m_PersonIndex.isValid())
-    //    return;
-    // QSqlRecord personRecord = m_personenModel->record(m_PersonIndex.row());
-    // if(personRecord.isNull())
-    //    return;
-    // QString fileName = "DkVerwaltungQt.tmp";
-    // QString dbPath = getSettings().value(QStringLiteral("DBPath")).toString();
-    // QString filePath = dbPath + QDir::separator() + fileName; // todo: add current dir
-    // QString dbPath = getSettings().value(QStringLiteral("DBPath")).toString();
-    QString dbPath = getFilePathFromIni("DBPath", getStandardPath(), "DkVerwaltungQt.db3");
-    QString filePath = dbPath.replace(".db3", ".tmp");
+    QString filePath = getStandardPath() + QDir::separator() + "DkVerwaltungQt.tmp";
     QFile file(filePath);
     if (file.open(QIODevice::WriteOnly | QIODevice::Text)){
         QTextStream out(&file);
@@ -289,7 +279,8 @@ void BuchungForm::writeDataForDkVorlageBuchung(){
             out << m_personenModel->data(m_personenModel->index(m_PersonIndex.row(), DkPersonen_Strasse)).toString() << "\n";
             out << m_personenModel->data(m_personenModel->index(m_PersonIndex.row(), DkPersonen_PLZ)).toString() << "\n";
             out << m_personenModel->data(m_personenModel->index(m_PersonIndex.row(), DkPersonen_Ort)).toString() << "\n";
-            out << m_personenModel->data(m_personenModel->index(m_PersonIndex.row(), DkPersonen_Email)).toString() << "\n";
+            // EMail nicht bei OO-Makro FelderFuellen - > Index out of Range
+            // out << m_personenModel->data(m_personenModel->index(m_PersonIndex.row(), DkPersonen_Email)).toString() << "\n";
         }
         int row = mapper->currentIndex();
         m_BuchungIndex = m_buchungenModel->index(row, 0); // oder einfach row nehmen...

@@ -133,18 +133,17 @@ int run_executeCommand(QWidget *button, const QString &commandLine, QString &std
     if(button) button->setEnabled(false);
     qDebug() << commandLine;
     QPointer<QProcess> process = new QProcess;
-    QMetaObject::Connection connFinished = QObject::connect(process, static_cast<void (QProcess::*)(int exitCode, QProcess::ExitStatus exitStatus)>(&QProcess::finished), [process, button, commandLine, &stdOutput, &retCode] (int exitCode, QProcess::ExitStatus exitStatus){
+    QMetaObject::Connection connFinished = QObject::connect(process, static_cast<void (QProcess::*)(int exitCode, QProcess::ExitStatus exitStatus)>(&QProcess::finished), [process, button, commandLine, &stdOutput, &stdError, &retCode] (int exitCode, QProcess::ExitStatus exitStatus){
         if(process->state() == QProcess::NotRunning){
             qDebug() << commandLine << " finished: " << process->processId();
             if(process->exitStatus()  == QProcess::NormalExit){
                 qDebug() << commandLine << " exited normal: " << process->processId() << "exitcode: " << process->exitCode();
-                QByteArray output = process->readAllStandardOutput();
-                if(output.length() == 0)
-                {
-                    output = process->readAllStandardError();;
-                }
-                qDebug() << output;
-                stdOutput = output;
+                stdOutput =process->readAllStandardOutput();
+                qDebug() << "stdOutput: ";
+                qDebug() << stdOutput;
+                stdError = process->readAllStandardError();;
+                qDebug() << "stdError: ";
+                qDebug() << stdError;
                 retCode = process->exitCode();
             }
         }
@@ -153,18 +152,20 @@ int run_executeCommand(QWidget *button, const QString &commandLine, QString &std
 
     });
     // QObject::connect(process, static_cast<void (QProcess::*)(QProcess::ProcessError error)>(&QProcess::errorOccurred), [process, button, commandLine] (QProcess::ProcessError error)
-    QObject::connect(process, &QProcess::errorOccurred, [process, button, commandLine, &stdError, &retCode] (QProcess::ProcessError error)
-                     {
-                         qDebug() << commandLine << " process error: " << error << " pid: " << process->processId();
-                         QByteArray output = process->readAllStandardError();
-                         qDebug() << output;
-                         stdError = output;
-                         retCode = process->exitCode();
-                         process->deleteLater();
-                         if(button) button->setEnabled(true);
-                         // process = nullptr;
-                     });
-
+    QObject::connect(process, &QProcess::errorOccurred, [process, button, commandLine, &stdOutput, &stdError, &retCode] (QProcess::ProcessError error)
+    {
+        qDebug() << commandLine << " process error: " << error << " pid: " << process->processId();
+        stdOutput =process->readAllStandardOutput();
+        qDebug() << "stdOutput: ";
+        qDebug() << stdOutput;
+        stdError = process->readAllStandardError();;
+        qDebug() << "stdError: ";
+        qDebug() << stdError;
+        retCode = process->exitCode();
+        process->deleteLater();
+        if(button) button->setEnabled(true);
+        // process = nullptr;
+    });
     process->start( commandLine );
     if(process) process->waitForStarted();
     if(process) qDebug() << commandLine << " process started: " << process->processId();

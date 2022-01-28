@@ -10,7 +10,7 @@ INCLUDEPATH += .
 # win32:CONFIG -= debug_and_release
 
 APP_RESOURCES_FILES.files = ./Jahreskontoauszug.html ./Zinsbescheinigung.html ./F13TurleyGmbH2.gif ./sendDKJAKtos.py ./printCommandDescription.sh ./mail-content.txt ./html2pdf.sh
-APP_RESOURCES_FILES.files += ./importCsvIntoDkVerwaltungQt.py ./importDKV2IntoDkVerwaltungQt.py ./importDkVerwaltungQtIntoDKV2.py ./importDkVerwaltungQtIntoDkVerwaltungQt.py
+APP_RESOURCES_FILES.files += ./importCsvIntoDKV2.py ./importCsvIntoDkVerwaltungQt.py ./importDKV2IntoDkVerwaltungQt.py ./importDkVerwaltungQtIntoDKV2.py ./importDkVerwaltungQtIntoDkVerwaltungQt.py
 APP_RESOURCES_FILES.files += ./exportDkVerwaltungQtToCsv.py ./exportDKV2ToCsv.py ./exportDKV2ToCsvNachJA.py ./compareDkVerwaltungQtWithDKV2.py
 
 APP_RESOURCES_FILES.path = Contents/Resources
@@ -44,6 +44,7 @@ TARGETDIR = $$shell_path($${OUT_PWD})
 !macx:QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/F13TurleyGmbH2.gif) $${TARGETDIR}
 !macx:QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/mail-content.txt) $${TARGETDIR}
 !macx:QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/html2pdf.sh) $${TARGETDIR}
+!macx:QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/importCsvIntoDKV2.py) $${TARGETDIR}
 !macx:QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/importCsvIntoDkVerwaltungQt.py) $${TARGETDIR}
 !macx:QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/importDKV2IntoDkVerwaltungQt.py) $${TARGETDIR}
 !macx:QMAKE_POST_LINK +=  && $${COPY} $$shell_path($${PWD}/importDkVerwaltungQtIntoDKV2.py) $${TARGETDIR}

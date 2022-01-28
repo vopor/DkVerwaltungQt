@@ -186,6 +186,11 @@ try:
     print "Anzahl: ", stmt.rowcount
     conn.commit();
 
+    print "Datensätze ohne Betrag löschen: "
+    stmt.execute('DELETE FROM DKVerwaltungOrg WHERE Betrag = "" OR Betrag IS NULL;')
+    print "Anzahl: ", stmt.rowcount
+    conn.commit();
+
     print_anzahl_in_table(stmt, "DKVerwaltungOrg")
 
     stmt.execute('CREATE TABLE DKVerwaltung (Datum TEXT, DKNr TEXT, Vorname TEXT, Name TEXT, Anrede TEXT, DKNummer TEXT, Straße TEXT, PLZ TEXT, Ort TEXT, Email TEXT, Rueckzahlung TEXT, vorgemerkt TEXT, Betrag TEXT, Zinssatz TEXT, Bemerkung TEXT);')
@@ -263,12 +268,14 @@ try:
     # print "Buchungen vor dem aktuellen Jahr löschen: "
     # stmt.execute('DELETE FROM DkBuchungen WHERE substr(Datum,7,2) < (SELECT MAX(substr(Datum,7,2)) FROM DkBuchungen);')
     print "Buchungen ohne Betrag (vor dem aktuellen Jahr) löschen: "
-    stmt.execute('DELETE FROM DkBuchungen WHERE Betrag = 0')
+    stmt.execute('DELETE FROM DkBuchungen WHERE Betrag = 0 OR Betrag IS NULL')
     print "Anzahl: ", stmt.rowcount
 
     print "Stammkapital löschen: "
     stmt.execute('DELETE FROM DkBuchungen WHERE DkNummer = "Stammkapital";')
     print "Anzahl: ", stmt.rowcount
+
+    conn.commit()
 
     if False:
         update_statement = ''

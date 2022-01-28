@@ -35,6 +35,7 @@ void MainWindow::createMenu()
     dateiMenu->addSeparator();
     dateiMenu->addAction("Import Ods into DkVerwaltungQt...", this, &MainWindow::importOdsIntoDkVerwaltungQt);
     dateiMenu->addAction("Import Csv into DkVerwaltungQt...", this, &MainWindow::importCsvIntoDkVerwaltungQt);
+    dateiMenu->addAction("Import Csv into DKV2...", this, &MainWindow::importCsvIntoDKV2);    
     dateiMenu->addAction("Import DkVerwaltungQt into DkVerwaltungQt...", this, &MainWindow::importDkVerwaltungQtIntoDkVerwaltungQt);
     dateiMenu->addAction("Import DKV2 into DkVerwaltungQt...", this, &MainWindow::importDKV2IntoDkVerwaltungQt);
     // dateiMenu->addSeparator();
@@ -150,32 +151,48 @@ int MainWindow::executeCommand(const QString &commandLine)
     QString stdOutput;
     QString stdError;
     int retCode = run_executeCommand(nullptr, commandLine, stdOutput, stdError);
+    QString msg;
     if(retCode != 0)
     {
-        QString msg = QString("Fehler ") + "(" + QString::number(retCode) + ")" + ":\n\n";
+        msg = QString("Fehler ") + "(" + QString::number(retCode) + ")" + ":\n\n";
+    }
+    else
+    {
+        msg = "Hinweis:\n\n";
+    }
+    if(stdOutput.length())
+    {
+        msg += "stdOutput:\n\n";
+        msg += stdOutput;
+        msg += "\n\n";
+    }
+    if(stdError.length())
+    {
+        msg += "stdError:\n\n";
         msg += stdError;
         msg += "\n\n";
-        msg += "command:\n\n";
-        msg += commandLine;
+    }
+    msg += "command:\n\n";
+    msg += commandLine;
+    if(retCode != 0)
+    {
         QMessageBox::warning(this, QStringLiteral("Fehler"), msg);
     }
     else
     {
-        QString msg = "Hinweis:\n\n";
-        msg += stdOutput;
         QMessageBox::information(this, QStringLiteral("Hinweis"), msg);
     }
     return retCode;
 }
 
-void MainWindow::importCsvInternal(const QString & csvFilename)
+void MainWindow::importCsvInternal(const QString &scriptFilename, const QString & csvFilename)
 {
     QString defaultDBPath = getStandardPath() + QDir::separator() + "DkVerwaltungQt.db3";
     QString dbPath = getStringFromIni("DBPath", defaultDBPath);
     closeConnection(dbPath);
     // QFile::remove(dbPath);
     QString sourcePath = getResouresPath();
-    QString commandLine = sourcePath + QDir::separator() + "importCsvIntoDkVerwaltungQt.py" + " " + "\"" + csvFilename + "\"" + " " + "\"" + dbPath + "\"";
+    QString commandLine = sourcePath + QDir::separator() + scriptFilename + " " + "\"" + csvFilename + "\"" + " " + "\"" + dbPath + "\"";
     int retCode = executeCommand(commandLine);
     if(retCode == 0)
     {
@@ -196,7 +213,24 @@ void MainWindow::importCsvIntoDkVerwaltungQt()
         {
             return;
         }
-        importCsvInternal(csvFilename);
+        importCsvInternal("importCsvIntoDkVerwaltungQt.py", csvFilename);
+    }
+}
+
+void MainWindow::importCsvIntoDKV2()
+{
+    QString defaultDBPath = getStandardPath() + QDir::separator() + "DKV2ToolsApp.db3";
+    QString dbPath = getStringFromIni("DBPath", defaultDBPath);
+    QString csvPath = QFileInfo(dbPath).dir().absolutePath();
+    QString csvFilename = QFileDialog::getOpenFileName(this, QStringLiteral("Csv-Datei öffnen"), csvPath, "csv (*.csv)");
+    if(!csvFilename.isEmpty() && !dbPath.isEmpty())
+    {
+        int mbr = QMessageBox::warning(this, QStringLiteral("Csv-Datei importieren?"), QStringLiteral("Sollen die aktuellen DKV2-Daten durch die Csv-Daten ersetzt werden?"), QMessageBox::Yes | QMessageBox::No);
+        if(mbr != QMessageBox::Yes)
+        {
+            return;
+        }
+        importCsvInternal("importCsvIntoDKV2.py", csvFilename);
     }
 }
 
@@ -227,7 +261,7 @@ void MainWindow::importOdsIntoDkVerwaltungQt()
         csvFilename = csvFilename.replace(".ods", ".Journal.csv");
         if(QFileInfo(csvFilename).exists())
         {
-            importCsvInternal(csvFilename);
+            importCsvInternal("importCsvIntoDkVerwaltungQt.py", csvFilename);
         }
         else
         {
